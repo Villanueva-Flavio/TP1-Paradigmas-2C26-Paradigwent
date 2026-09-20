@@ -23,8 +23,12 @@ public class AttackLine {
         }
         return totalPower;
     }
-    public void  addCard(Card card){
+    public void addCard(Card card){
         this.cards.add(card);
+    }
+
+    public void removeCard(Card card){
+        this.cards.remove(card);
     }
 
     public void activateHorn(){
