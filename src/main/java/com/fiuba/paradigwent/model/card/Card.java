@@ -5,11 +5,13 @@ public class Card {
     private final String name;
     private final int basePower;
     private int powerModifier;
+    private final int stackLimite;
 
-    public Card(String id, String name, int basePower) {
+    public Card(String id, String name, int basePower, int stackLimite) {
         this.id = id;
         this.name = name;
         this.basePower = basePower;
+        this.stackLimite = stackLimite;
         this.powerModifier = 0;
     }
 
