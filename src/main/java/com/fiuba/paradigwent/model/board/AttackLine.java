@@ -28,8 +28,10 @@ public class AttackLine {
         this.cards.add(card);
     }
 
-    public void clear(Card card){
-        this.cards.remove(card);
+    public void clear(){
+        for(Card c : cards) {
+            this.cards.remove(c);
+        }
     }
 
     public void activateHorn(){
