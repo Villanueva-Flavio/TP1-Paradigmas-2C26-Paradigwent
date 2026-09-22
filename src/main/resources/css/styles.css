@@ -1,0 +1,121 @@
+/* --- BOTONES DEL MENÚ --- */
+.menu-button {
+    -fx-background-image: url('../images/button.png');
+    -fx-background-size: 100% 100%;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center;
+    -fx-background-color: transparent;
+    -fx-text-fill: #ffd700;
+    -fx-font-family: 'Headstone DEMO'; /* <-- Usar el nombre exacto registrado */
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-pref-width: 240px;
+    -fx-pref-height: 50px;
+}
+
+.menu-button:hover {
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(three-pass-box, gold, 8, 0.5, 0, 0);
+}
+
+.menu-button-dialog {
+    -fx-pref-width: 150px;
+}
+
+/* --- ETIQUETAS --- */
+.menu-label {
+    -fx-text-fill: #ffd700;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Headstone DEMO';
+    -fx-font-size: 18px;
+}
+
+/* --- COMBOBOX --- */
+.menu-combo-box {
+    -fx-background-color: rgba(20, 20, 25, 0.9);
+    -fx-border-color: #b8860b;
+    -fx-border-width: 2px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-pref-width: 240px;
+    -fx-pref-height: 45px;
+    -fx-cursor: hand;
+}
+
+.menu-combo-box:hover {
+    -fx-border-color: #ffd700;
+    -fx-effect: dropshadow(three-pass-box, gold, 6, 0.3, 0, 0);
+}
+
+.menu-combo-box .cell {
+    -fx-font-family: 'Headstone DEMO';
+    -fx-font-size: 14px;
+    -fx-text-fill: #ffd700;
+    -fx-alignment: center;
+    -fx-background-color: transparent;
+}
+
+.menu-combo-box .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 10 0 0;
+}
+
+.menu-combo-box .arrow {
+    -fx-background-color: #ffd700;
+}
+
+/* --- MENÚ DESPLEGABLE --- */
+.combo-box-popup .list-view {
+    -fx-background-color: rgba(20, 20, 25, 0.95);
+    -fx-border-color: #b8860b;
+    -fx-border-width: 2px;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-padding: 0px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.8), 10, 0, 0, 5);
+}
+
+.combo-box-popup .list-view .list-cell {
+    -fx-font-family: 'Headstone DEMO';
+    -fx-font-size: 14px;
+    -fx-text-fill: #ffffff;
+    -fx-background-color: transparent;
+    -fx-alignment: center;
+    -fx-padding: 10px;
+}
+
+.combo-box-popup .list-view .list-cell:filled:hover {
+    -fx-background-color: rgba(184, 134, 11, 0.4);
+    -fx-text-fill: #ffffff;
+}
+
+.combo-box-popup .list-view .list-cell:filled:selected {
+    -fx-background-color: rgba(184, 134, 11, 0.8);
+    -fx-text-fill: #ffd700;
+}
+
+/* --- DIÁLOGOS --- */
+.dialog-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+}
+
+.dialog-box {
+    -fx-background-color: rgba(20, 20, 25, 0.95);
+    -fx-border-color: #b8860b;
+    -fx-border-width: 2px;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-padding: 20px;
+}
+
+.dialog-title {
+    -fx-font-family: 'Headstone DEMO';
+    -fx-text-fill: #ffd700;
+    -fx-font-weight: bold;
+}
+
+.dialog-timer {
+    -fx-font-family: 'Headstone DEMO';
+    -fx-text-fill: #ffffff;
+}

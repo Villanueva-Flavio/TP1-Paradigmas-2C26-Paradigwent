@@ -1,0 +1,165 @@
+@startuml
+
+class Main {
+    + main(args: String[]): void
+}
+
+class View {
+    + start(primaryStage: Stage): void
+}
+
+class Controller {
+    - game: Game
+    + interactCard(): void
+    + interactSkip(): void
+    + updateView(): void
+}
+
+class Game {
+    - finished: boolean
+    + startMatch(): void
+    + getCurrentRound(): Round
+    + checkMatchWinner(): Player
+}
+
+class Round {
+    - roundNumber: int
+    - finished: boolean
+    - passedPlayers: Set<Player>
+    + playCard(player: Player, card: Card, context: GameContext): void
+    + passTurn(player: Player): void
+    + isFinished(): boolean
+    + getResult(): RoundResult
+}
+
+interface Effect {
+    + apply(context: GameContext): void
+}
+
+class GameContext {
+    + getCurrentPlayer(): Player
+    + getOpponent(): Player
+    + getBoard(): Board
+    + getPlayedCard(): Card
+}
+
+class Card {
+    - id: String
+    - name: String
+    - basePower: int
+    - powerModifier: int
+    - maxStack: int
+    + getCurrentPower(): int
+    + modifyPower(modifier: int): void
+    + play(context: GameContext): void
+}
+
+class JSONCardLoader {
+    + loadCards(jsonPath: String): List<Card>
+}
+
+class AttackLine {
+    - activeHorn: boolean
+    + calculateTotalPower(): int
+    + addCard(card: Card): void
+    + activateHorn(): void
+}
+
+class Board {
+    - currentWeather: AttackLineType
+    + calculateTotalPower(player: Player): int
+    + setCurrentWeather(type: AttackLineType): void
+    + discardBoard(p1: Player, p2: Player): void
+}
+
+class Player {
+    - lives: int
+    - roundSkipped: boolean
+    + playCard(card: Card, context: GameContext): void
+    + skip(): void
+    + sendToDiscard(cards: List<Card>): void
+}
+
+class AI {
+    + decideAction(context: GameContext): void
+}
+
+interface AIStrategy {
+    + selectCard(hand: Hand, context: GameContext): Card
+}
+
+class EffectFactory {
+    + createEffect(type: String, param: String): Effect
+}
+
+class Deck
+class Hand
+class Discard
+
+enum RoundResult {
+    PLAYER1_WIN
+    PLAYER2_WIN
+    DRAW
+}
+
+enum CardType {
+    MINION
+    SPECIAL
+    WEATHER
+}
+
+enum AttackLineType {
+    MELEE
+    RANGED
+    SIEGE
+    NONE
+}
+
+enum Faction {
+    FACTION1
+    FACTION2
+    FACTION3
+    FACTION4
+    FACTION5
+    FACTION6
+}
+
+' Relaciones Generales
+Main ..> View
+View ..> Controller
+Controller --> Game
+
+' Dominio Principal
+Game "1" *-- "1" Board
+Game "1" *-- "2" Player
+Game "1" *-- "1..3" Round : orquesta
+
+Round "1" --> "2" Player
+Round "1" --> "1" Board
+Round ..> RoundResult
+
+' Estructura del Tablero
+Board "1" *-- "6" AttackLine
+AttackLine "1" *-- "0..*" Card
+
+' Carta y Modificadores
+Card "1" *-- "0..*" Effect 
+Card --> Faction
+Card --> CardType
+Card --> AttackLineType
+
+' Carga de Datos desde JSON
+JSONCardLoader ..> Card : instancia cartas
+JSONCardLoader ..> EffectFactory : consulta para crear efectos
+
+' Jugador y Mazos
+Player "1" *-- "1" Deck
+Player "1" *-- "1" Hand
+Player "1" *-- "1" Discard
+AI --|> Player
+AI "1" o-- "1" AIStrategy
+
+' Efectos y Contexto
+Effect ..> GameContext
+EffectFactory ..> Effect
+Game ..> GameContext
