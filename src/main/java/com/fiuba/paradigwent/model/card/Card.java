@@ -1,6 +1,6 @@
 package com.fiuba.paradigwent.model.card;
 
-public class Card {
+public abstract class Card {
     private final String id;
     private final String name;
 
@@ -13,5 +13,5 @@ public class Card {
     }
 
 
-    public void play(GameContext context){}
+    public abstract void play(GameContext context);
 }
