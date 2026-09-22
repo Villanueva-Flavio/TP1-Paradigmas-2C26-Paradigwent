@@ -9,6 +9,10 @@ import javafx.scene.text.Font;
 
 public class CollectionMenuView extends VBox {
 
+    /**
+     * Creates a new CollectionMenuView instance.
+     * @param mainView The main View instance.
+    **/
     public CollectionMenuView(View mainView) {
         setSpacing(20);
         setAlignment(Pos.CENTER);

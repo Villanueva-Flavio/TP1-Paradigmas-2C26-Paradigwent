@@ -9,6 +9,10 @@ import javafx.scene.text.Font;
 
 public class FactionsMenuView extends VBox {
 
+    /**
+     * Creates a new FactionsMenuView instance.
+     * @param mainView The main View instance.
+    **/
     public FactionsMenuView(View mainView) {
         setSpacing(20);
         setAlignment(Pos.CENTER);

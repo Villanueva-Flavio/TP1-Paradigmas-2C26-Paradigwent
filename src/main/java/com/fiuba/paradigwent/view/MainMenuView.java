@@ -8,6 +8,11 @@ import javafx.stage.Stage;
 
 public class MainMenuView extends VBox {
 
+    /**
+     * Creates a new MainMenuView instance.
+     * @param mainView The main View instance.
+     * @param stage The Stage instance.
+    **/
     public MainMenuView(View mainView, Stage stage) {
         
         setSpacing(20);

@@ -68,6 +68,10 @@ public class View extends Application {
         primaryStage.show();
     }
 
+    /** 
+     * Sets up the initial configuration for the primary stage, including loading the custom font, setting up the background video, and configuring the stage properties.
+     * @param primaryStage The primary stage of the application.
+    **/
     private void setup(Stage primaryStage){
         loadCustomFont();
         setupBackgroundVideo();
@@ -76,6 +80,10 @@ public class View extends Application {
         primaryStage.setFullScreenExitHint("");
     }
 
+    /** 
+     * Sets the content of the UI overlay to the specified node, positioning it on the right side of the overlay and adding a title image to the left side.
+     * @param node The node to be displayed on the right side of the UI overlay.
+    **/
     public void setContent(Node node) {
         VBox topLeftContainer = new VBox();
         ImageView titleView = createTitleView();
@@ -85,21 +93,44 @@ public class View extends Application {
         uiOverlay.setRight(node);
     }
 
+    // Series of methods to show the different menu views
     public void showMainMenu()       { setContent(mainMenuView);       }
     public void showConfigMenu()     { setContent(configMenuView);     }
     public void showFactionsMenu()   { setContent(factionsMenuView);   }
     public void showCollectionMenu() { setContent(collectionMenuView); }
-
+    
+    /**
+    * Getter methods for root
+    * @return The root StackPane
+    **/
     public StackPane getRoot() { return root; }
+
+    /** 
+     * Getter methods for custom font
+     * @return The custom font object
+    **/
     public Font getCustomFont() { return customFont; }
+
+    /** 
+     * Getter methods for font family name
+     * @return The font family name as a String
+    **/
     public String getFontFamilyName() { return fontFamilyName; }
 
+    /** 
+     * Creates a menu button with the specified text and applies the "menu-button" style class to it.
+     * @param text The text to be displayed on the button.
+     * @return A Button object with the specified text and style.
+    **/
     public Button createMenuButton(String text) {
         Button btn = new Button(text);
         btn.getStyleClass().add("menu-button");
         return btn;
     }
 
+    /** 
+     * Loads a custom font from the specified FONT_PATH and sets it as the customFont and fontFamilyName properties. If the font cannot be loaded, an error message is printed to the console.
+    **/
     private void loadCustomFont() {
         try (InputStream fontStream = getClass().getResourceAsStream(FONT_PATH)) {
             if (fontStream != null) {
@@ -111,6 +142,9 @@ public class View extends Application {
         }
     }
 
+    /** 
+     * Sets up the background video for the main menu. If the video cannot be loaded, a fallback background color is applied to the root StackPane.
+    **/
     private void setupBackgroundVideo() {
         try {
             URL videoResource = getClass().getResource(BACKGROUND_VIDEO_PATH);
@@ -133,6 +167,10 @@ public class View extends Application {
         }
     }
 
+    /** 
+     * Creates an ImageView for the title image, applies a lighting effect to it, and returns the ImageView. If the title image cannot be loaded, null is returned.
+     * @return An ImageView object containing the title image with lighting effect, or null if the image cannot be loaded.
+    **/
     private ImageView createTitleView() {
         try {
             URL titleResource = getClass().getResource(TITLE_IMAGE_PATH);
@@ -140,7 +178,7 @@ public class View extends Application {
                 Image titleImg = new Image(titleResource.toExternalForm());
                 ImageView titleView = new ImageView(titleImg);
                 titleView.setPreserveRatio(true);
-                titleView.setFitWidth(400);
+                titleView.setFitWidth(800);
 
                 Lighting lighting = new Lighting();
                 Light.Distant light = new Light.Distant();

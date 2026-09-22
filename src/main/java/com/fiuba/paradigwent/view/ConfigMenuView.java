@@ -25,6 +25,12 @@ public class ConfigMenuView extends VBox {
     private int countdownSeconds = 10;
     private boolean isUpdatingCombo = false;
 
+    /** 
+     * Creates a new ConfigMenuView instance.
+     * @param mainView The main View instance.
+     * @param stage The Stage instance.
+     * @param resolutions A list of available resolutions.
+    **/
     public ConfigMenuView(View mainView, Stage stage, List<Pair<Integer, Integer>> resolutions) {
         this.mainView = mainView;
         this.stage = stage;
@@ -39,18 +45,30 @@ public class ConfigMenuView extends VBox {
         getChildren().addAll(lblResolution, comboResolution, btnFullscreen, btnBack);
     }
 
+    /** 
+     * Configures the layout of the ConfigMenuView.
+    **/
     private void configureLayout() {
         setSpacing(20);
         setAlignment(Pos.CENTER);
         setPadding(new Insets(0, 80, 0, 0));
     }
 
+    /** 
+     * Creates a label for the resolution setting.
+     * @return A Label instance for the resolution setting.
+    **/
     private Label createResolutionLabel() {
         Label lblResolution = new Label("RESOLUTION");
         lblResolution.getStyleClass().add("menu-label");
         return lblResolution;
     }
 
+    /** 
+     * Creates a ComboBox for selecting the resolution.
+     * @param resolutions A list of available resolutions.
+     * @return A ComboBox instance for selecting the resolution.
+    **/
     private ComboBox<String> createResolutionComboBox(List<Pair<Integer, Integer>> resolutions) {
         ComboBox<String> comboResolution = new ComboBox<>();
         comboResolution.getItems().addAll(resolutions.stream().map(res -> res.getKey() + "x" + res.getValue()).toList());
@@ -60,6 +78,10 @@ public class ConfigMenuView extends VBox {
         return comboResolution;
     }
 
+    /** 
+     * Handles the change of resolution when a new value is selected in the ComboBox.
+     * @param comboResolution The ComboBox instance for selecting the resolution.
+    **/
     private void handleResolutionChange(ComboBox<String> comboResolution) {
         if (isUpdatingCombo) return;
 
@@ -71,6 +93,10 @@ public class ConfigMenuView extends VBox {
         }
     }
 
+    /** 
+     * Creates a button for toggling fullscreen mode.
+     * @return A Button instance for toggling fullscreen mode.
+    **/
     private Button createFullscreenButton() {
         Button btnFullscreen = mainView.createMenuButton(stage.isFullScreen() ? "SET TO WINDOWED" : "SET TO FULLSCREEN");
         btnFullscreen.setOnAction(e -> stage.setFullScreen(!stage.isFullScreen()));
@@ -82,12 +108,20 @@ public class ConfigMenuView extends VBox {
         return btnFullscreen;
     }
 
+    /** 
+     * Creates a button for returning to the main menu.
+     * @return A Button instance for returning to the main menu.
+    **/
     private Button createBackButton() {
         Button btnBack = mainView.createMenuButton("BACK");
         btnBack.setOnAction(e -> mainView.showMainMenu());
         return btnBack;
     }
 
+    /** 
+     * Applies the selected resolution to the stage.
+     * @param resolutionStr The selected resolution in the format "WIDTHxHEIGHT".
+    **/
     private void applyResolution(String resolutionStr) {
         stage.setFullScreen(false);
         String[] dimensions = resolutionStr.split("x");
@@ -99,6 +133,12 @@ public class ConfigMenuView extends VBox {
         stage.centerOnScreen();
     }
 
+    /**
+     * Shows a confirmation overlay when the resolution is changed, allowing the user to confirm or revert the change.
+     * @param comboResolution The ComboBox instance for selecting the resolution.
+     * @param previousRes The previous resolution before the change.
+     * @param newRes The new resolution after the change.
+    **/
     private void showResolutionConfirmationOverlay(ComboBox<String> comboResolution, String previousRes, String newRes) {
         countdownSeconds = 10;
         Label lblTimer = new Label("Rolling back in " + countdownSeconds + " seconds...");
@@ -110,6 +150,14 @@ public class ConfigMenuView extends VBox {
         startConfirmationTimer(overlay, lblTimer, comboResolution, previousRes);
     }
 
+    /**
+     * Creates a confirmation overlay with a timer and buttons for confirming or reverting the resolution change.
+     * @param lblTimer The Label instance displaying the countdown timer.
+     * @param combo The ComboBox instance for selecting the resolution.
+     * @param previousRes The previous resolution before the change.
+     * @param newRes The new resolution after the change.
+     * @return The created confirmation overlay.
+    **/
     private StackPane createConfirmationOverlay(Label lblTimer, ComboBox<String> combo, String previousRes, String newRes) {
         StackPane overlay = new StackPane();
         overlay.getStyleClass().add("dialog-overlay");
@@ -128,6 +176,14 @@ public class ConfigMenuView extends VBox {
         return overlay;
     }
 
+    /**
+     * Creates the buttons for confirming or reverting the resolution change in the confirmation overlay.
+     * @param overlay The StackPane instance representing the confirmation overlay.
+     * @param combo The ComboBox instance for selecting the resolution.
+     * @param previousRes The previous resolution before the change.
+     * @param newRes The new resolution after the change.
+     * @return An HBox containing the confirm and revert buttons.
+    **/
     private HBox createOverlayButtons(StackPane overlay, ComboBox<String> combo, String previousRes, String newRes) {
         Button btnConfirm = mainView.createMenuButton("CONFIRM");
         btnConfirm.getStyleClass().add("menu-button-dialog");
@@ -146,6 +202,13 @@ public class ConfigMenuView extends VBox {
         return container;
     }
 
+    /** 
+     * Starts a countdown timer for the resolution change confirmation, updating the timer label and reverting the resolution if the countdown reaches zero.
+     * @param overlay The StackPane instance representing the confirmation overlay.
+     * @param lblTimer The Label instance displaying the countdown timer.
+     * @param combo The ComboBox instance for selecting the resolution.
+     * @param previousRes The previous resolution before the change.
+    **/
     private void startConfirmationTimer(StackPane overlay, Label lblTimer, ComboBox<String> combo, String previousRes) {
         confirmationTimeline = new Timeline();
         confirmationTimeline.setCycleCount(10);
@@ -162,14 +225,16 @@ public class ConfigMenuView extends VBox {
         confirmationTimeline.play();
     }
 
+    /** 
+     * Reverts the resolution change, stopping the countdown timer and restoring the previous resolution.
+     * @param overlay The StackPane instance representing the confirmation overlay.
+     * @param comboResolution The ComboBox instance for selecting the resolution.
+     * @param previousRes The previous resolution before the change.
+    **/
     private void revertResolution(StackPane overlay, ComboBox<String> comboResolution, String previousRes) {
-        if (confirmationTimeline != null) {
-            confirmationTimeline.stop();
-        }
+        if (confirmationTimeline != null) confirmationTimeline.stop();
         mainView.getRoot().getChildren().remove(overlay);
-
         applyResolution(previousRes);
-
         isUpdatingCombo = true;
         comboResolution.setValue(previousRes);
         currentResolution = previousRes;
