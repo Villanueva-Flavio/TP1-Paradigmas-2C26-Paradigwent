@@ -1,3 +1,3 @@
 package com.fiuba.paradigwent.model.enums;
 
-public enum CardType { MINION, SPECIAL, WEATHER }
+public enum CardType { MINION, EFFECT, WEATHER }
