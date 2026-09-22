@@ -20,4 +20,8 @@ public class Minion extends Card{
         this.powerModifier += modifier;
     }
 
+    @Override
+    public void play(GameContext context) {
+
+    }
 }
