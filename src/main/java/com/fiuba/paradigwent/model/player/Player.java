@@ -1,5 +1,9 @@
 package com.fiuba.paradigwent.model.player;
 
+import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.board.Board;
+import com.fiuba.paradigwent.model.card.Card;
+
 public class Player {
 
     private final String name;
@@ -19,9 +23,10 @@ public class Player {
         for (int i = 0; i < n && !deck.isEmpty(); i++) hand.add(deck.draw());
     }
 
-    public void play(Card c, Board board) {
-        hand.remove(c);
-        c.playOn(board, this);
+    public void play(GameContext context) {
+        hand.remove(context.getPlayedCard());
+        context.getPlayedCard().play(context);
+
     }
 
 

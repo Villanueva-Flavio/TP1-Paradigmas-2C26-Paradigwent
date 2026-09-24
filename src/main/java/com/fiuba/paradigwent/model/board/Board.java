@@ -15,6 +15,13 @@ public class Board {
         this.opponentSide = new PlayerSide(opponent);
     }
 
+    public PlayerSide getPlayerSide() {
+        return playerSide;
+    }
+
+    public PlayerSide getOpponentSide() {
+        return opponentSide;
+    }
 
     public Card getTargetCard() {
         return null;

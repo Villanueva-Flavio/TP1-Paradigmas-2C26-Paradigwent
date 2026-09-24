@@ -12,4 +12,11 @@ public class Hand {
         this.hand = new ArrayList<>();
     }
 
+    public void add(Card card) {
+        this.hand.add(card);
+    }
+
+    public void remove(Card c) {
+        this.hand.remove(c);
+    }
 }
