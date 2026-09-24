@@ -7,12 +7,12 @@ public abstract class Card implements Effect {
     private final String id;
     private final String name;
 
-    private final int stackLimite;
+    private final int stackLimit;
 
-    public Card(String id, String name, int stackLimite) {
+    public Card(String id, String name, int stackLimit) {
         this.id = id;
         this.name = name;
-        this.stackLimite = stackLimite;
+        this.stackLimit = stackLimit;
     }
 
 
