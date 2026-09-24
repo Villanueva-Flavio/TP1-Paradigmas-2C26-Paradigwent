@@ -1,5 +1,9 @@
 package com.fiuba.paradigwent.model;
 
+import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.board.Board;
+import com.fiuba.paradigwent.model.player.Player;
+
 public class GameContext {
     private final Player currentPlayer;
     private final Player opponent;

@@ -1,8 +1,8 @@
 package com.fiuba.paradigwent.model.effect;
 
-import com.fiuba.paradigwent.model.Card;
 import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.Player;
+import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.player.Player;
 
 /* incompleto targetType */
 public class DestroyCreatureEffect implements Effect{
@@ -14,7 +14,7 @@ public class DestroyCreatureEffect implements Effect{
 
     @Override 
     public void apply(GameContext context){
-        Card target = context.getTargetCard();
+        Minion target = context.getTargetCard();
         Player opponent = context.getOpponent();
 
         if(target == null){

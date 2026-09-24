@@ -1,22 +1,22 @@
 package com.fiuba.paradigwent.model.effect;
 
-import com.fiuba.paradigwent.model.Card;
 import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.card.Minion;
 
-public class BuffEffect implements Effect {
+public class ModifyPoweEffect implements Effect {
     private final int amount;
-    
-    public BuffEffect(int amount) {
+
+    public ModifyPoweEffect(int amount) {
         this.amount = amount;
     }
 
-    @Override 
+    @Override
     public void apply(GameContext context){
-        Card target = context.getTargetCard();
+       Minion target = context.getTargetCard();
         if(target != null){
-            target.buff(amount);
+            target.modifyPower(amount);
         } else if (context.getPlayedCard() != null){
-            context.getPlayedCard().buff(amount);
+            context.getPlayedCard().modifyPower(amount);
         }
     }
 }
