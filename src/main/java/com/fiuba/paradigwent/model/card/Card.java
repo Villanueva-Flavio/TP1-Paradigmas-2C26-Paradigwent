@@ -1,6 +1,9 @@
 package com.fiuba.paradigwent.model.card;
 
-public abstract class Card {
+import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.effect.Effect;
+
+public abstract class Card implements Effect {
     private final String id;
     private final String name;
 
@@ -14,4 +17,7 @@ public abstract class Card {
 
 
     public abstract void play(GameContext context);
+
+    public void apply(GameContext context) {
+    }
 }
