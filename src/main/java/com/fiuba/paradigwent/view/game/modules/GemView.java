@@ -68,7 +68,13 @@ public class GemView extends Group {
                 new KeyValue(this.opacityProperty(), 1.0)
             ),
             new KeyFrame(Duration.seconds(0.5),
-                new KeyValue(this.opacityProperty(), 0.0)
+                new KeyValue(this.opacityProperty(), 0.0),
+                new KeyValue(gemParts.get(0).translateXProperty(), gemParts.get(0).getTranslateX() - 10), // reemplazar si es foto
+                new KeyValue(gemParts.get(0).translateYProperty(), gemParts.get(0).getTranslateY() - 10),
+                new KeyValue(gemParts.get(1).translateXProperty(), gemParts.get(1).getTranslateX() + 10),
+                new KeyValue(gemParts.get(1).translateYProperty(), gemParts.get(1).getTranslateY() - 10),
+                new KeyValue(gemParts.get(2).translateXProperty(), gemParts.get(2).getTranslateX() - 10),
+                new KeyValue(gemParts.get(2).translateYProperty(), gemParts.get(2).getTranslateY() + 10)
             )
         );
 

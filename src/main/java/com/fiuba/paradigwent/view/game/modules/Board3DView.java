@@ -83,12 +83,13 @@ public class Board3DView extends Pane {
 
         // Gemas de vida en el tablero
         List<GemView> gems = new ArrayList<GemView>();
-        gems.add(new GemView(GEM_X, OPPONENT_GEM_Y));
         gems.add(new GemView(GEM_X, OPPONENT_SECOND_GEM_Y));
         gems.add(new GemView(GEM_X, PLAYER_GEM_Y));
+        gems.add(new GemView(GEM_X, OPPONENT_GEM_Y));
         gems.add(new GemView(GEM_X, PLAYER_SECOND_GEM_Y));
         
-/*         new Thread(() -> {         // TESTING de destroyGem cada uno
+        
+        /* new Thread(() -> {         // TESTING de destroyGem cada uno
             try {
                 Thread.sleep(5000);
                 for (int i = 0; i < 4; i++) {
