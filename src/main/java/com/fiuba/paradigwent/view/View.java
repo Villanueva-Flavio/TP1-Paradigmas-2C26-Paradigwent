@@ -27,6 +27,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.fiuba.paradigwent.view.game.GameView;
+import com.fiuba.paradigwent.view.menu.CollectionMenuView;
+import com.fiuba.paradigwent.view.menu.ConfigMenuView;
+import com.fiuba.paradigwent.view.menu.FactionsMenuView;
+import com.fiuba.paradigwent.view.menu.MainMenuView;
+
+/**
+ * @brief Application entry point and coordinator for the menu and game views.
+ */
 public class View extends Application {
 
     private static final String CSS_PATH = "/css/styles.css";
@@ -34,11 +43,25 @@ public class View extends Application {
     private static final String TITLE_IMAGE_PATH = "/images/title.png";
     private static final String BACKGROUND_VIDEO_PATH = "/videos/main_menu_background.mp4";
     private static final Integer TEXT_SIZE = 15;
+    private static final double TITLE_PADDING_TOP = 40;          // Esto habrá que pasarlo a diccionarios de cada categoria. eg: CAMERA["Azimuth"], CAMERA["Elevation"], etc.
+    private static final double TITLE_PADDING_LEFT = 60;
+    private static final double TITLE_WIDTH = 800;
+    private static final double LIGHT_AZIMUTH = 45.0;
+    private static final double LIGHT_ELEVATION = 60.0;
+    private static final double TITLE_SURFACE_SCALE = 4.5;
+    private static final int DEFAULT_RESOLUTION_WIDTH = 1920;
+    private static final int DEFAULT_RESOLUTION_HEIGHT = 1080;
+    private static final int CONFIG_RESOLUTION_WIDTH = 1600;
+    private static final int CONFIG_RESOLUTION_HEIGHT = 900;
+    private static final int HD_RESOLUTION_WIDTH = 1280;
+    private static final int HD_RESOLUTION_HEIGHT = 720;
+    private static final int LAPTOP_RESOLUTION_WIDTH = 1366;
+    private static final int LAPTOP_RESOLUTION_HEIGHT = 768;
     private static final List<Pair<Integer, Integer>> SUPPORTED_RESOLUTIONS = new ArrayList<>(Arrays.asList(
-            new Pair<>(1920, 1080),
-            new Pair<>(1600, 900),
-            new Pair<>(1280, 720),
-            new Pair<>(1366, 768)
+            new Pair<>(DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT),
+            new Pair<>(CONFIG_RESOLUTION_WIDTH, CONFIG_RESOLUTION_HEIGHT),
+            new Pair<>(HD_RESOLUTION_WIDTH, HD_RESOLUTION_HEIGHT),
+            new Pair<>(LAPTOP_RESOLUTION_WIDTH, LAPTOP_RESOLUTION_HEIGHT)
     ));
     private StackPane root = new StackPane();
     private BorderPane uiOverlay = new BorderPane();
@@ -48,7 +71,12 @@ public class View extends Application {
     private ConfigMenuView configMenuView;
     private FactionsMenuView factionsMenuView;
     private CollectionMenuView collectionMenuView;
+    private GameView gameView;
 
+    /**
+     * @brief Initializes the views, scene, stylesheet, and primary stage.
+     * @param primaryStage Stage that hosts the application scene.
+     */
     @Override
     public void start(Stage primaryStage) {
         setup(primaryStage);
@@ -58,6 +86,7 @@ public class View extends Application {
         this.configMenuView = new ConfigMenuView(this, primaryStage, SUPPORTED_RESOLUTIONS);
         this.factionsMenuView = new FactionsMenuView(this);
         this.collectionMenuView = new CollectionMenuView(this);
+        this.gameView = new GameView();
 
         showMainMenu();
         root.getChildren().add(uiOverlay);
@@ -69,7 +98,7 @@ public class View extends Application {
     }
 
     /** 
-     * Sets up the initial configuration for the primary stage, including loading the custom font, setting up the background video, and configuring the stage properties.
+    * @brief Loads shared assets and configures the primary stage.
      * @param primaryStage The primary stage of the application.
     **/
     private void setup(Stage primaryStage){
@@ -81,46 +110,58 @@ public class View extends Application {
     }
 
     /** 
-     * Sets the content of the UI overlay to the specified node, positioning it on the right side of the overlay and adding a title image to the left side.
-     * @param node The node to be displayed on the right side of the UI overlay.
+    * @brief Replaces the current menu content and restores the title area.
+    * @param node Menu node displayed on the right side of the overlay.
     **/
     public void setContent(Node node) {
         VBox topLeftContainer = new VBox();
         ImageView titleView = createTitleView();
-        topLeftContainer.setPadding(new Insets(40, 0, 0, 60));
+        topLeftContainer.setPadding(new Insets(TITLE_PADDING_TOP, 0, 0, TITLE_PADDING_LEFT));
         topLeftContainer.getChildren().add(titleView);
+        uiOverlay.setCenter(null);
         uiOverlay.setLeft(topLeftContainer);
         uiOverlay.setRight(node);
     }
 
-    // Series of methods to show the different menu views
+    /**
+     * @brief Shows the game board and removes menu regions from the overlay.
+     */
+    public void showGameView()       {
+        uiOverlay.setLeft(null);
+        uiOverlay.setRight(null);
+        uiOverlay.setCenter(gameView.getRootNode());
+    }
+    /** @brief Shows the main menu. */
     public void showMainMenu()       { setContent(mainMenuView);       }
+    /** @brief Shows the configuration menu. */
     public void showConfigMenu()     { setContent(configMenuView);     }
+    /** @brief Shows the factions menu. */
     public void showFactionsMenu()   { setContent(factionsMenuView);   }
+    /** @brief Shows the collection menu. */
     public void showCollectionMenu() { setContent(collectionMenuView); }
     
     /**
-    * Getter methods for root
-    * @return The root StackPane
+    * @brief Returns the root node that contains the background and overlay.
+    * @return Root StackPane of the application.
     **/
     public StackPane getRoot() { return root; }
 
     /** 
-     * Getter methods for custom font
-     * @return The custom font object
+    * @brief Returns the loaded custom font.
+    * @return Custom font, or null when the asset could not be loaded.
     **/
     public Font getCustomFont() { return customFont; }
 
     /** 
-     * Getter methods for font family name
-     * @return The font family name as a String
+    * @brief Returns the active font family name.
+    * @return Font family name used by the application.
     **/
     public String getFontFamilyName() { return fontFamilyName; }
 
     /** 
-     * Creates a menu button with the specified text and applies the "menu-button" style class to it.
-     * @param text The text to be displayed on the button.
-     * @return A Button object with the specified text and style.
+    * @brief Creates a button styled for the application menus.
+    * @param text Text displayed by the button.
+    * @return New button with the menu style class applied.
     **/
     public Button createMenuButton(String text) {
         Button btn = new Button(text);
@@ -129,7 +170,7 @@ public class View extends Application {
     }
 
     /** 
-     * Loads a custom font from the specified FONT_PATH and sets it as the customFont and fontFamilyName properties. If the font cannot be loaded, an error message is printed to the console.
+    * @brief Loads the configured custom font and updates the active family name.
     **/
     private void loadCustomFont() {
         try (InputStream fontStream = getClass().getResourceAsStream(FONT_PATH)) {
@@ -143,7 +184,8 @@ public class View extends Application {
     }
 
     /** 
-     * Sets up the background video for the main menu. If the video cannot be loaded, a fallback background color is applied to the root StackPane.
+    * @brief Loads and loops the main menu background video.
+    * If the video is unavailable, applies a solid fallback background.
     **/
     private void setupBackgroundVideo() {
         try {
@@ -168,8 +210,8 @@ public class View extends Application {
     }
 
     /** 
-     * Creates an ImageView for the title image, applies a lighting effect to it, and returns the ImageView. If the title image cannot be loaded, null is returned.
-     * @return An ImageView object containing the title image with lighting effect, or null if the image cannot be loaded.
+    * @brief Creates the title image view and applies its lighting effect.
+    * @return ImageView with the title asset, or null when the asset cannot be loaded.
     **/
     private ImageView createTitleView() {
         try {
@@ -178,16 +220,16 @@ public class View extends Application {
                 Image titleImg = new Image(titleResource.toExternalForm());
                 ImageView titleView = new ImageView(titleImg);
                 titleView.setPreserveRatio(true);
-                titleView.setFitWidth(800);
+                titleView.setFitWidth(TITLE_WIDTH);
 
                 Lighting lighting = new Lighting();
                 Light.Distant light = new Light.Distant();
-                light.setAzimuth(45.0);
-                light.setElevation(60.0);
+                light.setAzimuth(LIGHT_AZIMUTH);
+                light.setElevation(LIGHT_ELEVATION);
                 light.setColor(Color.WHITE);
 
                 lighting.setLight(light);
-                lighting.setSurfaceScale(4.5);
+                lighting.setSurfaceScale(TITLE_SURFACE_SCALE);
                 titleView.setEffect(lighting);
 
                 return titleView;
@@ -198,6 +240,10 @@ public class View extends Application {
         return null;
     }
 
+    /**
+     * @brief Launches the JavaFX application.
+     * @param args Command-line arguments passed to JavaFX.
+     */
     public static void main(String[] args) {
         launch(args);
     }

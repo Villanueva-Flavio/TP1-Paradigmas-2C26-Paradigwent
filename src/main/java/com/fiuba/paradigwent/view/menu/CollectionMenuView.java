@@ -1,4 +1,6 @@
-package com.fiuba.paradigwent.view;
+package com.fiuba.paradigwent.view.menu;
+
+import com.fiuba.paradigwent.view.View;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

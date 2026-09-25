@@ -1,4 +1,4 @@
-package com.fiuba.paradigwent.view;
+package com.fiuba.paradigwent.view.menu;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -15,6 +15,8 @@ import javafx.util.Duration;
 import javafx.util.Pair;
 
 import java.util.List;
+
+import com.fiuba.paradigwent.view.View;
 
 public class ConfigMenuView extends VBox {
 

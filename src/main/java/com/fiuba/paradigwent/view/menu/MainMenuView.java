@@ -1,4 +1,6 @@
-package com.fiuba.paradigwent.view;
+package com.fiuba.paradigwent.view.menu;
+
+import com.fiuba.paradigwent.view.View;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -25,6 +27,7 @@ public class MainMenuView extends VBox {
         Button btnSettings = mainView.createMenuButton("SETTINGS");
         Button btnExit = mainView.createMenuButton("EXIT");
 
+        btnPlay.setOnAction(e -> mainView.showGameView());
         btnFaction.setOnAction(e -> mainView.showFactionsMenu());
         btnCollection.setOnAction(e -> mainView.showCollectionMenu());
         btnSettings.setOnAction(e -> mainView.showConfigMenu());
