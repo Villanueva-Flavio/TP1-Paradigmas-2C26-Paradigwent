@@ -21,7 +21,7 @@ public class DestroyCreatureEffect implements Effect{
         PlayerSide opponent = context.getBoard().getOpponentSide();
 
         if(target == null){
-            target = context.getBoard().getStrongestCardOf(opponent);
+            target = context.getBoard().getStrongestMiniondOf(opponent);
         } else {
             opponent.getAttackLine(targetType).removeMinion(target);
             opponent.getOwner().sendToDiscard(Collections.singletonList(target));
