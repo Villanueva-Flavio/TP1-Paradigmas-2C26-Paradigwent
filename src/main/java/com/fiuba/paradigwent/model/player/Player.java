@@ -10,22 +10,22 @@ import java.util.List;
 public class Player {
 
     private final String name;
+    private boolean isInRound;
     private int lives = 2;
     private final Deck deck;
     private final Hand hand;
     private final Discard discard;
-    private boolean inRound;
 
     public Player(String name, Deck deck) {
         this.name = name;
         this.deck = deck;
         this.hand = new Hand();
-        draw(10);
+        drawCard(10);
         this.discard = new Discard();
-        this.inRound = true;
+        this.isInRound = true;
     }
 
-    public void draw(int n) {
+    public void drawCard(int n) {
         for (int i = 0; i < n && !deck.isEmpty(); i++) hand.add(deck.draw());
     }
 
@@ -43,12 +43,22 @@ public class Player {
 
 
     public void playRound() {
-        this.inRound = true;
+        this.isInRound = true;
     }
 
     public void skipTurn() {
-        this.inRound = false;
+        this.isInRound = false;
     }
 
+    public void loseLife() {
+        this.lives--;
+    }
 
+    public int getLives() {
+        return this.lives;
+    }
+
+    public String getName() {
+        return this.name;
+    }
 }
