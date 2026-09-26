@@ -24,6 +24,10 @@ public class AttackLine {
         this.minions.add(minion);
     }
 
+    public void removeMinion(Minion minion){
+        this.minions.remove(minion);
+    }
+
 
     public void activateHorn(){
         this.activateHorn = true;
