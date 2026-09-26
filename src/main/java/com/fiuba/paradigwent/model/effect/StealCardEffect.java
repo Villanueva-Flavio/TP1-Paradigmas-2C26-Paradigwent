@@ -11,8 +11,6 @@ public class StealCardEffect implements Effect {
 
     @Override
     public void apply(GameContext context){
-        for(int i = 0; i < amount; i++){
-            context.getCurrentPlayer().drawCard();
-        }
+       context.getCurrentPlayer().drawCard(amount);
     }
 }

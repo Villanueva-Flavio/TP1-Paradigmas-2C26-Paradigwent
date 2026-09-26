@@ -32,6 +32,7 @@ public class Player {
         this.hand.remove(context.getPlayedCard());
         context.getPlayedCard().play(context);
 
+
     }
 
     public void sendToDiscard(List<? extends Card> cards) {
@@ -66,5 +67,13 @@ public class Player {
 
     public String getName() {
         return this.name;
+    }
+
+    public void reviveCard(Card card) {
+        if (discard.getDiscard().contains(card)) {
+
+            discard.remove(card);
+            hand.add(card);
+        }
     }
 }
