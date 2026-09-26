@@ -1,10 +1,9 @@
 package com.fiuba.paradigwent.model.player;
 
 import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.board.Board;
 import com.fiuba.paradigwent.model.card.Card;
 
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
@@ -41,6 +40,13 @@ public class Player {
         }
     }
 
+    public ArrayList<Card> getHand() {
+        return this.hand.getHand();
+    }
+
+    public ArrayList<Card> getDiscard() {
+        return this.discard.getDiscard();
+    }
 
     public void playRound() {
         this.isInRound = true;

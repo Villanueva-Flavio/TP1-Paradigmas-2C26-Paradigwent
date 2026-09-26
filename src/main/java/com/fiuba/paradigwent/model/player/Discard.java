@@ -3,6 +3,7 @@ package com.fiuba.paradigwent.model.player;
 import com.fiuba.paradigwent.model.card.Card;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class Discard {
@@ -21,5 +22,10 @@ public class Discard {
 
     public void remove(Card card) {
         this.discard.remove(card);
+    }
+
+    public ArrayList<Card> getDiscard() {
+        ArrayList<Card> copy = (ArrayList<Card>) List.copyOf(discard);
+        return copy;
     }
 }
