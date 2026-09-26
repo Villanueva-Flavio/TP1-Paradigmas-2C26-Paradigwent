@@ -85,14 +85,12 @@ public class ConfigMenuView extends VBox {
      * @param comboResolution The ComboBox instance for selecting the resolution.
     **/
     private void handleResolutionChange(ComboBox<String> comboResolution) {
-        if (isUpdatingCombo) return;
-
         String selected = comboResolution.getValue();
-        if (selected != null && !selected.equals(currentResolution)) {
-            String previousRes = currentResolution;
-            applyResolution(selected);
-            showResolutionConfirmationOverlay(comboResolution, previousRes, selected);
-        }
+        if (isUpdatingCombo) return;
+        if (selected == null || selected.equals(currentResolution)) return;
+        String previousRes = currentResolution;
+        applyResolution(selected);
+        showResolutionConfirmationOverlay(comboResolution, previousRes, selected);
     }
 
     /** 
@@ -103,8 +101,8 @@ public class ConfigMenuView extends VBox {
         Button btnFullscreen = mainView.createMenuButton(stage.isFullScreen() ? "SET TO WINDOWED" : "SET TO FULLSCREEN");
         btnFullscreen.setOnAction(e -> stage.setFullScreen(!stage.isFullScreen()));
 
-        stage.fullScreenProperty().addListener((obs, wasFS, isFS) -> {
-            btnFullscreen.setText(isFS ? "SET TO WINDOWED" : "SET TO FULLSCREEN");
+        stage.fullScreenProperty().addListener((obs, wasFullScreen, isFullScreen) -> {
+            btnFullscreen.setText(isFullScreen ? "SET TO WINDOWED" : "SET TO FULLSCREEN");
         });
 
         return btnFullscreen;
@@ -125,14 +123,11 @@ public class ConfigMenuView extends VBox {
      * @param resolutionStr The selected resolution in the format "WIDTHxHEIGHT".
     **/
     private void applyResolution(String resolutionStr) {
-        stage.setFullScreen(false);
         String[] dimensions = resolutionStr.split("x");
         int width = Integer.parseInt(dimensions[0]);
         int height = Integer.parseInt(dimensions[1]);
 
-        stage.setWidth(width);
-        stage.setHeight(height);
-        stage.centerOnScreen();
+        mainView.applyResolution(stage, width, height);
     }
 
     /**

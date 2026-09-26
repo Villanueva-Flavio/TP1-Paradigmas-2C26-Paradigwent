@@ -20,12 +20,12 @@ public class BoardZoneView extends StackPane {
 
         Rectangle fondo = new Rectangle(width, height, GameView.COLOR.get("BoardBackground"));
         fondo.setStroke(strokeColor);
-        fondo.setStrokeWidth(1.5);
-        fondo.setArcWidth(6);
-        fondo.setArcHeight(6);
+        fondo.setStrokeWidth(width * (1.5 / 60.0));
+        fondo.setArcWidth(width * 0.1);
+        fondo.setArcHeight(width * 0.1);
 
         Text etiqueta = new Text(labelText);
-        etiqueta.setFont(Font.font("System", FontWeight.SEMI_BOLD, 11));
+        etiqueta.setFont(Font.font("System", FontWeight.SEMI_BOLD, width * (11.0 / 60.0)));
         etiqueta.setTextAlignment(TextAlignment.CENTER);
         etiqueta.setFill(Color.LIGHTGRAY);
 

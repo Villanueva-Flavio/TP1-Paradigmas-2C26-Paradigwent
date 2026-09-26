@@ -16,13 +16,14 @@ import java.util.ArrayList;
 
 public class GemView extends Group {
     private List<Rectangle> gemParts = new ArrayList<>();
+    private final double size;
 
-    private void setGemSpecifications(Rectangle gemPart, double rotation, double translateX, double translateY) {
+    private void setGemSpecifications(Rectangle gemPart, double rotation, double translateX, double translateY, double size) {
         gemPart.setRotate(rotation);
-        gemPart.setTranslateX(translateX);
-        gemPart.setTranslateY(translateY);
-        gemPart.setArcHeight(5);
-        gemPart.setArcWidth(5);
+        gemPart.setTranslateX(translateX * size / 24.0);
+        gemPart.setTranslateY(translateY * size / 24.0);
+        gemPart.setArcHeight(size * 5.0 / 24.0);
+        gemPart.setArcWidth(size * 5.0 / 24.0);
     }
 
     private void setGemAnimation(Group gem, double scaleX, double scaleY, double duration) {
@@ -42,17 +43,18 @@ public class GemView extends Group {
         pulse.play();
     }
 
-    public GemView(double x, double y) {
+    public GemView(double x, double y, double size) {
+        this.size = size;
         setLayoutX(x);
         setLayoutY(y);
 
-        gemParts.add(new Rectangle(24, 24, GameView.COLOR.get("Gem")));
-        gemParts.add(new Rectangle(24, 24, GameView.COLOR.get("Gem")));
-        gemParts.add(new Rectangle(24, 24, GameView.COLOR.get("Gem")));
+        gemParts.add(new Rectangle(size, size, GameView.COLOR.get("Gem")));
+        gemParts.add(new Rectangle(size, size, GameView.COLOR.get("Gem")));
+        gemParts.add(new Rectangle(size, size, GameView.COLOR.get("Gem")));
 
-        setGemSpecifications(gemParts.get(0), 45, 0, 8);
-        setGemSpecifications(gemParts.get(1), 48, -10, -2);
-        setGemSpecifications(gemParts.get(2), 43, 10, -2);
+        setGemSpecifications(gemParts.get(0), 45, 0, 8, size);
+        setGemSpecifications(gemParts.get(1), 48, -10, -2, size);
+        setGemSpecifications(gemParts.get(2), 43, 10, -2, size);
 
         Group heartContainer = new Group(gemParts.get(0), gemParts.get(1), gemParts.get(2));
         heartContainer.setEffect(new Glow(0.5));
@@ -69,12 +71,12 @@ public class GemView extends Group {
             ),
             new KeyFrame(Duration.seconds(0.5),
                 new KeyValue(this.opacityProperty(), 0.0),
-                new KeyValue(gemParts.get(0).translateXProperty(), gemParts.get(0).getTranslateX() - 10), // reemplazar si es foto
-                new KeyValue(gemParts.get(0).translateYProperty(), gemParts.get(0).getTranslateY() - 10),
-                new KeyValue(gemParts.get(1).translateXProperty(), gemParts.get(1).getTranslateX() + 10),
-                new KeyValue(gemParts.get(1).translateYProperty(), gemParts.get(1).getTranslateY() - 10),
-                new KeyValue(gemParts.get(2).translateXProperty(), gemParts.get(2).getTranslateX() - 10),
-                new KeyValue(gemParts.get(2).translateYProperty(), gemParts.get(2).getTranslateY() + 10)
+                new KeyValue(gemParts.get(0).translateXProperty(), gemParts.get(0).getTranslateX() - size * 10 / 24),
+                new KeyValue(gemParts.get(0).translateYProperty(), gemParts.get(0).getTranslateY() - size * 10 / 24),
+                new KeyValue(gemParts.get(1).translateXProperty(), gemParts.get(1).getTranslateX() + size * 10 / 24),
+                new KeyValue(gemParts.get(1).translateYProperty(), gemParts.get(1).getTranslateY() - size * 10 / 24),
+                new KeyValue(gemParts.get(2).translateXProperty(), gemParts.get(2).getTranslateX() - size * 10 / 24),
+                new KeyValue(gemParts.get(2).translateYProperty(), gemParts.get(2).getTranslateY() + size * 10 / 24)
             )
         );
 

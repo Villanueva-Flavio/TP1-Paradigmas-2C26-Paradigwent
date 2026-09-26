@@ -14,37 +14,34 @@ import javafx.scene.text.Text;
 
 public class RowView extends StackPane {
 
-    private static final double ROW_WIDTH = 700;
-    private static final double ROW_HEIGHT = 120;
+    public RowView(String labelText, Color strokeColor, double rowWidth, double rowHeight) {
+        setPrefSize(rowWidth, rowHeight);
+        setMaxSize(rowWidth, rowHeight);
 
-    public RowView(String labelText, Color strokeColor) {
-        setPrefSize(ROW_WIDTH, ROW_HEIGHT);
-        setMaxSize(ROW_WIDTH, ROW_HEIGHT);
-
-        Rectangle rectFila = new Rectangle(ROW_WIDTH, ROW_HEIGHT, GameView.COLOR.get("Row"));
+        Rectangle rectFila = new Rectangle(rowWidth, rowHeight, GameView.COLOR.get("Row"));
         rectFila.setStroke(strokeColor);
-        rectFila.setStrokeWidth(1.5);
-        rectFila.setArcWidth(8);
-        rectFila.setArcHeight(8);
+        rectFila.setStrokeWidth(rowWidth * (1.5 / 700.0));
+        rectFila.setArcWidth(rowWidth * (8.0 / 700.0));
+        rectFila.setArcHeight(rowWidth * (8.0 / 700.0));
 
         Text text = new Text(labelText);
-        text.setFont(Font.font("System", FontWeight.BOLD, 12));
+        text.setFont(Font.font("System", FontWeight.BOLD, rowHeight * 0.1));
         text.setFill(GameView.COLOR.get("RowText"));
         StackPane.setAlignment(text, Pos.CENTER_LEFT);
-        text.setTranslateX(15);
+        text.setTranslateX(rowWidth * (15.0 / 700.0));
 
-        HBox slotsCartas = new HBox(10);
+        HBox slotsCartas = new HBox(rowWidth * (10.0 / 700.0));
         slotsCartas.setAlignment(Pos.CENTER);
 
-        slotsCartas.setTranslateX(20);
+        slotsCartas.setTranslateX(rowWidth * (20.0 / 700.0));
 
         for (int i = 0; i < 9; i++) {
-            Rectangle cartaDummy = new Rectangle(60, 100, GameView.COLOR.get("DummyCard"));
+            Rectangle cartaDummy = new Rectangle(rowWidth * (60.0 / 700.0), rowHeight * (100.0 / 120.0), GameView.COLOR.get("DummyCard"));
             cartaDummy.setStroke(GameView.COLOR.get("DummyCardStroke"));
-            cartaDummy.setStrokeWidth(1);
-            cartaDummy.setArcWidth(4);
-            cartaDummy.setArcHeight(4);
-            cartaDummy.setEffect(new DropShadow(4, GameView.COLOR.get("DummyCardShadow")));
+            cartaDummy.setStrokeWidth(rowWidth * (1.0 / 700.0));
+            cartaDummy.setArcWidth(rowWidth * (4.0 / 700.0));
+            cartaDummy.setArcHeight(rowWidth * (4.0 / 700.0));
+            cartaDummy.setEffect(new DropShadow(rowWidth * (4.0 / 700.0), GameView.COLOR.get("DummyCardShadow")));
             slotsCartas.getChildren().add(cartaDummy);
         }
 

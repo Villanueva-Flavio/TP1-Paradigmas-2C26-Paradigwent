@@ -1,18 +1,20 @@
 package com.fiuba.paradigwent.view.game;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
 import javafx.scene.Group;
 import javafx.scene.Parent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
+import javafx.scene.paint.Color;
+import javafx.scene.control.Button;
 import java.util.Map;
 
+
+
+import com.fiuba.paradigwent.view.View;
 import com.fiuba.paradigwent.view.game.modules.Board3DView;
 
 import java.util.HashMap;
@@ -24,9 +26,10 @@ public class GameView {
     public static final double CONTENT_SCALE = 1.0;
     public static final double MIN_VIEW_WIDTH = 640;
     public static final double MIN_VIEW_HEIGHT = 400;
-    public static final double CONTENT_OFFSET_X = 400;
-    public static final double CONTENT_OFFSET_Y = 80;
-    public static final double CAMERA_ZOOM = 0.70;
+    private static final double CONTENT_OFFSET_Y_RATIO = 0.0740740741;
+    private static final double REFERENCE_WIDTH = 1920;
+    private static final double REFERENCE_HEIGHT = 1080;
+    private static final double REFERENCE_CONTENT_SCALE = REFERENCE_HEIGHT / VIRTUAL_HEIGHT;
     public static final double UI_OPPONENT_X = 465;
     public static final double UI_OPPONENT_Y = 75;
     public static final double UI_PLAYER_X = 465;
@@ -61,11 +64,12 @@ public class GameView {
     private Board3DView capa2Plano3D;
     private Pane capa3UIOverlay;
     private Group contenidoEscalable;
+    private Rectangle dimmer;
 
-    public GameView() {
+    public GameView(View mainView) {
         crearEstructuraCapas();
         construirCapa0Fondo();
-        construirCapa3UI();
+        construirCapa3UI(mainView);
     }
 
     public Parent getRootNode() {
@@ -85,24 +89,42 @@ public class GameView {
         contenidoEscalable = new Group(capa2Plano3D, capa3UIOverlay);
         contenidoEscalable.setManaged(false);
 
+        dimmer = new Rectangle();
+        dimmer.widthProperty().bind(rootContainer.widthProperty());
+        dimmer.heightProperty().bind(rootContainer.heightProperty());
+        dimmer.setFill(Color.rgb(0, 0, 0, 0.65));
+        dimmer.setVisible(false);
+
         NumberBinding escala = Bindings.min(
-            rootContainer.widthProperty().divide(VIRTUAL_WIDTH),
-            rootContainer.heightProperty().divide(VIRTUAL_HEIGHT)
-        ).multiply(CONTENT_SCALE);
+            rootContainer.widthProperty().divide(REFERENCE_WIDTH),
+            rootContainer.heightProperty().divide(REFERENCE_HEIGHT)
+        ).multiply(REFERENCE_CONTENT_SCALE * CONTENT_SCALE);
 
         contenidoEscalable.scaleXProperty().bind(escala);
         contenidoEscalable.scaleYProperty().bind(escala);
-        contenidoEscalable.setTranslateX(CONTENT_OFFSET_X);
-        contenidoEscalable.setTranslateY(CONTENT_OFFSET_Y);
 
         contenidoEscalable.layoutXProperty().bind(
-            rootContainer.widthProperty().subtract(escala.multiply(VIRTUAL_WIDTH)).divide(2)
+            rootContainer.widthProperty().divide(2)
+                .subtract(escala.multiply(VIRTUAL_WIDTH / 2))
         );
         contenidoEscalable.layoutYProperty().bind(
-            rootContainer.heightProperty().subtract(escala.multiply(VIRTUAL_HEIGHT)).divide(2)
+            rootContainer.heightProperty().multiply(CONTENT_OFFSET_Y_RATIO)
         );
 
-        rootContainer.getChildren().addAll(capa0Fondo, contenidoEscalable);
+        rootContainer.getChildren().addAll(capa0Fondo, contenidoEscalable, dimmer);
+        rootContainer.widthProperty().addListener((observable, oldValue, newValue) ->
+            Platform.runLater(this::centerBoardInViewport));
+        rootContainer.heightProperty().addListener((observable, oldValue, newValue) ->
+            Platform.runLater(this::centerBoardInViewport));
+    }
+
+    public void setDimmed(boolean dimmed) {
+        dimmer.setVisible(dimmed);
+        dimmer.setMouseTransparent(!dimmed);
+    }
+
+    public void centerBoardInViewport() {
+        capa2Plano3D.centerInViewport(contenidoEscalable);
     }
 
     private void construirCapa0Fondo() {
@@ -113,19 +135,13 @@ public class GameView {
         capa0Fondo.getChildren().add(fondoMesa);
     }
 
-    private void construirCapa3UI() {
-        Text txtOponente = new Text("ENEMY");
-        txtOponente.setFont(Font.font("System", FontWeight.BOLD, UI_FONT_SIZE));
-        txtOponente.setFill(Color.web("#e63946"));
-        txtOponente.setLayoutX(UI_OPPONENT_X);
-        txtOponente.setLayoutY(UI_OPPONENT_Y);
-
-        Text txtJugador = new Text("PLAYER");
-        txtJugador.setFont(Font.font("System", FontWeight.BOLD, UI_FONT_SIZE));
-        txtJugador.setFill(Color.web("#457b9d"));
-        txtJugador.setLayoutX(UI_PLAYER_X);
-        txtJugador.setLayoutY(UI_PLAYER_Y);
-
-        capa3UIOverlay.getChildren().addAll(txtOponente, txtJugador);
+    private void construirCapa3UI(View mainView) {
+        Button btnBack = mainView.createMenuButton("Options");
+        btnBack.setOnAction(e -> {
+            mainView.showInGameConfigMenu();
+        });
+        btnBack.setLayoutX(VIRTUAL_WIDTH * 0.5);
+        btnBack.setLayoutY(VIRTUAL_HEIGHT * 0.1666666667);
+        capa3UIOverlay.getChildren().add(btnBack);
     }
 }

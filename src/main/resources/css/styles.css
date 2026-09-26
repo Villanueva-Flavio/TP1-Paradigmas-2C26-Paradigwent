@@ -117,3 +117,13 @@
     -fx-font-family: 'Headstone DEMO';
     -fx-text-fill: #ffffff;
 }
+
+.in-game-config-menu {
+    -fx-background-color: rgba(20, 20, 25, 0.97);
+    -fx-border-color: #b8860b;
+    -fx-border-width: 0 0 0 2px;
+}
+
+.global-dimmer {
+    -fx-background-color: rgba(0, 0, 0, 0.65);
+}

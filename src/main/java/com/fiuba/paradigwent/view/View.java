@@ -1,7 +1,9 @@
 package com.fiuba.paradigwent.view;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 
 import javafx.scene.Scene;
 import javafx.scene.Node;
@@ -11,6 +13,7 @@ import javafx.scene.effect.Lighting;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
@@ -18,6 +21,8 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.geometry.Rectangle2D;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 
@@ -27,11 +32,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.fiuba.paradigwent.view.menu.*;
 import com.fiuba.paradigwent.view.game.GameView;
-import com.fiuba.paradigwent.view.menu.CollectionMenuView;
-import com.fiuba.paradigwent.view.menu.ConfigMenuView;
-import com.fiuba.paradigwent.view.menu.FactionsMenuView;
-import com.fiuba.paradigwent.view.menu.MainMenuView;
 
 /**
  * @brief Application entry point and coordinator for the menu and game views.
@@ -65,12 +67,14 @@ public class View extends Application {
     ));
     private StackPane root = new StackPane();
     private BorderPane uiOverlay = new BorderPane();
+    private Pane globalDimmer = new Pane();
     private String fontFamilyName = "System";
     private Font customFont;
     private MainMenuView mainMenuView;
     private ConfigMenuView configMenuView;
     private FactionsMenuView factionsMenuView;
     private CollectionMenuView collectionMenuView;
+    private InGameConfigMenuView inGameConfigMenuView;
     private GameView gameView;
 
     /**
@@ -86,15 +90,22 @@ public class View extends Application {
         this.configMenuView = new ConfigMenuView(this, primaryStage, SUPPORTED_RESOLUTIONS);
         this.factionsMenuView = new FactionsMenuView(this);
         this.collectionMenuView = new CollectionMenuView(this);
-        this.gameView = new GameView();
+        this.inGameConfigMenuView = new InGameConfigMenuView(this, primaryStage, SUPPORTED_RESOLUTIONS);
+        this.gameView = new GameView(this);
 
         showMainMenu();
         root.getChildren().add(uiOverlay);
+        globalDimmer.getStyleClass().add("global-dimmer");
+        globalDimmer.setVisible(false);
+        root.getChildren().add(globalDimmer);
         
         Scene scene = new Scene(root, SUPPORTED_RESOLUTIONS.get(0).getKey(), SUPPORTED_RESOLUTIONS.get(0).getValue());
         scene.getStylesheets().add(cssResource.toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
+        Platform.runLater(() -> {
+            gameView.centerBoardInViewport();
+        });
     }
 
     /** 
@@ -114,6 +125,8 @@ public class View extends Application {
     * @param node Menu node displayed on the right side of the overlay.
     **/
     public void setContent(Node node) {
+        root.getChildren().remove(inGameConfigMenuView);
+        globalDimmer.setVisible(false);
         VBox topLeftContainer = new VBox();
         ImageView titleView = createTitleView();
         topLeftContainer.setPadding(new Insets(TITLE_PADDING_TOP, 0, 0, TITLE_PADDING_LEFT));
@@ -127,9 +140,12 @@ public class View extends Application {
      * @brief Shows the game board and removes menu regions from the overlay.
      */
     public void showGameView()       {
+        root.getChildren().remove(inGameConfigMenuView);
+        globalDimmer.setVisible(false);
         uiOverlay.setLeft(null);
         uiOverlay.setRight(null);
         uiOverlay.setCenter(gameView.getRootNode());
+        gameView.setDimmed(false);
     }
     /** @brief Shows the main menu. */
     public void showMainMenu()       { setContent(mainMenuView);       }
@@ -139,6 +155,19 @@ public class View extends Application {
     public void showFactionsMenu()   { setContent(factionsMenuView);   }
     /** @brief Shows the collection menu. */
     public void showCollectionMenu() { setContent(collectionMenuView); }
+    /** @brief Shows the in-game configuration menu. */
+    public void showInGameConfigMenu() {
+        uiOverlay.setLeft(null);
+        uiOverlay.setCenter(gameView.getRootNode());
+        uiOverlay.setRight(null);
+        gameView.setDimmed(false);
+        globalDimmer.setVisible(true);
+
+        if (!root.getChildren().contains(inGameConfigMenuView)) {
+            root.getChildren().add(inGameConfigMenuView);
+        }
+        StackPane.setAlignment(inGameConfigMenuView, Pos.CENTER_RIGHT);
+    }
     
     /**
     * @brief Returns the root node that contains the background and overlay.
@@ -151,6 +180,21 @@ public class View extends Application {
     * @return Custom font, or null when the asset could not be loaded.
     **/
     public Font getCustomFont() { return customFont; }
+
+    public void applyResolution(Stage stage, int width, int height) {
+        Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+
+        stage.setFullScreen(false);
+        if (width > visualBounds.getWidth() || height > visualBounds.getHeight()) {
+            stage.setMaximized(true);
+            return;
+        }
+
+        stage.setMaximized(false);
+        stage.setWidth(width);
+        stage.setHeight(height);
+        stage.centerOnScreen();
+    }
 
     /** 
     * @brief Returns the active font family name.
