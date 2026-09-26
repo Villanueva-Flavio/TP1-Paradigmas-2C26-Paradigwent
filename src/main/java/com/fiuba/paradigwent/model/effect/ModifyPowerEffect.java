@@ -3,7 +3,7 @@ package com.fiuba.paradigwent.model.effect;
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.card.Minion;
 
-public class ModifyPoweEffect implements Effect {
+public class ModifyPowerEffect implements Effect {
     private final int amount;
 
     public ModifyPoweEffect(int amount) {
@@ -12,11 +12,9 @@ public class ModifyPoweEffect implements Effect {
 
     @Override
     public void apply(GameContext context){
-       Minion target = context.getTargetCard();
+       Minion target = (Minion) context.getTargetCard();
         if(target != null){
             target.modifyPower(amount);
-        } else if (context.getPlayedCard() != null){
-            context.getPlayedCard().modifyPower(amount);
         }
     }
 }
