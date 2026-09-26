@@ -6,7 +6,8 @@ import com.fiuba.paradigwent.model.card.Minion;
 public class ModifyPowerEffect implements Effect {
     private final int amount;
 
-    public ModifyPoweEffect(int amount) {
+
+    public ModifyPowerEffect(int amount) {
         this.amount = amount;
     }
 

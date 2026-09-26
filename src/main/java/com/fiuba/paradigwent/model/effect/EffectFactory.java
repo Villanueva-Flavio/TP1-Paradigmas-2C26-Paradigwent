@@ -6,7 +6,7 @@ public class EffectFactory {
     public static Effect createEffect(String type, String param){
         if (type != null){
             return switch (type.toUpperCase()) {
-                case "BUFF" -> new ModifyPowerEffect(parseParamToInt(param, 1));
+                case "MODIFYPOWER" -> new ModifyPowerEffect(parseParamToInt(param, 1));
                 case "DESTROY", "SCORCH" -> new DestroyCreatureEffect(parseLineType(param));
                 case "DUPLICATE_LINE", "HORN" -> new DuplicateLineEffect(parseLineType(param));
                 case "STEAL_CARD" -> new StealCardEffect(parseParamToInt(param, 1));

@@ -35,6 +35,19 @@ public class PlayerSide {
 
     }
 
+    public Minion getStrongestMinion() {
+        Minion strongest = null;
+        for (AttackLine line : attackLines.values()) {
+            Minion candidate = line.getStrongestMinion();
+            if (candidate == null) continue;
+            if (strongest == null
+                    || candidate.getCurrentPower() > strongest.getCurrentPower()) {
+                strongest = candidate;
+            }
+        }
+        return strongest;
+    }
+
     public Player getOwner() { return owner; }
 
 }

@@ -1,6 +1,7 @@
 package com.fiuba.paradigwent.model.effect;
 
 import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.player.Player;
 
 public class ReviveEffect implements Effect {

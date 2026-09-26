@@ -29,11 +29,20 @@ public class AttackLine {
     }
 
 
-    public void activateHorn(){
+    /**public void activateHorn(){
         this.activateHorn = true;
+    }**/
+
+
+    public Minion getStrongestMinion(){
+        Minion strongestMinion = minions.get(0);
+        for(Minion minion : this.minions){
+            if(minion.getCurrentPower()>strongestMinion.getCurrentPower()){
+                StrongestMinion = minion;
+            }
+        }
+        return strongestMinion;
     }
-
-
 
     public List<Minion> takeMinions() {
         List<Minion> copy = List.copyOf(minions);

@@ -40,11 +40,11 @@ public class Board {
 
     }
 
-    public Minion getStrongestCardOf(PlayerSide opponent) {
+    public Minion getStrongestMiniondOf(PlayerSide opponent) {
 
-        Minion strongestCard =
+        Minion strongestMinion =
 
-        return strongestCard;
+        return strongestMinion;
     }
 
 

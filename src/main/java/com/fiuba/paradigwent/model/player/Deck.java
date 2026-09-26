@@ -2,9 +2,7 @@ package com.fiuba.paradigwent.model.player;
 
 import com.fiuba.paradigwent.model.card.Card;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 
 
 public class Deck {
@@ -14,6 +12,7 @@ public class Deck {
 
     public Deck(List<Card> cards) {
         this.deck = new ArrayDeque<>(cards);
+        shuffle();
 
     }
     public Card draw() {
@@ -22,5 +21,13 @@ public class Deck {
 
     public boolean isEmpty() { return deck.isEmpty(); }
     public int size()        { return deck.size(); }
+
+
+    public void shuffle() {
+        List<Card> temp = new ArrayList<>(deck);
+        Collections.shuffle(temp);
+        this.deck.clear();
+        this.deck.addAll(temp);
+    }
 
 }
