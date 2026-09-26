@@ -42,7 +42,7 @@ public class Board {
 
     public Minion getStrongestMiniondOf(PlayerSide opponent) {
 
-        Minion strongestMinion =
+        Minion strongestMinion = playerSide.getStrongestMinion();
 
         return strongestMinion;
     }
