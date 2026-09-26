@@ -10,7 +10,12 @@ public class Discard {
     private ArrayList<Card> discard;
 
     public Discard() {
+
         this.discard= new ArrayList<>();
     }
 
+
+    public void add(Card card) {
+        this.discard.add(card);
+    }
 }
