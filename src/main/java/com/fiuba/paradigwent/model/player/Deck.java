@@ -17,7 +17,7 @@ public class Deck {
 
     }
     public Card draw() {
-        return deck.pop();
+        return deck.removeFirst();
     }
 
     public boolean isEmpty() { return deck.isEmpty(); }
