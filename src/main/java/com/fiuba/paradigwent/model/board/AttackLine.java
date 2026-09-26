@@ -38,7 +38,7 @@ public class AttackLine {
         Minion strongestMinion = minions.get(0);
         for(Minion minion : this.minions){
             if(minion.getCurrentPower()>strongestMinion.getCurrentPower()){
-                StrongestMinion = minion;
+                strongestMinion = minion;
             }
         }
         return strongestMinion;
