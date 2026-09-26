@@ -1,9 +1,12 @@
 package com.fiuba.paradigwent.model.board;
 
+import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.player.Player;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 public class PlayerSide {
@@ -21,7 +24,17 @@ public class PlayerSide {
     public int totalPower() {
         return attackLines.values().stream().mapToInt(AttackLine::calculateTotalPower).sum();
     }
-    public void clear() { attackLines.values().forEach(AttackLine::clear); }
+
+    public void discard() {
+        List<Minion> minions = new ArrayList<>();
+        for (AttackLine line : attackLines.values()) {
+            minions.addAll(line.takeMinions());
+            line.deActivateHorn();
+        }
+        owner.sendToDiscard(minions);
+
+    }
+
     public Player getOwner() { return owner; }
 
 }
