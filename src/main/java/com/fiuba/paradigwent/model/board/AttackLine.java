@@ -24,15 +24,20 @@ public class AttackLine {
         this.minions.add(minion);
     }
 
-    public void clear(){
-        minions.clear();
-    }
 
     public void activateHorn(){
         this.activateHorn = true;
     }
 
-    public List<Minion> getMinions(){
-        return List.copyOf(minions);
+
+
+    public List<Minion> takeMinions() {
+        List<Minion> copy = List.copyOf(minions);
+        minions.clear();
+        return copy;
+    }
+
+    public void deActivateHorn() {
+        this.activateHorn = false;
     }
 }
