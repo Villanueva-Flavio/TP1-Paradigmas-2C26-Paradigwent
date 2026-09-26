@@ -18,4 +18,8 @@ public class Discard {
     public void add(Card card) {
         this.discard.add(card);
     }
+
+    public void remove(Card card) {
+        this.discard.remove(card);
+    }
 }
