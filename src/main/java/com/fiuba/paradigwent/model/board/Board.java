@@ -1,6 +1,7 @@
 package com.fiuba.paradigwent.model.board;
 
 import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.player.Player;
 
@@ -8,11 +9,12 @@ public class Board {
 
     private PlayerSide playerSide;
     private PlayerSide opponentSide;
-    private AttackLineType currentWheater;
+    private AttackLineType currentWeather;
 
     public Board(Player player, Player opponent){
         this.playerSide = new PlayerSide(player);
         this.opponentSide = new PlayerSide(opponent);
+        this.currentWeather = AttackLineType.valueOf("NONE");
     }
 
     public PlayerSide getPlayerSide() {
@@ -27,9 +29,22 @@ public class Board {
         return null;
     }
 
-    public void clear(){
-        playerSide.clear();
-        opponentSide.clear();
+    public void setCurrentWeather(AttackLineType currentWeather) {
+        this.currentWeather = currentWeather;
+    }
+
+    public void discard() {
+        playerSide.discard();
+        opponentSide.discard();
+        this.currentWeather = AttackLineType.valueOf("NONE");
 
     }
-}
+
+    public Minion getStrongestCardOf(PlayerSide opponent) {
+
+        Minion strongestCard =
+
+        return strongestCard;
+    }
+
+
