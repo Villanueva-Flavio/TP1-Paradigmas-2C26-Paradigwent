@@ -8,14 +8,13 @@ public class Minion extends Card{
 
     private final int basePower;
     private int powerModifier;
-    private AttackLineType attackLineType;
+
 
     public Minion(String id, String name,int stackLimite, int basePower, AttackLineType attackLineType)
     {
-        super(id, name,stackLimite);
+        super(id, name,stackLimite, attackLineType);
         this.basePower = basePower;
         this.powerModifier = 0;
-        this.attackLineType = attackLineType;
     }
 
     public int getCurrentPower() {
@@ -26,14 +25,11 @@ public class Minion extends Card{
         this.powerModifier += modifier;
     }
 
-    public AttackLineType getAttackLineType() {
-        return attackLineType;
-    }
 
     @Override
     public void play(GameContext context) {
-        AttackLine line = new AttackLine(context.getPlayedCard().getAttackLineType());
-        line =  context.getBoard().getPlayerSide().getAttackLine(context.getPlayedCard().getAttackLineType());
+
+        AttackLine line =  context.getBoard().getPlayerSide().getAttackLine(context.getPlayedCard().getAttackLineType());
         line.addMinion((Minion) context.getPlayedCard());
     }
 
