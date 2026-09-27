@@ -10,7 +10,7 @@ import java.util.Random;
 
 public class AI extends Player implements AIStrategy {
 
-    Random random = new Random();
+    private final Random random = new Random();
 
     public AI(String name, Deck deck) {
         super(name, deck);
