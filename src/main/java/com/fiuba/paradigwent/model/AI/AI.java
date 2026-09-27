@@ -19,8 +19,14 @@ public class AI extends Player implements AIStrategy {
     public void decideActions(GameContext context) {
 
     }
-
-    public Card selectCard(Hand hand, GameContext context){
+    /**
+     * Selects a random card from the given hand.
+     *
+     * @param hand    the hand to select a card from
+     * @return a randomly selected card, or {@code null} if the hand is empty
+     */
+    @Override
+    public Card selectCard(Hand hand){
         if (hand.getHand().isEmpty()) {
             return null;
         }
