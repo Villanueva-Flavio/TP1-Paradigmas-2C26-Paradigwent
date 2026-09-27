@@ -2,6 +2,7 @@ package com.fiuba.paradigwent.model.card;
 
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.board.AttackLine;
+import com.fiuba.paradigwent.model.board.PlayerSide;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 
 public class Minion extends Card{
@@ -40,8 +41,9 @@ public class Minion extends Card{
 
     @Override
     public void play(GameContext context) {
-        AttackLine line =  context.getBoard().getPlayerSide().getAttackLine(context.getPlayedCard().getAttackLineType());
-        line.addMinion((Minion) context.getPlayedCard());
+        PlayerSide side = context.getBoard().getSideFor(context.getCurrentPlayer());
+        AttackLine line = side.getAttackLine(this.getAttackLineType());
+        line.addMinion(this);
     }
 
 }
