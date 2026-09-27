@@ -1,18 +1,22 @@
 package com.fiuba.paradigwent.model.effect;
 
 import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.enums.WeatherType;
 
 
 public class WeatherEffect implements Effect {
-    private final AttackLineType lineType;
+    private final WeatherType weatherType;
 
-    public WeatherEffect(AttackLineType lineType){
-        this.lineType = lineType;
+    /**
+     * Constructs a WeatherEffect with the specified WeatherType. If the provided weatherType is null, it defaults to CLEAR.
+     * @param weatherType
+    **/
+    public WeatherEffect(WeatherType weatherType){
+        this.weatherType = weatherType == null ? WeatherType.CLEAR : weatherType;
     }
 
     @Override
     public void apply(GameContext context){
-        context.getBoard().setCurrentWeather(lineType);
+        context.getBoard().setCurrentWeather(weatherType);
     }
 }

@@ -6,6 +6,10 @@ import com.fiuba.paradigwent.model.GameContext;
 public class DuplicateLineEffect implements Effect {
     private final AttackLineType lineType;
 
+    /**
+     * Constructs a DuplicateLineEffect with the specified line type. If the provided lineType is null or NONE, the effect will target the attack line of the played card.
+     * @param lineType
+    **/
     public DuplicateLineEffect(AttackLineType lineType){
         this.lineType = lineType;
     }

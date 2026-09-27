@@ -10,6 +10,13 @@ public abstract class Card {
 
     private final int stackLimit;
 
+    /**
+     * Constructs a Card object with the specified parameters.
+     * @param id
+     * @param name
+     * @param stackLimit
+     * @param attackLineType
+    **/
     public Card(String id, String name, int stackLimit, AttackLineType attackLineType) {
         this.id = id;
         this.name = name;
@@ -17,10 +24,16 @@ public abstract class Card {
         this.attackLineType = attackLineType;
     }
 
+    /**
+     * @return The unique identifier of the card.
+    **/
     public AttackLineType getAttackLineType() {
         return attackLineType;
     }
 
+    /**
+     * @return The unique identifier of the card.
+    **/
     public abstract void play(GameContext context);
 
 }

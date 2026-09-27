@@ -11,6 +11,10 @@ import java.util.Collections;
 public class DestroyCreatureEffect implements Effect{
     private final AttackLineType targetType;
 
+    /**
+     * Constructs a DestroyCreatureEffect with the specified target type. If the provided targetType is null, it defaults to AttackLineType.NONE.
+     * @param targetType 
+    **/
     public DestroyCreatureEffect(AttackLineType targetType){
         this.targetType = targetType;
     }

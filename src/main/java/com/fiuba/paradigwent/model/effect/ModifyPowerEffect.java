@@ -6,7 +6,10 @@ import com.fiuba.paradigwent.model.card.Minion;
 public class ModifyPowerEffect implements Effect {
     private final int amount;
 
-
+    /**
+     * Constructs a ModifyPowerEffect with the specified amount to modify the power of a target minion.
+     * @param amount
+    **/
     public ModifyPowerEffect(int amount) {
         this.amount = amount;
     }
