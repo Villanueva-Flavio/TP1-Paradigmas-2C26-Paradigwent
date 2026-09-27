@@ -7,12 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Player {
-    private final String name;
-    private boolean hasPassedRound;
-    private int lives = 2;
-    private final Deck deck;
-    private final Hand hand;
-    private final Discard discard;
+    protected final String name;
+    protected boolean hasPassedRound;
+    protected int lives = 2;
+    protected final Deck deck;
+    protected final Hand hand;
+    protected final Discard discard;
 
     /**
      * Constructs a Player with the specified name and deck. Initializes the player's hand, draws 10 cards from the deck, and initializes the discard pile. The player starts with 2 lives and has not passed the round.

@@ -34,7 +34,6 @@ public class Round {
         this.currentPlayer = player1;
         this.finished = false;
 
-        // Enable players for the new round
         this.player1.startRound();
         this.player2.startRound();
     }
