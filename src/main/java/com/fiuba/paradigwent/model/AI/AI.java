@@ -7,7 +7,6 @@ import com.fiuba.paradigwent.model.player.Hand;
 import com.fiuba.paradigwent.model.player.Player;
 
 import java.util.Random;
-import java.util.random.RandomGenerator;
 
 public class AI extends Player implements AIStrategy {
 
