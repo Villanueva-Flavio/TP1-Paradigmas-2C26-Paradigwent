@@ -21,9 +21,10 @@ public class AI extends Player implements AIStrategy {
     }
 
     public Card selectCard(Hand hand, GameContext context){
-        Card selectedCard = hand.getHand().get(random.nextInt(hand.getHand().size()));
-
-        return selectedCard;
+        if (hand.getHand().isEmpty()) {
+            return null;
+        }
+        return hand.getHand().get(random.nextInt(hand.getHand().size()));
     }
 
 }
