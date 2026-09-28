@@ -43,15 +43,24 @@ class GameContext {
     + getPlayedCard(): Card
 }
 
-class Card {
-    - id: String
-    - name: String
-    - basePower: int
-    - powerModifier: int
-    + getCurrentPower(): int
-    + modifyPower(modifier: int): void
+abstract class Card {
+    # id: String
+    # name: String
+    # maxStack: int
     + play(context: GameContext): void
 }
+
+class Minion {
+    - basePower: int
+    - powerModifier: int;
+    - attackLineType: AttackLineType
+    + getCurrentPower(): int
+    + modifyPower(modifier: int): void
+    + getAttackLineType(): AttackLineType
+}
+
+class Spell
+class Weather
 
 class JSONCardLoader {
     + loadCards(jsonPath: String): List<Card>
@@ -162,5 +171,3 @@ AI "1" o-- "1" AIStrategy
 Effect ..> GameContext
 EffectFactory ..> Effect
 Game ..> GameContext
-
-@enduml
