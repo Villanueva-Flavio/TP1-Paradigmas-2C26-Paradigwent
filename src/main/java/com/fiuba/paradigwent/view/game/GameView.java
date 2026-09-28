@@ -12,8 +12,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.control.Button;
 import java.util.Map;
 
-
-
 import com.fiuba.paradigwent.view.View;
 import com.fiuba.paradigwent.view.game.modules.Board3DView;
 
@@ -26,10 +24,6 @@ public class GameView {
     public static final double CONTENT_SCALE = 1.0;
     public static final double MIN_VIEW_WIDTH = 640;
     public static final double MIN_VIEW_HEIGHT = 400;
-    private static final double CONTENT_OFFSET_Y_RATIO = 0.0740740741;
-    private static final double REFERENCE_WIDTH = 1920;
-    private static final double REFERENCE_HEIGHT = 1080;
-    private static final double REFERENCE_CONTENT_SCALE = REFERENCE_HEIGHT / VIRTUAL_HEIGHT;
     public static final double UI_OPPONENT_X = 465;
     public static final double UI_OPPONENT_Y = 75;
     public static final double UI_PLAYER_X = 465;
@@ -40,6 +34,11 @@ public class GameView {
     public static final double ZONE_X = 890;
     public static final double ZONE_WIDTH = 60;
     public static final double ZONE_HEIGHT = 100;
+    
+    private static final double CONTENT_OFFSET_Y_RATIO = 0.0740740741;
+    private static final double REFERENCE_WIDTH = 1920;
+    private static final double REFERENCE_HEIGHT = 1080;
+    private static final double REFERENCE_CONTENT_SCALE = REFERENCE_HEIGHT / VIRTUAL_HEIGHT;
 
     public static final Map<String, Color> COLOR = new HashMap<String, Color>() {{
         put("SiegeLine", Color.web("#d23737"));
