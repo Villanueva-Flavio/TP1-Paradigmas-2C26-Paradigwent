@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -27,7 +28,7 @@ class AITest {
     void testAIConstruction() {
         List<Minion> cards = createMinionDeck(10, 3, AttackLineType.MELEE);
         Deck deck = new Deck(new ArrayList<>(cards));
-        AI ai = new AI("AI Player", deck);
+        AI ai = new AI("AI Player", deck, new RandomAIStrategy(new Random()));
 
         assertEquals("AI Player", ai.getName());
         assertEquals(10, ai.getHand().size());
@@ -43,7 +44,7 @@ class AITest {
     @Test
     void testAIConstructionWithEmptyDeck() {
         Deck deck = new Deck(new ArrayList<>());
-        AI ai = new AI("Empty AI", deck);
+        AI ai = new AI("Empty AI", deck, new RandomAIStrategy(new Random()));
 
         assertEquals("Empty AI", ai.getName());
         assertEquals(0, ai.getHand().size());
