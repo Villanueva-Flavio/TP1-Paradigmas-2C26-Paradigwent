@@ -23,6 +23,7 @@ public class AI extends Player {
         }
 
         Card chosen = strategy.selectCard(hand, context);
+
         if (chosen == null) {
             passRound();
             return;

@@ -53,10 +53,8 @@ public class Round {
 
         Player opponent = getOpponent(currentPlayer);
 
-        // Instantiate the context for this specific action
         GameContext context = new GameContext(currentPlayer, opponent, board, card);
 
-        // Player removes the card from their Hand and executes card.play(context)
         currentPlayer.play(context);
 
         advanceTurn();

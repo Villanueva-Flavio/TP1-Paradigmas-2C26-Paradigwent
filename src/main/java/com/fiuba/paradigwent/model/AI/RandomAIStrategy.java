@@ -17,7 +17,7 @@ public class RandomAIStrategy implements AIStrategy {
     public Card selectCard(Hand hand, GameContext context) {
         var cards = hand.getHand();
         if (cards.isEmpty() || random.nextInt(10) <= 2) {
-            return null;            // pasar
+            return null;
         }
         return cards.get(random.nextInt(cards.size()));
     }
