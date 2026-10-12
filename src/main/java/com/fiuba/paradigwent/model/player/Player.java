@@ -78,6 +78,10 @@ public class Player {
         return this.discard.getDiscard();
     }
 
+    public int getDeckSize() {
+        return deck.size();
+    }
+
     /**
      * @return True if the player has passed the round, false otherwise.
     **/

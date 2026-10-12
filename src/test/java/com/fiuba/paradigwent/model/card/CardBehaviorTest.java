@@ -22,7 +22,7 @@ class CardBehaviorTest {
     **/
     @Test
     void minionPlayAddsCardToItsAttackLine() {
-        Minion minion = ModelTestFixtures.minion("minion", 7, AttackLineType.RANGED);
+        Minion minion = ModelTestFixtures.minion("minion", 7, AttackLineType.RANGED, null);
         Player player = new Player("player", new Deck(List.of(minion)));
         Player opponent = ModelTestFixtures.emptyPlayer("opponent");
         Board board = new Board(player, opponent);
@@ -38,7 +38,7 @@ class CardBehaviorTest {
     **/
     @Test
     void minionPowerModifiersAccumulate() {
-        Minion minion = ModelTestFixtures.minion("minion", 7, AttackLineType.MELEE);
+        Minion minion = ModelTestFixtures.minion("minion", 7, AttackLineType.MELEE, null);
 
         minion.modifyPower(-3);
         minion.modifyPower(5);
@@ -51,7 +51,7 @@ class CardBehaviorTest {
     **/
     @Test
     void weatherCardUsesItsWeatherTypeAndDiscard() {
-        Weather weather = new Weather("weather", "Rain", 1, WeatherType.RAIN);
+        Weather weather = new Weather("weather", "Rain", 1, WeatherType.RAIN, null);
         Player player = ModelTestFixtures.emptyPlayer("player");
         Player opponent = ModelTestFixtures.emptyPlayer("opponent");
         Board board = new Board(player, opponent);
@@ -68,7 +68,7 @@ class CardBehaviorTest {
     **/
     @Test
     void nullWeatherDefaultsToClear() {
-        Weather weather = new Weather("weather", "Clear", 1, null);
+        Weather weather = new Weather("weather", "Clear", 1, null, null);
 
         assertEquals(WeatherType.CLEAR, weather.getWeatherType());
         assertEquals(AttackLineType.NONE, weather.getAttackLineType());

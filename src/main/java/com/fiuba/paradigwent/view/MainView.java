@@ -9,6 +9,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.effect.Light;
 import javafx.scene.effect.Lighting;
@@ -38,6 +39,7 @@ import com.fiuba.paradigwent.view.menu.modules.CollectionMenuView;
 import com.fiuba.paradigwent.view.menu.modules.ConfigMenuView;
 import com.fiuba.paradigwent.view.menu.modules.FactionsMenuView;
 import com.fiuba.paradigwent.view.menu.modules.InGameConfigMenuView;
+import com.fiuba.paradigwent.view.game.modules.CardRace;
 import com.fiuba.paradigwent.view.game.GameView;
 
 /**
@@ -78,6 +80,7 @@ public class MainView extends Application {
     private CollectionMenuView collectionMenuView;
     private InGameConfigMenuView inGameConfigMenuView;
     private GameView gameView;
+    private CardRace selectedRace = CardRace.HUMAN;
     private Pair<Integer, Integer> currentResolution = SUPPORTED_RESOLUTIONS.get(0);
 
     /**
@@ -144,10 +147,33 @@ public class MainView extends Application {
      * @brief Shows the game board and removes menu regions from the overlay.
      */
     public void showGameView()       {
+        if (gameView == null) {
+            gameView = new GameView(this, selectedRace);
+        }
         root.getChildren().remove(inGameConfigMenuView);
         uiOverlay.setLeft(null);
         uiOverlay.setRight(null);
         uiOverlay.setCenter(gameView.getRootNode());
+    }
+
+    public void surrenderGame() {
+        if (gameView == null) {
+            showMainMenu();
+            return;
+        }
+        gameView.surrender();
+        gameView = null;
+        root.getChildren().remove(inGameConfigMenuView);
+        uiOverlay.setLeft(null);
+        uiOverlay.setRight(null);
+        uiOverlay.setCenter(null);
+        showMainMenu();
+
+        Alert defeat = new Alert(Alert.AlertType.INFORMATION);
+        defeat.setTitle("Partida terminada");
+        defeat.setHeaderText("Derrota");
+        defeat.setContentText("Te rendiste. La partida terminó y se iniciará una nueva partida al volver a jugar.");
+        defeat.showAndWait();
     }
     /** @brief Shows the main menu. */
     public void showMainMenu()       { setContent(mainMenuView);       }
@@ -158,6 +184,13 @@ public class MainView extends Application {
     }
     /** @brief Shows the factions menu. */
     public void showFactionsMenu()   { setContent(factionsMenuView);   }
+    public void selectRace(CardRace race) {
+        if (race != null) {
+            selectedRace = race;
+            gameView = null;
+        }
+        showMainMenu();
+    }
     /** @brief Shows the collection menu. */
     public void showCollectionMenu() {
         root.getChildren().remove(inGameConfigMenuView);

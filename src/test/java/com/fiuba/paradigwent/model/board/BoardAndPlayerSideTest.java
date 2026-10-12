@@ -36,8 +36,8 @@ class BoardAndPlayerSideTest {
         PlayerSide side = new PlayerSide(ModelTestFixtures.emptyPlayer("player"));
         AttackLine melee = side.getAttackLine(AttackLineType.MELEE);
         AttackLine ranged = side.getAttackLine(AttackLineType.RANGED);
-        melee.addMinion(ModelTestFixtures.minion("melee", 5, AttackLineType.MELEE));
-        ranged.addMinion(ModelTestFixtures.minion("ranged", 4, AttackLineType.RANGED));
+        melee.addMinion(ModelTestFixtures.minion("melee", 5, AttackLineType.MELEE, null));
+        ranged.addMinion(ModelTestFixtures.minion("ranged", 4, AttackLineType.RANGED, null));
         ranged.activateHorn();
 
         assertEquals(13, side.totalPower());
@@ -51,7 +51,7 @@ class BoardAndPlayerSideTest {
         Player player = ModelTestFixtures.emptyPlayer("player");
         PlayerSide side = new PlayerSide(player);
         AttackLine line = side.getAttackLine(AttackLineType.SIEGE);
-        Minion card = ModelTestFixtures.minion("card", 6, AttackLineType.SIEGE);
+        Minion card = ModelTestFixtures.minion("card", 6, AttackLineType.SIEGE, null);
         line.addMinion(card);
         line.activateHorn();
 

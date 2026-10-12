@@ -1,6 +1,7 @@
 package com.fiuba.paradigwent.view.menu.modules;
 
 import com.fiuba.paradigwent.view.MainView;
+import com.fiuba.paradigwent.view.game.modules.CardRace;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -20,13 +21,18 @@ public class FactionsMenuView extends VBox {
         setAlignment(Pos.CENTER);
         setPadding(new Insets(0, 80, 0, 0));
 
-        Label lblTitle = new Label("FACTIONS (Soon TM)");
+        Label lblTitle = new Label("SELECT YOUR RACE");
         lblTitle.getStyleClass().add("menu-label");
         lblTitle.setFont(Font.font(mainView.getFontFamilyName(), 20));
 
+        getChildren().add(lblTitle);
+        for (CardRace race : CardRace.values()) {
+            Button button = mainView.createMenuButton(race.name());
+            button.setOnAction(event -> mainView.selectRace(race));
+            getChildren().add(button);
+        }
         Button btnBack = mainView.createMenuButton("BACK");
         btnBack.setOnAction(e -> mainView.showMainMenu());
-
-        getChildren().addAll(lblTitle, btnBack);
+        getChildren().add(btnBack);
     }
 }

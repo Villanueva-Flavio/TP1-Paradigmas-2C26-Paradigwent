@@ -56,7 +56,7 @@ public class InGameConfigMenuView extends VBox {
 
     Button surrenderButton = mainView.createMenuButton("SURRENDER");
     surrenderButton.setMaxWidth(320);
-    surrenderButton.setOnAction(event -> mainView.showMainMenu());
+    surrenderButton.setOnAction(event -> mainView.surrenderGame());
 
     getChildren().addAll(resolutionLabel, resolutionCombo, fullscreenButton,
         backButton, surrenderButton);

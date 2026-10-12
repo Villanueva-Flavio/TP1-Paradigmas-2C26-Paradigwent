@@ -7,7 +7,6 @@ import com.fiuba.paradigwent.model.enums.AttackLineType;
 
 public class Minion extends Card{
 
-    private final int basePower;
     private int powerModifier;
 
     /**
@@ -17,9 +16,10 @@ public class Minion extends Card{
      * @param stackLimite
      * @param basePower
      * @param attackLineType
+     * @param description
     **/
-    public Minion(String id, String name,int stackLimite, int basePower, AttackLineType attackLineType){
-        super(id, name,stackLimite, attackLineType);
+    public Minion(String id, String name,int stackLimite, int basePower, AttackLineType attackLineType, String description){
+        super(id, name,stackLimite, attackLineType, description);
         this.basePower = basePower;
         this.powerModifier = 0;
     }

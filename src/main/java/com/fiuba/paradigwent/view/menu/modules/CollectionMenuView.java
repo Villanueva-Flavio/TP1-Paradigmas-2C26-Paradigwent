@@ -1,6 +1,10 @@
 package com.fiuba.paradigwent.view.menu.modules;
 
 import com.fiuba.paradigwent.view.MainView;
+import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.card.CardAssetResolver;
+import com.fiuba.paradigwent.model.card.JSONCardLoader;
+import com.fiuba.paradigwent.view.game.modules.CardVisual;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -31,6 +35,7 @@ import javafx.util.Duration;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 public class CollectionMenuView extends VBox {
     private static final int CARDS_PER_PAGE = 10;
@@ -38,29 +43,15 @@ public class CollectionMenuView extends VBox {
     private static final List<String> FACTION_ORDER = List.of(
         "DWARF", "HIGHELF", "HUMAN", "MURGOL", "ORC", "UNDEAD"
     );
-    private static final Map<String, List<String>> TYPE_ASSETS = Map.of(
-        "WEATHER", repeatedPattern(List.of("card-highelf.png", "card-undead.png"), 12),
-        "SPELL", repeatedPattern(List.of("card-dwarf.png", "card-murgol.png"), 12),
-        "MINION", repeatedPattern(List.of("card-human.png", "card-orc.png"), 12)
-    );
-    private static final Map<String, List<String>> FACTION_ASSETS = Map.of(
-        "DWARF", repeatedAsset("card-dwarf.png", 12),
-        "HIGHELF", repeatedAsset("card-highelf.png", 12),
-        "HUMAN", repeatedAsset("card-human.png", 12),
-        "MURGOL", repeatedAsset("card-murgol.png", 12),
-        "ORC", repeatedAsset("card-orc.png", 12),
-        "UNDEAD", repeatedAsset("card-undead.png", 12)
-    );
-    private static final List<String> ALL_CARDS = FACTION_ORDER.stream()
-        .flatMap(faction -> FACTION_ASSETS.get(faction).stream())
-        .toList();
+    private static final List<Card> ALL_CARDS = JSONCardLoader.loadCards();
     private final GridPane cardGrid = new GridPane();
     private final ScrollPane cardScroll = new ScrollPane(cardGrid);
     private final MainView mainView;
     private Button previousPageButton;
     private Button nextPageButton;
     private String activeCollection;
-    private List<String> activeCards = ALL_CARDS;
+    private String searchTerm = "";
+    private List<Card> activeCards = ALL_CARDS;
     private int currentPage;
     private boolean pageAnimating;
     private StackPane previewOverlay;
@@ -83,6 +74,10 @@ public class CollectionMenuView extends VBox {
         TextField searchBar = new TextField();
         searchBar.setPromptText("SEARCH BY NAME");
         searchBar.getStyleClass().add("collection-search");
+        searchBar.textProperty().addListener((observable, oldValue, newValue) -> {
+            searchTerm = newValue == null ? "" : newValue.trim();
+            refreshCards();
+        });
 
         HBox factionButtons = createFactionButtons();
         HBox typeFilters = createTypeFilters();
@@ -110,18 +105,6 @@ public class CollectionMenuView extends VBox {
         getChildren().addAll(lblTitle, searchBar, factionButtons, typeFilters, cardScroll, pagination, btnBack);
     }
 
-    private static List<String> repeatedAsset(String asset, int amount) {
-        return java.util.stream.IntStream.range(0, amount)
-            .mapToObj(index -> asset)
-            .toList();
-    }
-
-    private static List<String> repeatedPattern(List<String> assets, int amount) {
-        return java.util.stream.IntStream.range(0, amount)
-            .mapToObj(index -> assets.get(index % assets.size()))
-            .toList();
-    }
-
     private HBox createFactionButtons() {
         HBox buttons = new HBox(8);
         buttons.setAlignment(Pos.CENTER);
@@ -134,8 +117,13 @@ public class CollectionMenuView extends VBox {
 
     private Button createFactionButton(String faction) {
         Button button = new Button();
-        button.setGraphic(createCardImage(
-            FACTION_ASSETS.get(faction).get(0), 48, 68, false));
+        Card factionCard = ALL_CARDS.stream()
+            .filter(card -> faction.equals(card.getFaction()))
+            .findFirst()
+            .orElse(null);
+        if (factionCard != null) {
+            button.setGraphic(createCardImage(factionCard, 48, 68, false));
+        }
         button.setFocusTraversable(false);
         button.getStyleClass().add("collection-faction-button");
         button.setAccessibleText(faction);
@@ -190,13 +178,32 @@ public class CollectionMenuView extends VBox {
     private void selectCollection(String collection) {
         hidePreview();
         activeCollection = collection;
-        activeCards = collection == null
-            ? ALL_CARDS
-            : TYPE_ASSETS.containsKey(collection)
-                ? TYPE_ASSETS.get(collection)
-                : FACTION_ASSETS.get(collection);
+        refreshCards();
+    }
+
+    private void refreshCards() {
+        activeCards = ALL_CARDS.stream()
+            .filter(this::matchesActiveCollection)
+            .filter(this::matchesSearch)
+            .toList();
         currentPage = 0;
+        hidePreview();
         animatePage(1);
+    }
+
+    private boolean matchesActiveCollection(Card card) {
+        return activeCollection == null
+            || typeName(card).equals(activeCollection)
+            || activeCollection.equals(card.getFaction());
+    }
+
+    private boolean matchesSearch(Card card) {
+        if (searchTerm.isBlank()) {
+            return true;
+        }
+        return card.getName() != null
+            && card.getName().toLowerCase(Locale.ROOT)
+                .contains(searchTerm.toLowerCase(Locale.ROOT));
     }
 
     private void changePage(int direction) {
@@ -214,7 +221,7 @@ public class CollectionMenuView extends VBox {
         cardGrid.setVgap(0);
         cardGrid.getStyleClass().add("collection-card-grid");
 
-        List<String> cards = activeCards;
+        List<Card> cards = activeCards;
         int start = currentPage * CARDS_PER_PAGE;
         int end = Math.min(start + CARDS_PER_PAGE, cards.size());
         double cardWidth = calculateCardWidth();
@@ -255,12 +262,9 @@ public class CollectionMenuView extends VBox {
             .forEach(slot -> {
                 slot.setMinSize(cardWidth + 12, cardHeight + 12);
                 slot.setPrefSize(cardWidth + 12, cardHeight + 12);
-                slot.lookupAll(".collection-card-image").stream()
-                    .map(ImageView.class::cast)
-                    .forEach(card -> {
-                        card.setFitWidth(cardWidth);
-                        card.setFitHeight(cardHeight);
-                    });
+                slot.lookupAll(".collection-card-visual").stream()
+                    .map(CardVisual.class::cast)
+                    .forEach(card -> card.updateSize(cardWidth, cardHeight));
             });
         cardGrid.requestLayout();
     }
@@ -309,34 +313,35 @@ public class CollectionMenuView extends VBox {
         nextPageButton.setDisable(currentPage >= pageCount - 1);
     }
 
-    private ImageView createCardImage(String assetName, double width, double height) {
-        return createCardImage(assetName, width, height, true);
+    private String typeName(Card card) {
+        return card.getClass().getSimpleName().toUpperCase();
     }
 
-    private StackPane createCardSlot(String assetName, double width, double height) {
-        ImageView image = createCardImage(assetName, width, height, false);
+    private CardVisual createCardImage(Card card, double width, double height) {
+        return createCardImage(card, width, height, true);
+    }
+
+    private StackPane createCardSlot(Card card, double width, double height) {
+        CardVisual image = createCardImage(card, width, height, false);
         StackPane slot = new StackPane(image);
         slot.getStyleClass().add("collection-card-slot");
         slot.setPadding(new Insets(6));
         slot.setMinSize(width + 12, height + 12);
         slot.setPrefSize(width + 12, height + 12);
-        configureCardHover(slot, assetName);
+        configureCardHover(slot, card);
         return slot;
     }
 
-    private ImageView createCardImage(String assetName, double width, double height,
+    private CardVisual createCardImage(Card card, double width, double height,
                                       boolean interactive) {
-        ImageView imageView = new ImageView(new Image(
-            getClass().getResource("/images/cards/" + assetName).toExternalForm()));
-        imageView.setPreserveRatio(true);
-        imageView.setFitWidth(width);
-        imageView.setFitHeight(height);
-        imageView.getStyleClass().add("collection-card-image");
-        if (interactive) configureCardHover(imageView, assetName);
-        return imageView;
+        CardVisual visual = new CardVisual(card, width, height, "collection-card-image");
+        visual.getStyleClass().add("collection-card-visual");
+        visual.addMetadata(card);
+        if (interactive) configureCardHover(visual, card);
+        return visual;
     }
 
-    private void configureCardHover(Node card, String assetName) {
+    private void configureCardHover(Node card, Card cardData) {
         Rotate rotateX = new Rotate(0, 0, 0, 0, Rotate.X_AXIS);
         Rotate rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
         card.getTransforms().addAll(rotateX, rotateY);
@@ -378,22 +383,25 @@ public class CollectionMenuView extends VBox {
             if (!previewLocked) schedulePreviewHide();
         });
         previewDelay.setOnFinished(event -> {
-            if (hovering[0]) showPreview(assetName);
+            if (hovering[0]) showPreview(cardData, card);
         });
     }
 
-    private void showPreview(String assetName) {
+    private void showPreview(Card card, Node reference) {
         hidePreview();
         previewLocked = false;
         previewOverlay = new StackPane();
         previewOverlay.getStyleClass().add("collection-preview-overlay");
         previewOverlay.setPickOnBounds(false);
+        previewOverlay.setAlignment(Pos.TOP_LEFT);
         Region backdrop = new Region();
         backdrop.getStyleClass().add("collection-preview-backdrop");
         backdrop.setMouseTransparent(true);
-        ImageView preview = createCardImage(assetName, 600, 860, false);
-        preview.fitHeightProperty().bind(Bindings.min(
-            860, mainView.getRoot().heightProperty().multiply(0.86)));
+        CardVisual preview = createCardImage(card, 600, 860, false);
+        mainView.getRoot().heightProperty().addListener((observable, oldValue, newValue) -> {
+            double previewHeight = Math.min(860, newValue.doubleValue() * 0.86);
+            preview.updateSize(previewHeight / 1.46, previewHeight);
+        });
         preview.setOnMouseEntered(event -> previewHideDelay.stop());
         preview.setOnMouseExited(event -> {
             if (!previewLocked) schedulePreviewHide();
@@ -410,9 +418,18 @@ public class CollectionMenuView extends VBox {
         preview.setScaleY(1.02);
         previewOverlay.getChildren().add(backdrop);
         previewOverlay.getChildren().add(preview);
-        StackPane.setAlignment(preview, Pos.CENTER_RIGHT);
-        StackPane.setMargin(preview, new Insets(0, 80, 0, 0));
+        preview.setManaged(false);
         mainView.getRoot().getChildren().add(previewOverlay);
+        positionPreview(reference, preview);
+    }
+
+    private void positionPreview(Node reference, CardVisual preview) {
+        javafx.geometry.Bounds sceneBounds = reference.localToScene(reference.getBoundsInLocal());
+        javafx.geometry.Point2D rootPoint = mainView.getRoot().sceneToLocal(
+            sceneBounds.getMaxX() + 16, sceneBounds.getMinY());
+        double maxX = Math.max(0, mainView.getRoot().getWidth() - preview.getPrefWidth() - 16);
+        double maxY = Math.max(0, mainView.getRoot().getHeight() - preview.getPrefHeight() - 16);
+        preview.relocate(Math.min(rootPoint.getX(), maxX), Math.min(rootPoint.getY(), maxY));
     }
 
     private void hidePreview() {

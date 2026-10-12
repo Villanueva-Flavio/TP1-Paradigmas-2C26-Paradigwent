@@ -31,8 +31,8 @@ class AttackLineTest {
     @Test
     void calculatesPowerFromCurrentMinionPower() {
         AttackLine line = new AttackLine(AttackLineType.MELEE);
-        Minion first = ModelTestFixtures.minion("first", 5, AttackLineType.MELEE);
-        Minion second = ModelTestFixtures.minion("second", 3, AttackLineType.MELEE);
+        Minion first = ModelTestFixtures.minion("first", 5, AttackLineType.MELEE, null);
+        Minion second = ModelTestFixtures.minion("second", 3, AttackLineType.MELEE, null);
         line.addMinion(first);
         line.addMinion(second);
 
@@ -47,7 +47,7 @@ class AttackLineTest {
     @Test
     void hornDoublesTheWholeLineAndCanBeRemoved() {
         AttackLine line = new AttackLine(AttackLineType.RANGED);
-        line.addMinion(ModelTestFixtures.minion("one", 4, AttackLineType.RANGED));
+        line.addMinion(ModelTestFixtures.minion("one", 4, AttackLineType.RANGED, null));
         line.activateHorn();
 
         assertTrue(line.hasHorn());
@@ -65,8 +65,8 @@ class AttackLineTest {
     @Test
     void removingAndTakingMinionsUpdatesTheLine() {
         AttackLine line = new AttackLine(AttackLineType.SIEGE);
-        Minion first = ModelTestFixtures.minion("first", 4, AttackLineType.SIEGE);
-        Minion second = ModelTestFixtures.minion("second", 7, AttackLineType.SIEGE);
+        Minion first = ModelTestFixtures.minion("first", 4, AttackLineType.SIEGE, null);
+        Minion second = ModelTestFixtures.minion("second", 7, AttackLineType.SIEGE, null);
         line.addMinion(first);
         line.addMinion(second);
         line.removeMinion(first);
@@ -82,8 +82,8 @@ class AttackLineTest {
     @Test
     void strongestMinionUsesCurrentPower() {
         AttackLine line = new AttackLine(AttackLineType.MELEE);
-        Minion first = ModelTestFixtures.minion("first", 10, AttackLineType.MELEE);
-        Minion second = ModelTestFixtures.minion("second", 4, AttackLineType.MELEE);
+        Minion first = ModelTestFixtures.minion("first", 10, AttackLineType.MELEE, null);
+        Minion second = ModelTestFixtures.minion("second", 4, AttackLineType.MELEE, null);
         second.modifyPower(10);
         line.addMinion(first);
         line.addMinion(second);

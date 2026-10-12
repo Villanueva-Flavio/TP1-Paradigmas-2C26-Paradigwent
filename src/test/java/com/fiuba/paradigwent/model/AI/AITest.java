@@ -1,5 +1,7 @@
 package com.fiuba.paradigwent.model.AI;
 
+import com.fiuba.paradigwent.model.ai.AI;
+import com.fiuba.paradigwent.model.ai.RandomAIStrategy;
 import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.player.Deck;
@@ -64,7 +66,7 @@ class AITest {
     private List<Minion> createMinionDeck(int amount, int power, AttackLineType lineType) {
         List<Minion> list = new ArrayList<>();
         for (int i = 0; i < amount; i++) {
-            list.add(new Minion("minion-" + i, "Minion " + i, 1, power, lineType));
+            list.add(new Minion("minion-" + i, "Minion " + i, 1, power, lineType, null));
         }
         return list;
     }

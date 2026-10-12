@@ -24,7 +24,7 @@ class PlayerStorageTest {
     @Test
     void handAddsRemovesAndReturnsAnIndependentCopy() {
         Hand hand = new Hand();
-        Card card = ModelTestFixtures.minion("card", 2, AttackLineType.MELEE);
+        Card card = ModelTestFixtures.minion("card", 2, AttackLineType.MELEE, null);
         hand.add(card);
 
         ArrayList<Card> snapshot = hand.getHand();
@@ -42,7 +42,7 @@ class PlayerStorageTest {
     @Test
     void discardAddsRemovesAndReturnsAnIndependentCopy() {
         Discard discard = new Discard();
-        Card card = ModelTestFixtures.minion("card", 2, AttackLineType.MELEE);
+        Card card = ModelTestFixtures.minion("card", 2, AttackLineType.MELEE, null);
         discard.add(card);
 
         ArrayList<Card> snapshot = discard.getDiscard();
@@ -58,8 +58,8 @@ class PlayerStorageTest {
     **/
     @Test
     void deckTracksSizeDrawsAndEmptyState() {
-        Minion first = ModelTestFixtures.minion("first", 1, AttackLineType.MELEE);
-        Minion second = ModelTestFixtures.minion("second", 2, AttackLineType.RANGED);
+        Minion first = ModelTestFixtures.minion("first", 1, AttackLineType.MELEE, null);
+        Minion second = ModelTestFixtures.minion("second", 2, AttackLineType.RANGED, null);
         Deck deck = new Deck(List.of(first, second));
 
         assertEquals(2, deck.size());
@@ -79,7 +79,7 @@ class PlayerStorageTest {
     void playerDrawsAtMostTenCardsAndCanLoseLives() {
         List<Card> cards = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
-            cards.add(ModelTestFixtures.minion("card-" + i, i, AttackLineType.MELEE));
+            cards.add(ModelTestFixtures.minion("card-" + i, i, AttackLineType.MELEE, null));
         }
         Player player = new Player("player", new Deck(cards));
 
@@ -95,7 +95,7 @@ class PlayerStorageTest {
     @Test
     void revivingARealDiscardedCardReturnsItToHand() {
         Player player = ModelTestFixtures.emptyPlayer("player");
-        Card card = ModelTestFixtures.minion("card", 3, AttackLineType.MELEE);
+        Card card = ModelTestFixtures.minion("card", 3, AttackLineType.MELEE, null);
         player.sendToDiscard(List.of(card));
 
         player.reviveCard(card);

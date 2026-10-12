@@ -1,6 +1,5 @@
 package com.fiuba.paradigwent.model.game;
 
-import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.board.Board;
 import com.fiuba.paradigwent.model.enums.Result;
 import com.fiuba.paradigwent.model.player.Player;
@@ -61,6 +60,7 @@ public class Game {
         if (!finished) {
             throw new IllegalStateException("Match is not finished yet.");
         }
+
         if (player1.getLives() > player2.getLives()) return player1;
         if (player2.getLives() > player1.getLives()) return player2;
         return null;
@@ -68,5 +68,40 @@ public class Game {
 
     private boolean checkMatchFinished() {
         return player1.getLives() <= 0 || player2.getLives() <= 0;
+    }
+
+    public Board getBoard() {
+        return board;
+    }
+
+    public boolean resolveRound(Round round) {
+        if (finished || round == null || !round.isFinished()) {
+            return false;
+        }
+        applyRoundResult(round.getRoundResult());
+        board.discard();
+        finished = checkMatchFinished();
+        if (!finished) {
+            player1.drawCard(1);
+            player2.drawCard(1);
+        }
+        return true;
+    }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public void surrender(Player player) {
+        if (finished) {
+            return;
+        }
+        if (player != player1 && player != player2) {
+            throw new IllegalArgumentException("El jugador no pertenece a esta partida");
+        }
+        while (player.getLives() > 0) {
+            player.loseLife();
+        }
+        finished = true;
     }
 }

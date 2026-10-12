@@ -6,7 +6,7 @@ import com.fiuba.paradigwent.model.enums.WeatherType;
 public class EffectFactory {
 
     /**
-     * Creates an Effect instance based on the provided type and parameter. The method supports various effect types, including MODIFYPOWER, DESTROY, SCORCH, DUPLICATE_LINE, HORN, STEAL_CARD, and WEATHER. If the type is null or invalid, an IllegalArgumentException is thrown.
+     * Creates an Effect instance based on the provided type and parameter. The method supports various effect types, including MODIFYPOWER, DESTROY, SCORCH, DUPLICATELINE, HORN, STEALCARD, and WEATHER. If the type is null or invalid, an IllegalArgumentException is thrown.
      * @param type
      * @param param
      * @return An instance of the corresponding Effect subclass based on the provided type and parameter.
@@ -16,9 +16,10 @@ public class EffectFactory {
             return switch (type.toUpperCase()) {
                 case "MODIFYPOWER" -> new ModifyPowerEffect(parseParamToInt(param, 1));
                 case "DESTROY", "SCORCH" -> new DestroyCreatureEffect(parseLineType(param));
-                case "DUPLICATE_LINE", "HORN" -> new DuplicateLineEffect(parseLineType(param));
-                case "STEAL_CARD" -> new StealCardEffect(parseParamToInt(param, 1));
+                case "DUPLICATELINE", "HORN" -> new DuplicateLineEffect(parseLineType(param));
+                case "STEALCARD" -> new StealCardEffect(parseParamToInt(param, 1));
                 case "WEATHER" -> new WeatherEffect(parseWeatherType(param));
+                case "REVIVE" -> new ReviveEffect(parseParamToInt(param, 1));
                 default -> throw new IllegalArgumentException("Invalid effect type: " + type);
             };
         }

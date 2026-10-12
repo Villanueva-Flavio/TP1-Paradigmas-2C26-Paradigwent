@@ -4,6 +4,7 @@ import com.fiuba.paradigwent.model.enums.AttackLineType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public class AttackLine {
     private List<Minion> minions;
@@ -66,6 +67,10 @@ public class AttackLine {
     **/
     public AttackLineType getType() {
         return type;
+    }
+
+    public List<Minion> getMinions() {
+        return Collections.unmodifiableList(minions);
     }
 
     /**

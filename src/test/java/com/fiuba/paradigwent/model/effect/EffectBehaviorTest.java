@@ -28,7 +28,7 @@ class EffectBehaviorTest {
         Board board = ModelTestFixtures.boardWithEmptyPlayers();
         Player player = board.getPlayerSide().getOwner();
         Player opponent = board.getOpponentSide().getOwner();
-        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("horn", 1, AttackLineType.MELEE));
+        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("horn", 1, AttackLineType.MELEE, null));
 
         EffectFactory.createEffect("HORN", "SIEGE").apply(context);
 
@@ -44,9 +44,9 @@ class EffectBehaviorTest {
         Board board = ModelTestFixtures.boardWithEmptyPlayers();
         Player player = board.getPlayerSide().getOwner();
         Player opponent = board.getOpponentSide().getOwner();
-        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("horn", 1, AttackLineType.RANGED));
+        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("horn", 1, AttackLineType.RANGED, null));
 
-        EffectFactory.createEffect("DUPLICATE_LINE", null).apply(context);
+        EffectFactory.createEffect("DUPLICATELINE", null).apply(context);
 
         assertTrue(board.getPlayerSide().getAttackLine(AttackLineType.RANGED).hasHorn());
     }
@@ -59,7 +59,7 @@ class EffectBehaviorTest {
         Board board = ModelTestFixtures.boardWithEmptyPlayers();
         Player player = board.getPlayerSide().getOwner();
         Player opponent = board.getOpponentSide().getOwner();
-        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("weather", 1, AttackLineType.NONE));
+        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("weather", 1, AttackLineType.NONE, null));
 
         new WeatherEffect(WeatherType.FROST).apply(context);
 
@@ -73,7 +73,7 @@ class EffectBehaviorTest {
     void stealCardEffectDrawsUpToTheAvailableCards() {
         List<Minion> cards = new java.util.ArrayList<>();
         for (int i = 0; i < 12; i++) {
-            cards.add(ModelTestFixtures.minion("card-" + i, i, AttackLineType.MELEE));
+            cards.add(ModelTestFixtures.minion("card-" + i, i, AttackLineType.MELEE, null));
         }
         Player player = new Player("player", new Deck(new java.util.ArrayList<>(cards)));
         Player opponent = ModelTestFixtures.emptyPlayer("opponent");
@@ -93,7 +93,7 @@ class EffectBehaviorTest {
         Player player = ModelTestFixtures.emptyPlayer("player");
         Player opponent = ModelTestFixtures.emptyPlayer("opponent");
         Board board = new Board(player, opponent);
-        Minion card = ModelTestFixtures.minion("discarded", 3, AttackLineType.MELEE);
+        Minion card = ModelTestFixtures.minion("discarded", 3, AttackLineType.MELEE, null);
         player.sendToDiscard(List.of(card));
 
         new ReviveEffect(1).apply(context(player, opponent, board, card));

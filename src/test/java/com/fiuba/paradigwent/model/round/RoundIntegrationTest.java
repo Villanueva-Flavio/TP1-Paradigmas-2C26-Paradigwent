@@ -180,7 +180,7 @@ class RoundIntegrationTest {
     private List<Minion> createMinionDeck(int amount, int power, AttackLineType lineType) {
         List<Minion> list = new ArrayList<>();
         for (int i = 0; i < amount; i++) {
-            list.add(new Minion("minion-" + i, "Minion " + i, 1, power, lineType));
+            list.add(new Minion("minion-" + i, "Minion " + i, 1, power, lineType, null));
         }
         return list;
     }

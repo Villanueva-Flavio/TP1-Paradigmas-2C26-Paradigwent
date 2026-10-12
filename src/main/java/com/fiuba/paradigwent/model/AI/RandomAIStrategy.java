@@ -1,4 +1,4 @@
-package com.fiuba.paradigwent.model.AI;
+package com.fiuba.paradigwent.model.ai;
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.player.Hand;

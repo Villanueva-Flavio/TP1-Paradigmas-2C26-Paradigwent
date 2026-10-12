@@ -13,8 +13,8 @@ public final class ModelTestFixtures {
     private ModelTestFixtures() {
     }
 
-    public static Minion minion(String id, int power, AttackLineType line) {
-        return new Minion(id, id, 1, power, line);
+    public static Minion minion(String id, int power, AttackLineType line, String description) {
+        return new Minion(id, id, 1, power, line, description);
     }
 
     public static Player emptyPlayer(String name) {

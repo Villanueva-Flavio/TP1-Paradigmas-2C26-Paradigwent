@@ -15,12 +15,18 @@ import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.control.Button;
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
 import java.util.Map;
+import java.util.List;
 
-import com.fiuba.paradigwent.view.View;
+import com.fiuba.paradigwent.view.MainView;
+import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.controller.GameController;
 import com.fiuba.paradigwent.view.game.modules.Board3DView;
 import com.fiuba.paradigwent.view.game.modules.CardRace;
 import com.fiuba.paradigwent.view.game.modules.HandView;
+import com.fiuba.paradigwent.view.game.modules.CardVisual;
 
 import java.util.HashMap;
 
@@ -73,7 +79,7 @@ public class GameView {
     private Group overlayEscalable;
     private HandView handLayer;
     private StackPane handPreview;
-    private final CardRace selectedRace;
+    private final GameController controller;
     private NumberBinding escalaViewport;
 
     public GameView(MainView mainView) {
@@ -81,7 +87,7 @@ public class GameView {
     }
 
     public GameView(MainView mainView, CardRace selectedRace) {
-        this.selectedRace = selectedRace;
+        controller = new GameController(selectedRace);
         crearEstructuraCapas();
         construirCapa0Fondo();
         construirCapa3UI(mainView);
@@ -92,13 +98,17 @@ public class GameView {
         return rootContainer;
     }
 
+    public void surrender() {
+        controller.surrender();
+    }
+
     private void crearEstructuraCapas() {
         rootContainer = new StackPane();
         rootContainer.setPrefSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         rootContainer.setMinSize(MIN_VIEW_WIDTH, MIN_VIEW_HEIGHT);
 
         capa0Fondo = new Pane();
-        capa2Plano3D = new Board3DView(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, selectedRace);
+        capa2Plano3D = new Board3DView(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, controller.getBoard());
         capa3UIOverlay = new Pane();
         capa3UIOverlay.setManaged(false);
         capa3UIOverlay.setPickOnBounds(false);
@@ -173,16 +183,46 @@ public class GameView {
         StackPane.setAlignment(btnBack, Pos.TOP_RIGHT);
         StackPane.setMargin(btnBack, new Insets(16, 16, 0, 0));
         rootContainer.getChildren().add(btnBack);
+        Button passButton = mainView.createMenuButton("PASS TURN");
+        passButton.setOnAction(event -> passTurn());
+        passButton.setMaxWidth(220);
+        StackPane.setAlignment(passButton, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(passButton, new Insets(0, 16, 16, 0));
+        rootContainer.getChildren().add(passButton);
     }
 
     private void construirMano() {
-        handLayer = new HandView(selectedRace, VIRTUAL_WIDTH, VIRTUAL_HEIGHT - 100);
+        List<Card> handCards = controller.getPlayerHand();
+        handLayer = new HandView(handCards, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         handLayer.setOnPreviewRequested(this::showHandPreview);
         handLayer.setOnPreviewCleared(this::hideHandPreview);
+        handLayer.setOnCardSelected(this::playCard);
         capa3UIOverlay.getChildren().add(handLayer);
     }
 
-    private void showHandPreview(CardRace race) {
+    private void playCard(Card card) {
+        if (!controller.playCard(card)) {
+            return;
+        }
+        handLayer.removeCard(card);
+        capa2Plano3D.refresh();
+        PauseTransition opponentDelay = new PauseTransition(Duration.millis(360));
+        opponentDelay.setOnFinished(event -> {
+            if (controller.playOpponentCard()) {
+                capa2Plano3D.refresh();
+            }
+        });
+        opponentDelay.play();
+    }
+
+    private void passTurn() {
+        if (controller.passTurn()) {
+            handLayer.refresh(controller.getPlayerHand());
+            capa2Plano3D.refresh();
+        }
+    }
+
+    private void showHandPreview(Card card) {
         hideHandPreview();
         handPreview = new StackPane();
         handPreview.getStyleClass().add("collection-preview-overlay");
@@ -191,9 +231,8 @@ public class GameView {
         backdrop.setMouseTransparent(true);
         backdrop.setOpacity(0);
         backdrop.getStyleClass().add("collection-preview-backdrop");
-        ImageView preview = new ImageView(new Image(getClass().getResource("/images/cards/" + race.getAssetName()).toExternalForm()));
-        preview.setPreserveRatio(true);
-        preview.setFitHeight(460);
+        CardVisual preview = new CardVisual(card, 460 / 1.46, 460, "collection-card-image");
+        preview.addMetadata(card);
         preview.setMouseTransparent(true);
         handPreview.getChildren().addAll(backdrop, preview);
         StackPane.setAlignment(preview, Pos.CENTER_RIGHT);

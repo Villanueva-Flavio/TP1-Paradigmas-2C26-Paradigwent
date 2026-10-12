@@ -1,4 +1,4 @@
-package com.fiuba.paradigwent.model.AI;
+package com.fiuba.paradigwent.model.ai;
 
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.card.Card;
@@ -22,7 +22,10 @@ public class AI extends Player {
                     "A player who passed cannot play during this round");
         }
 
-        Card chosen = strategy.selectCard(hand, context);
+        Card chosen = context.getPlayedCard();
+        if (chosen == null || !hand.getHand().contains(chosen)) {
+            chosen = strategy.selectCard(hand, context);
+        }
 
         if (chosen == null) {
             passRound();
@@ -31,4 +34,3 @@ public class AI extends Player {
         play(chosen, context);
     }
 }
-

@@ -2,6 +2,7 @@ package com.fiuba.paradigwent.model.board;
 
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.card.Weather;
 import com.fiuba.paradigwent.model.enums.WeatherType;
 import com.fiuba.paradigwent.model.player.Player;
 
@@ -10,6 +11,7 @@ public class Board {
     private PlayerSide playerSide;
     private PlayerSide opponentSide;
     private WeatherType currentWeather;
+    private Weather currentWeatherCard;
 
     /**
      * Constructor for the Board class, initializing the player and opponent sides with their respective players.
@@ -21,6 +23,7 @@ public class Board {
         this.playerSide = new PlayerSide(player);
         this.opponentSide = new PlayerSide(opponent);
         this.currentWeather = WeatherType.valueOf("CLEAR");
+        this.currentWeatherCard = null;
     }
 
     /**
@@ -57,6 +60,18 @@ public class Board {
      **/
     public void setCurrentWeather(WeatherType currentWeather) {
         this.currentWeather = currentWeather == null ? WeatherType.CLEAR : currentWeather;
+        if (this.currentWeather == WeatherType.CLEAR) {
+            this.currentWeatherCard = null;
+        }
+    }
+
+    public void setCurrentWeather(Weather weather) {
+        this.currentWeatherCard = weather;
+        setCurrentWeather(weather == null ? WeatherType.CLEAR : weather.getWeatherType());
+    }
+
+    public Weather getCurrentWeatherCard() {
+        return currentWeatherCard;
     }
 
     /**
@@ -73,6 +88,7 @@ public class Board {
      **/
     public void clearWeather() {
         this.currentWeather = WeatherType.CLEAR;
+        this.currentWeatherCard = null;
     }
 
     /**
@@ -82,6 +98,7 @@ public class Board {
         playerSide.discard();
         opponentSide.discard();
         this.currentWeather = WeatherType.valueOf("CLEAR");
+        this.currentWeatherCard = null;
 
     }
 

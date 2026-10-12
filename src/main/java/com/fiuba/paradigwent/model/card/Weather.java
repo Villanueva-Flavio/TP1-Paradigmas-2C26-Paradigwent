@@ -15,9 +15,10 @@ public class Weather extends  Card{
      * @param name
      * @param stackLimite
      * @param weatherType
+     * @param description
     **/
-    public Weather(String id, String name, int stackLimite, WeatherType weatherType){
-        super(id, name, stackLimite, AttackLineType.NONE);
+    public Weather(String id, String name, int stackLimite, WeatherType weatherType, String description) {
+        super(id, name, stackLimite, AttackLineType.NONE, description);
         this.weatherType = weatherType == null ? WeatherType.CLEAR : weatherType;
     }
 
@@ -31,7 +32,7 @@ public class Weather extends  Card{
 
     @Override
     public void play(GameContext context) {
-        context.getBoard().setCurrentWeather(weatherType);
+        context.getBoard().setCurrentWeather(this);
         context.getCurrentPlayer().sendToDiscard(Collections.singletonList(this));
     }
 }

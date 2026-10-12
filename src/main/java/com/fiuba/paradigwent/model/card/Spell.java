@@ -12,8 +12,8 @@ public class Spell extends Card {
      * @param stackLimite
      * @param attackLineType
     **/
-    public Spell(String id, String name, int stackLimite, AttackLineType attackLineType) {
-        super(id, name, stackLimite,attackLineType);
+    public Spell(String id, String name, int stackLimite, AttackLineType attackLineType, String description) {
+        super(id, name, stackLimite, attackLineType, description);
     }
 
     @Override

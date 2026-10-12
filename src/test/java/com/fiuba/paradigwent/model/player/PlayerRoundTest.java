@@ -47,7 +47,7 @@ class PlayerRoundTest {
     **/
     @Test
     void passedPlayerCannotPlayUntilRoundStartsAgain() {
-        Minion card = ModelTestFixtures.minion("card", 4, AttackLineType.MELEE);
+        Minion card = ModelTestFixtures.minion("card", 4, AttackLineType.MELEE, null);
         Player player = new Player("player", new Deck(java.util.List.of(card)));
         Player opponent = ModelTestFixtures.emptyPlayer("opponent");
         Board board = new Board(player, opponent);

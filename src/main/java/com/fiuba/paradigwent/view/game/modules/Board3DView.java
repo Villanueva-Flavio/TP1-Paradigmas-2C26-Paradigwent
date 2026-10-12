@@ -11,76 +11,91 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fiuba.paradigwent.view.game.GameView;
+import com.fiuba.paradigwent.model.board.Board;
+import com.fiuba.paradigwent.model.board.PlayerSide;
+import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
 
 import java.util.ArrayList;
 
 public class Board3DView extends Pane {
 
-    private static final double BOARD_WIDTH_RATIO = 0.90;
-    private static final double BOARD_HEIGHT_RATIO = 1.3333333333;
-    private static final double BOARD_X_RATIO = 0.08;
-    private static final double BOARD_Y_RATIO = 0.0333333333;
-    private static final double BOARD_ROW_Y_RATIO = 0.03;
-    private static final double BOARD_LINE_GAP_RATIO = 0.01;
-    private static final double ROW_WIDTH_RATIO = 0.70;
-    private static final double ROW_HEIGHT_RATIO = 0.20;
-    private static final double ZONE_X_RATIO = 0.89;
-    private static final double ZONE_WIDTH_RATIO = 0.06;
-    private static final double ZONE_HEIGHT_RATIO = 0.1666666667;
-    private static final double OPPONENT_DECK_Y_RATIO = 0.0633333333;
-    private static final double OPPONENT_DISCARD_Y_RATIO = 0.2466666667;
-    private static final double PLAYER_DISCARD_Y_RATIO = 0.9791666667;
-    private static final double PLAYER_DECK_Y_RATIO = 1.1625;
-    private static final double WEATHER_Y_RATIO = 0.5;
-    private static final double GEM_X_RATIO = 0.035;
-    private static final double OPPONENT_GEM_Y_RATIO = 0.05;
-    private static final double OPPONENT_SECOND_GEM_Y_RATIO = 0.1666666667;
-    private static final double PLAYER_GEM_Y_RATIO = 0.95;
-    private static final double PLAYER_SECOND_GEM_Y_RATIO = 1.05;
-    private static final double CAMERA_LAYOUT_Y_RATIO = 0.2333333333;
-    private static final double CAMERA_CONTENT_HEIGHT_RATIO = 1.3291666667;
-    private static final double CAMERA_CONTENT_WIDTH_RATIO = 0.95;
-    private static final double CONTENT_OFFSET_Y_RATIO = 0.0740740741;
-    public static final double CAMERA_ZOOM_MULTIPLIER = 1.0;
+    private static final Map<String, Double> RATIOS = Map.ofEntries(
+        Map.entry("BOARD_WIDTH", 0.90),
+        Map.entry("BOARD_HEIGHT", 1.3333333333),
+        Map.entry("BOARD_X", 0.08),
+        Map.entry("BOARD_Y", 0.0333333333),
+        Map.entry("BOARD_ROW_Y", 0.03),
+        Map.entry("BOARD_LINE_GAP", 0.01),
+        Map.entry("ROW_WIDTH", 0.70),
+        Map.entry("ROW_HEIGHT", 0.20),
+        Map.entry("ZONE_X", 0.89),
+        Map.entry("ZONE_WIDTH", 0.06),
+        Map.entry("ZONE_HEIGHT", 0.1666666667),
+        Map.entry("OPPONENT_DECK_Y", 0.0633333333),
+        Map.entry("OPPONENT_DISCARD_Y", 0.2466666667),
+        Map.entry("PLAYER_DISCARD_Y", 0.9791666667),
+        Map.entry("PLAYER_DECK_Y", 1.1625),
+        Map.entry("WEATHER_Y", 0.5),
+        Map.entry("GEM_X", 0.035),
+        Map.entry("OPPONENT_GEM_Y", 0.05),
+        Map.entry("OPPONENT_SECOND_GEM_Y", 0.1666666667),
+        Map.entry("PLAYER_GEM_Y", 0.95),
+        Map.entry("PLAYER_SECOND_GEM_Y", 1.05),
+        Map.entry("CAMERA_LAYOUT_Y", 0.2333333333),
+        Map.entry("CAMERA_CONTENT_HEIGHT", 1.3291666667),
+        Map.entry("CAMERA_CONTENT_WIDTH", 0.95),
+        Map.entry("CONTENT_OFFSET_Y", 0.0740740741),
+        Map.entry("CAMERA_ZOOM", 1.0)
+    );
 
     private final Group tablero2_5d;
+    private final Board board;
+    private final RowView[] rows = new RowView[6];
+    private BoardZoneView weatherZone;
+    private BoardZoneView opponentDiscardZone;
+    private BoardZoneView playerDiscardZone;
+    private BoardZoneView opponentDeckZone;
+    private BoardZoneView playerDeckZone;
 
     public Board3DView(double width, double height) {
-        this(width, height, CardRace.HUMAN);
+        this(width, height, null);
     }
 
-    public Board3DView(double width, double height, CardRace race) {
+    public Board3DView(double width, double height, Board board) {
+        this.board = board;
         setPrefSize(width, height);
 
-        double boardWidth = width * BOARD_WIDTH_RATIO;
-        double boardHeight = height * BOARD_HEIGHT_RATIO;
-        double boardX = width * BOARD_X_RATIO;
-        double boardLineGap = height * BOARD_LINE_GAP_RATIO;
-        double boardRowX = width * BOARD_X_RATIO;
-        double boardRowY = height * BOARD_ROW_Y_RATIO;
-        double opponentDeckY = height * OPPONENT_DECK_Y_RATIO;
-        double opponentDiscardY = height * OPPONENT_DISCARD_Y_RATIO;
-        double playerDiscardY = height * PLAYER_DISCARD_Y_RATIO;
-        double playerDeckY = height * PLAYER_DECK_Y_RATIO;
-        double boardY = height * BOARD_Y_RATIO;
-        double zoneX = width * ZONE_X_RATIO;
-        double zoneWidth = width * ZONE_WIDTH_RATIO;
-        double zoneHeight = height * ZONE_HEIGHT_RATIO;
-        double weatherY = height * WEATHER_Y_RATIO - zoneHeight / 2 + boardY;
-        double gemX = width * GEM_X_RATIO;
-        double opponentGemY = height * OPPONENT_GEM_Y_RATIO;
-        double opponentSecondGemY = height * OPPONENT_SECOND_GEM_Y_RATIO;
-        double playerGemY = height * PLAYER_GEM_Y_RATIO;
-        double playerSecondGemY = height * PLAYER_SECOND_GEM_Y_RATIO;
+        double boardWidth = width * RATIOS.get("BOARD_WIDTH");
+        double boardHeight = height * RATIOS.get("BOARD_HEIGHT");
+        double boardX = width * RATIOS.get("BOARD_X");
+        double boardLineGap = height * RATIOS.get("BOARD_LINE_GAP");
+        double boardRowX = width * RATIOS.get("BOARD_X");
+        double boardRowY = height * RATIOS.get("BOARD_ROW_Y");
+        double opponentDeckY = height * RATIOS.get("OPPONENT_DECK_Y");
+        double opponentDiscardY = height * RATIOS.get("OPPONENT_DISCARD_Y");
+        double playerDiscardY = height * RATIOS.get("PLAYER_DISCARD_Y");
+        double playerDeckY = height * RATIOS.get("PLAYER_DECK_Y");
+        double boardY = height * RATIOS.get("BOARD_Y");
+        double zoneX = width * RATIOS.get("ZONE_X");
+        double zoneWidth = width * RATIOS.get("ZONE_WIDTH");
+        double zoneHeight = height * RATIOS.get("ZONE_HEIGHT");
+        double weatherY = height * RATIOS.get("WEATHER_Y") - zoneHeight / 2 + boardY;
+        double gemX = width * RATIOS.get("GEM_X");
+        double opponentGemY = height * RATIOS.get("OPPONENT_GEM_Y");
+        double opponentSecondGemY = height * RATIOS.get("OPPONENT_SECOND_GEM_Y");
+        double playerGemY = height * RATIOS.get("PLAYER_GEM_Y");
+        double playerSecondGemY = height * RATIOS.get("PLAYER_SECOND_GEM_Y");
         double cameraContentWidth = zoneX + zoneWidth;
         double cameraContentHeight = playerDeckY + zoneHeight;
-        double boardLayoutY = height * CAMERA_LAYOUT_Y_RATIO;
-        double contentOffsetY = height * CONTENT_OFFSET_Y_RATIO;
+        double boardLayoutY = height * RATIOS.get("CAMERA_LAYOUT_Y");
+        double contentOffsetY = height * RATIOS.get("CONTENT_OFFSET_Y");
         double cameraZoom =
             (height - boardLayoutY - contentOffsetY) / cameraContentHeight
-                * CAMERA_ZOOM_MULTIPLIER;
+                * RATIOS.get("CAMERA_ZOOM");
 
         // Marco central del tablero
         Rectangle marcoTablero = new Rectangle(boardWidth, boardHeight, GameView.COLOR.get("Board"));
@@ -93,28 +108,35 @@ public class Board3DView extends Pane {
         VBox filasTablero = new VBox(boardLineGap);
         filasTablero.setLayoutX(boardRowX);
         filasTablero.setLayoutY(boardRowY);
-        double rowWidth = width * ROW_WIDTH_RATIO;
-        double rowHeight = height * ROW_HEIGHT_RATIO;
+        double rowWidth = width * RATIOS.get("ROW_WIDTH");
+        double rowHeight = height * RATIOS.get("ROW_HEIGHT");
 
-        filasTablero.getChildren().addAll(
-            new RowView("Siege", GameView.COLOR.get("SiegeLine"), rowWidth, rowHeight),
-            new RowView("Ranged", GameView.COLOR.get("RangedLine"), rowWidth, rowHeight),
-            new RowView("Melee", GameView.COLOR.get("MeleeLine"), rowWidth, rowHeight),
-            new RowView("Melee", GameView.COLOR.get("MeleeLine"), rowWidth, rowHeight),
-            new RowView("Ranged", GameView.COLOR.get("RangedLine"), rowWidth, rowHeight),
-            new RowView("Siege", GameView.COLOR.get("SiegeLine"), rowWidth, rowHeight)
-        );
+        PlayerSide opponent = board == null ? null : board.getOpponentSide();
+        PlayerSide player = board == null ? null : board.getPlayerSide();
+        rows[0] = new RowView("Siege", GameView.COLOR.get("SiegeLine"), rowWidth, rowHeight,
+            line(opponent, AttackLineType.SIEGE));
+        rows[1] = new RowView("Ranged", GameView.COLOR.get("RangedLine"), rowWidth, rowHeight,
+            line(opponent, AttackLineType.RANGED));
+        rows[2] = new RowView("Melee", GameView.COLOR.get("MeleeLine"), rowWidth, rowHeight,
+            line(opponent, AttackLineType.MELEE));
+        rows[3] = new RowView("Melee", GameView.COLOR.get("MeleeLine"), rowWidth, rowHeight,
+            line(player, AttackLineType.MELEE));
+        rows[4] = new RowView("Ranged", GameView.COLOR.get("RangedLine"), rowWidth, rowHeight,
+            line(player, AttackLineType.RANGED));
+        rows[5] = new RowView("Siege", GameView.COLOR.get("SiegeLine"), rowWidth, rowHeight,
+            line(player, AttackLineType.SIEGE));
+        filasTablero.getChildren().addAll(rows);
 
         Group superficieTablero = new Group(marcoTablero, filasTablero);
         superficieTablero.setLayoutX(boardX);
         superficieTablero.setLayoutY(boardY);
 
         Group zonasLaterales = new Group(
-            new DeckView(race, zoneX, opponentDeckY, zoneWidth, zoneHeight),
-            new BoardZoneView("DISCARD", zoneX, opponentDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
-            new BoardZoneView("Weather", zoneX, weatherY, zoneWidth, zoneHeight, GameView.COLOR.get("Weather")),
-            new BoardZoneView("DISCARD", zoneX, playerDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
-            new DeckView(race, zoneX, playerDeckY, zoneWidth, zoneHeight)
+            opponentDeckZone = new BoardZoneView("DECK", zoneX, opponentDeckY, zoneWidth, zoneHeight, GameView.COLOR.get("Deck")),
+            opponentDiscardZone = new BoardZoneView("DISCARD", zoneX, opponentDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
+            weatherZone = new BoardZoneView("Weather", zoneX, weatherY, zoneWidth, zoneHeight, GameView.COLOR.get("Weather")),
+            playerDiscardZone = new BoardZoneView("DISCARD", zoneX, playerDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
+            playerDeckZone = new BoardZoneView("DECK", zoneX, playerDeckY, zoneWidth, zoneHeight, GameView.COLOR.get("Deck"))
         );
 
 
@@ -126,22 +148,6 @@ public class Board3DView extends Pane {
         gems.add(new GemView(gemX, opponentGemY, gemSize));
         gems.add(new GemView(gemX, playerSecondGemY, gemSize));
         
-        
-        new Thread(() -> {         // TESTING de destroyGem cada uno
-            try {
-                Thread.sleep(5000);
-                for (int i = 0; i < 4; i++) {
-                    final int index = i;
-                    javafx.application.Platform.runLater(() -> {
-                        gems.get(index).destroyGem();
-                    });
-                    Thread.sleep(5000);
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
-
         Group gemasGroup = new Group(gems.get(0), gems.get(1), gems.get(2), gems.get(3));
 
         
@@ -162,16 +168,45 @@ public class Board3DView extends Pane {
         gemasCameraLayer.setMouseTransparent(true);
         aplicarCamara(gemasCameraLayer, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
         getChildren().addAll(tablero2_5d, gemasCameraLayer);
+        refresh();
+    }
+
+    private com.fiuba.paradigwent.model.board.AttackLine line(PlayerSide side, AttackLineType type) {
+        return side == null ? new com.fiuba.paradigwent.model.board.AttackLine(type)
+            : side.getAttackLine(type);
+    }
+
+    public void refresh() {
+        for (RowView row : rows) {
+            if (row != null) {
+                row.refresh();
+            }
+        }
+        if (weatherZone != null && board != null) {
+            weatherZone.showCard(board.getCurrentWeatherCard());
+        }
+        if (board != null) {
+            showLatestDiscard(opponentDiscardZone, board.getOpponentSide().getOwner().getDiscard());
+            showLatestDiscard(playerDiscardZone, board.getPlayerSide().getOwner().getDiscard());
+            opponentDeckZone.showDeckCount(board.getOpponentSide().getOwner().getDeckSize());
+            playerDeckZone.showDeckCount(board.getPlayerSide().getOwner().getDeckSize());
+        }
+    }
+
+    private void showLatestDiscard(BoardZoneView zone, List<Card> discard) {
+        if (zone != null) {
+            zone.showCard(discard.isEmpty() ? null : discard.get(discard.size() - 1));
+        }
     }
 
     private void aplicarEfectoMesa() {
         double width = getPrefWidth();
         double height = getPrefHeight();
-        double cameraContentWidth = width * CAMERA_CONTENT_WIDTH_RATIO;
-        double cameraContentHeight = height * CAMERA_CONTENT_HEIGHT_RATIO;
-        double boardLayoutY = height * CAMERA_LAYOUT_Y_RATIO;
-        double contentOffsetY = height * CONTENT_OFFSET_Y_RATIO;
-        double cameraZoom = ((height - boardLayoutY - contentOffsetY) / cameraContentHeight * CAMERA_ZOOM_MULTIPLIER) * 1.1;
+        double cameraContentWidth = width * RATIOS.get("CAMERA_CONTENT_WIDTH");
+        double cameraContentHeight = height * RATIOS.get("CAMERA_CONTENT_HEIGHT");
+        double boardLayoutY = height * RATIOS.get("CAMERA_LAYOUT_Y");
+        double contentOffsetY = height * RATIOS.get("CONTENT_OFFSET_Y");
+        double cameraZoom = ((height - boardLayoutY - contentOffsetY) / cameraContentHeight * RATIOS.get("CAMERA_ZOOM")) * 1.1;
         aplicarCamara(tablero2_5d, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
     }
 
