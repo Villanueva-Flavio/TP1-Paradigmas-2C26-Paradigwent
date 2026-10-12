@@ -40,12 +40,18 @@ public class Player {
      * Plays the card currently selected in the game context. If the player has passed the round, an IllegalStateException is thrown. The played card is removed from the player's hand and its play method is invoked with the provided game context.
      * @param context
     **/
-    public void play(GameContext context) {
+    public void play(Card card, GameContext context) {
         if (hasPassedRound) {
-            throw new IllegalStateException("A player who passed cannot play during this round");
+            throw new IllegalStateException(
+                    "A player who passed cannot play during this round");
         }
-        this.hand.remove(context.getPlayedCard());
-        context.getPlayedCard().play(context);
+        this.hand.remove(card);
+        card.play(context);
+    }
+
+
+    public void play(GameContext context) {
+        play(context.getPlayedCard(), context);
     }
 
     /**

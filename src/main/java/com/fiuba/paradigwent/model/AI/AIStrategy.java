@@ -6,5 +6,5 @@ import com.fiuba.paradigwent.model.player.Hand;
 
 public interface AIStrategy {
 
-    public Card selectCard(Hand hand);
+    public Card selectCard(Hand hand,GameContext gameContext);
 }
