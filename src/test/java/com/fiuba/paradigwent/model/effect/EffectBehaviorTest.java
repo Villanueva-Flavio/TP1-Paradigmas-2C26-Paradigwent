@@ -1,0 +1,117 @@
+package com.fiuba.paradigwent.model.effect;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
+import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.ModelTestFixtures;
+import com.fiuba.paradigwent.model.board.Board;
+import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.enums.WeatherType;
+import com.fiuba.paradigwent.model.player.Deck;
+import com.fiuba.paradigwent.model.player.Player;
+
+class EffectBehaviorTest {
+
+    /**
+     *  Test: The effect factory creates a horn effect for a specific attack line, and applying it activates the horn on that line.
+    **/
+    @Test
+    void factoryCreatesHornForAnExplicitLine() {
+        Board board = ModelTestFixtures.boardWithEmptyPlayers();
+        Player player = board.getPlayerSide().getOwner();
+        Player opponent = board.getOpponentSide().getOwner();
+        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("horn", 1, AttackLineType.MELEE));
+
+        EffectFactory.createEffect("HORN", "SIEGE").apply(context);
+
+        assertTrue(board.getPlayerSide().getAttackLine(AttackLineType.SIEGE).hasHorn());
+        assertFalse(board.getPlayerSide().getAttackLine(AttackLineType.MELEE).hasHorn());
+    }
+
+    /**
+     *  Test: The effect factory creates a horn effect without specifying an attack line, and applying it activates the horn on the line of the played card.
+    **/
+    @Test
+    void hornWithoutLineUsesPlayedCardLine() {
+        Board board = ModelTestFixtures.boardWithEmptyPlayers();
+        Player player = board.getPlayerSide().getOwner();
+        Player opponent = board.getOpponentSide().getOwner();
+        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("horn", 1, AttackLineType.RANGED));
+
+        EffectFactory.createEffect("DUPLICATE_LINE", null).apply(context);
+
+        assertTrue(board.getPlayerSide().getAttackLine(AttackLineType.RANGED).hasHorn());
+    }
+
+    /**
+     *  Test: The effect factory creates a weather effect for a specific weather type, and applying it sets the board's current weather to that type.
+    **/
+    @Test
+    void weatherEffectChangesBoardWeather() {
+        Board board = ModelTestFixtures.boardWithEmptyPlayers();
+        Player player = board.getPlayerSide().getOwner();
+        Player opponent = board.getOpponentSide().getOwner();
+        GameContext context = context(player, opponent, board, ModelTestFixtures.minion("weather", 1, AttackLineType.NONE));
+
+        new WeatherEffect(WeatherType.FROST).apply(context);
+
+        assertEquals(WeatherType.FROST, board.getCurrentWeather());
+    }
+
+    /**
+     *   Test: The effect factory creates a steal card effect that draws up to a specified number of cards from the player's deck, and applying it adds those cards to the player's hand.
+    **/
+    @Test
+    void stealCardEffectDrawsUpToTheAvailableCards() {
+        List<Minion> cards = new java.util.ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            cards.add(ModelTestFixtures.minion("card-" + i, i, AttackLineType.MELEE));
+        }
+        Player player = new Player("player", new Deck(new java.util.ArrayList<>(cards)));
+        Player opponent = ModelTestFixtures.emptyPlayer("opponent");
+        Board board = new Board(player, opponent);
+        int handBefore = player.getHand().size();
+
+        new StealCardEffect(5).apply(context(player, opponent, board, cards.get(0)));
+
+        assertEquals(handBefore + 2, player.getHand().size());
+    }
+
+    /**
+     *  Test: The effect factory creates a revive effect that moves the most recently discarded card back to the player's hand, and applying it performs this action.
+    **/
+    @Test
+    void reviveEffectMovesTheMostRecentDiscardedCardToHand() {
+        Player player = ModelTestFixtures.emptyPlayer("player");
+        Player opponent = ModelTestFixtures.emptyPlayer("opponent");
+        Board board = new Board(player, opponent);
+        Minion card = ModelTestFixtures.minion("discarded", 3, AttackLineType.MELEE);
+        player.sendToDiscard(List.of(card));
+
+        new ReviveEffect(1).apply(context(player, opponent, board, card));
+
+        assertTrue(player.getHand().contains(card));
+        assertFalse(player.getDiscard().contains(card));
+    }
+
+    /**
+     *  Test: The effect factory rejects null and unknown effect types.
+    **/
+    @Test
+    void factoryRejectsNullAndUnknownEffects() {
+        assertThrows(IllegalArgumentException.class, () -> EffectFactory.createEffect(null, null));
+        assertThrows(IllegalArgumentException.class, () -> EffectFactory.createEffect("UNKNOWN", null));
+    }
+
+    private static GameContext context(Player player, Player opponent, Board board, Minion playedCard) {
+        return new GameContext(player, opponent, board, playedCard);
+    }
+}
