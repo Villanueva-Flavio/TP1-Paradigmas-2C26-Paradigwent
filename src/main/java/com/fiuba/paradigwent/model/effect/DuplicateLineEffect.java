@@ -15,6 +15,18 @@ public class DuplicateLineEffect implements Effect {
     }
 
     @Override
+    public String getDescription() {
+        return "Duplicar una línea de ataque";
+    }
+
+    @Override
+    public String getTargetDescription() {
+        return lineType == null || lineType == AttackLineType.NONE
+            ? "Objetivo: la línea de ataque de la carta jugada"
+            : "Afecta a la línea " + lineType;
+    }
+
+    @Override
     public void apply(GameContext context){
         AttackLineType targetLine = (lineType != null && lineType != AttackLineType.NONE)?
             lineType : context.getPlayedCard().getAttackLineType();

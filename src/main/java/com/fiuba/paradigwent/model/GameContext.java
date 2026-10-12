@@ -9,6 +9,7 @@ public class GameContext {
     private final Player opponent;
     private final Board board;
     private final Card playedCard;
+    private final Card targetCard;
 
     /**
      * Constructs a GameContext with the specified current player, opponent, board, and played card.
@@ -18,10 +19,16 @@ public class GameContext {
      * @param playedCard
     **/
     public GameContext(Player currentPlayer, Player opponent, Board board, Card playedCard) {
+        this(currentPlayer, opponent, board, playedCard, null);
+    }
+
+    public GameContext(Player currentPlayer, Player opponent, Board board,
+                       Card playedCard, Card targetCard) {
         this.currentPlayer = currentPlayer;
         this.opponent = opponent;
         this.board = board;
         this.playedCard = playedCard;
+        this.targetCard = targetCard;
     }
 
     /**
@@ -56,6 +63,6 @@ public class GameContext {
      * @return The target card on the board in the game context.
     **/
     public Card getTargetCard() {
-        return board.getTargetCard();
+        return targetCard;
     }
 }

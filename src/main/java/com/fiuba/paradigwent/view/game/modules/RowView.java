@@ -16,12 +16,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
+import java.util.function.BiConsumer;
 
 public class RowView extends StackPane {
     private final HBox slots;
     private final double rowWidth;
     private final double rowHeight;
     private final AttackLine line;
+    private BiConsumer<Minion, StackPane> cardHoverHandler = (card, source) -> { };
 
     public RowView(String labelText, Color strokeColor, double rowWidth,
                    double rowHeight, AttackLine line) {
@@ -60,6 +62,11 @@ public class RowView extends StackPane {
         }
     }
 
+    public void setCardHoverHandler(BiConsumer<Minion, StackPane> handler) {
+        cardHoverHandler = handler == null ? (card, source) -> { } : handler;
+        refresh();
+    }
+
     private StackPane emptySlot() {
         Rectangle dummy = new Rectangle(rowWidth * (60.0 / 700.0),
             rowHeight * (100.0 / 120.0), GameView.COLOR.get("DummyCard"));
@@ -91,11 +98,13 @@ public class RowView extends StackPane {
             visual.setScaleX(1.16);
             visual.setScaleY(1.16);
             visual.setEffect(new DropShadow(18, Color.BLACK));
+            cardHoverHandler.accept(minion, result);
         });
         result.setOnMouseExited(event -> {
             visual.setScaleX(1);
             visual.setScaleY(1);
             visual.setEffect(null);
+            cardHoverHandler.accept(null, result);
         });
         ScaleTransition scale = new ScaleTransition(Duration.millis(260), visual);
         scale.setToX(1);

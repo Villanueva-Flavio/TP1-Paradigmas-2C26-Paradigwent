@@ -1,8 +1,6 @@
 package com.fiuba.paradigwent.view.game.modules;
 
 import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.card.CardAssetResolver;
-
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.input.MouseEvent;
@@ -25,7 +23,7 @@ public class CardView extends StackPane {
         setMinSize(HIT_AREA_WIDTH, HIT_AREA_HEIGHT);
         setPickOnBounds(true);
 
-        visual.addMetadata(card);
+        visual.addMetadata(card, true);
         visual.setMouseTransparent(true);
         getChildren().add(visual);
         addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {

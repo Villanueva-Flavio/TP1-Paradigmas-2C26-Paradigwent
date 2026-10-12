@@ -27,7 +27,7 @@ public class MainMenuView extends VBox {
         Button btnSettings = mainView.createMenuButton("SETTINGS");
         Button btnExit = mainView.createMenuButton("EXIT");
 
-        btnPlay.setOnAction(e -> mainView.showGameView());
+        btnPlay.setOnAction(e -> mainView.showFactionSelectionForMatch());
         btnFaction.setOnAction(e -> mainView.showFactionsMenu());
         btnCollection.setOnAction(e -> mainView.showCollectionMenu());
         btnSettings.setOnAction(e -> mainView.showConfigMenu());

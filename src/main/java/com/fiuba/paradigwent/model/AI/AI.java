@@ -15,6 +15,10 @@ public class AI extends Player {
         this.strategy = strategy;
     }
 
+    public Card selectCard(GameContext context) {
+        return strategy.selectCard(hand, context);
+    }
+
     @Override
     public void play(GameContext context) {
         if (hasPassedRound) {

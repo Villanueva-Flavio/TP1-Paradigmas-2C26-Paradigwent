@@ -4,6 +4,20 @@ import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.card.Minion;
 
 public class ModifyPowerEffect implements Effect {
+    @Override
+    public boolean requiresTarget() {
+        return true;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Modificar poder de un minion";
+    }
+
+    @Override
+    public String getTargetDescription() {
+        return "Objetivo: un minion de cualquier línea";
+    }
     private final int amount;
 
     /**

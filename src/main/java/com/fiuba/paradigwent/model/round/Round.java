@@ -47,13 +47,17 @@ public class Round {
      * @param card the card to be played
      */
     public void playCard(Card card) {
+        playCard(card, null);
+    }
+
+    public void playCard(Card card, Card targetCard) {
         if (finished || currentPlayer.hasPassedRound()) {
             return;
         }
 
         Player opponent = getOpponent(currentPlayer);
 
-        GameContext context = new GameContext(currentPlayer, opponent, board, card);
+        GameContext context = new GameContext(currentPlayer, opponent, board, card, targetCard);
 
         currentPlayer.play(context);
 
@@ -72,6 +76,18 @@ public class Round {
 
         currentPlayer.passRound();
         advanceTurn();
+    }
+
+    public void passPlayer(Player player) {
+        if (finished || player == null || player.hasPassedRound()) {
+            return;
+        }
+        player.passRound();
+        if (player == currentPlayer) {
+            advanceTurn();
+        } else if (player1.hasPassedRound() && player2.hasPassedRound()) {
+            finished = true;
+        }
     }
 
     /**

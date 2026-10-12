@@ -13,6 +13,7 @@ public class Player {
     protected final Deck deck;
     protected final Hand hand;
     protected final Discard discard;
+    private String faction;
 
     /**
      * Constructs a Player with the specified name and deck. Initializes the player's hand, draws 10 cards from the deck, and initializes the discard pile. The player starts with 2 lives and has not passed the round.
@@ -26,6 +27,14 @@ public class Player {
         drawCard(10);
         this.discard = new Discard();
         this.hasPassedRound = false;
+    }
+
+    public void setFaction(String faction) {
+        this.faction = faction;
+    }
+
+    public String getFaction() {
+        return faction;
     }
 
     /**

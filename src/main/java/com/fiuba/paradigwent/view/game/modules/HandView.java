@@ -78,12 +78,10 @@ public class HandView extends Pane {
     }
 
     private CardView findCardView(Object target) {
-        if (!(target instanceof Node node)) {
-            return null;
-        }
+        Node node = (Node) target;
         while (node != null && node != this) {
-            if (node instanceof CardView cardView) {
-                return cardView;
+            if (node.getClass() == CardView.class) {
+                return (CardView) node;
             }
             node = node.getParent();
         }

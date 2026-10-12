@@ -9,6 +9,22 @@ import java.util.Collections;
 
 /* incompleto targetType */
 public class DestroyCreatureEffect implements Effect{
+    @Override
+    public boolean requiresTarget() {
+        return true;
+    }
+
+    @Override
+    public String getDescription() {
+        return "Destruir un minion";
+    }
+
+    @Override
+    public String getTargetDescription() {
+        return targetType == AttackLineType.NONE
+            ? "Objetivo: un minion de cualquier línea"
+            : "Objetivo: un minion de la línea " + targetType;
+    }
     private final AttackLineType targetType;
 
     /**
@@ -22,13 +38,23 @@ public class DestroyCreatureEffect implements Effect{
     @Override 
     public void apply(GameContext context){
         Minion target = (Minion) context.getTargetCard();
-        PlayerSide opponent = context.getBoard().getOpponentSide();
-
         if(target == null){
-            target = context.getBoard().getStrongestMiniondOf(opponent);
-        } else {
-            opponent.getAttackLine(targetType).removeMinion(target);
-            opponent.getOwner().sendToDiscard(Collections.singletonList(target));
+            target = context.getBoard().getStrongestMiniondOf(
+                context.getBoard().getOpponentSide());
+        }
+        if (target != null) {
+            for (PlayerSide side : new PlayerSide[] {
+                    context.getBoard().getPlayerSide(),
+                    context.getBoard().getOpponentSide() }) {
+                for (AttackLineType lineType : AttackLineType.values()) {
+                    if (lineType != AttackLineType.NONE
+                            && side.getAttackLine(lineType).getMinions().contains(target)) {
+                        side.getAttackLine(lineType).removeMinion(target);
+                        side.getOwner().sendToDiscard(Collections.singletonList(target));
+                        return;
+                    }
+                }
+            }
         }
     }
 }

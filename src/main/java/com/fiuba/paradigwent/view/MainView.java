@@ -9,14 +9,12 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.effect.Light;
 import javafx.scene.effect.Lighting;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
@@ -81,6 +79,7 @@ public class MainView extends Application {
     private InGameConfigMenuView inGameConfigMenuView;
     private GameView gameView;
     private CardRace selectedRace = CardRace.HUMAN;
+    private boolean selectingRaceForMatch;
     private Pair<Integer, Integer> currentResolution = SUPPORTED_RESOLUTIONS.get(0);
 
     /**
@@ -97,7 +96,6 @@ public class MainView extends Application {
         this.factionsMenuView = new FactionsMenuView(this);
         this.collectionMenuView = new CollectionMenuView(this);
         this.inGameConfigMenuView = new InGameConfigMenuView(this, primaryStage, SUPPORTED_RESOLUTIONS);
-        this.gameView = new GameView(this);
 
         showMainMenu();
         root.getChildren().add(uiOverlay);
@@ -108,7 +106,9 @@ public class MainView extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
         Platform.runLater(() -> {
-            gameView.centerBoardInViewport();
+            if (gameView != null) {
+                gameView.centerBoardInViewport();
+            }
         });
     }
 
@@ -162,21 +162,17 @@ public class MainView extends Application {
             return;
         }
         gameView.surrender();
-        gameView = null;
         root.getChildren().remove(inGameConfigMenuView);
         uiOverlay.setLeft(null);
         uiOverlay.setRight(null);
-        uiOverlay.setCenter(null);
-        showMainMenu();
-
-        Alert defeat = new Alert(Alert.AlertType.INFORMATION);
-        defeat.setTitle("Partida terminada");
-        defeat.setHeaderText("Derrota");
-        defeat.setContentText("Te rendiste. La partida terminó y se iniciará una nueva partida al volver a jugar.");
-        defeat.showAndWait();
+        uiOverlay.setCenter(gameView.getRootNode());
     }
     /** @brief Shows the main menu. */
-    public void showMainMenu()       { setContent(mainMenuView);       }
+    public void showMainMenu()       {
+        selectingRaceForMatch = false;
+        gameView = null;
+        setContent(mainMenuView);
+    }
     /** @brief Shows the configuration menu. */
     public void showConfigMenu()     {
         configMenuView.refreshResolution();
@@ -184,12 +180,26 @@ public class MainView extends Application {
     }
     /** @brief Shows the factions menu. */
     public void showFactionsMenu()   { setContent(factionsMenuView);   }
+
+    /**
+     * Shows faction selection as the first step of a new match.
+     */
+    public void showFactionSelectionForMatch() {
+        selectingRaceForMatch = true;
+        showFactionsMenu();
+    }
+
     public void selectRace(CardRace race) {
         if (race != null) {
             selectedRace = race;
             gameView = null;
         }
-        showMainMenu();
+        if (selectingRaceForMatch && race != null) {
+            selectingRaceForMatch = false;
+            showGameView();
+        } else {
+            showMainMenu();
+        }
     }
     /** @brief Shows the collection menu. */
     public void showCollectionMenu() {

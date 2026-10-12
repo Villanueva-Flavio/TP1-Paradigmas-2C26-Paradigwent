@@ -4,17 +4,21 @@ import com.fiuba.paradigwent.view.game.GameView;
 import com.fiuba.paradigwent.model.card.Card;
 
 import javafx.scene.layout.StackPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import java.util.function.BiConsumer;
 
 public class BoardZoneView extends StackPane {
     private final Text label;
     private final double width;
     private final double height;
+    private BiConsumer<Card, BoardZoneView> cardHoverHandler = (card, source) -> { };
 
     public BoardZoneView(String labelText, double x, double y, double width, double height, Color strokeColor) {
         setLayoutX(x);
@@ -39,7 +43,7 @@ public class BoardZoneView extends StackPane {
     }
 
     public void showCard(Card card) {
-        getChildren().removeIf(node -> node instanceof CardVisual);
+        clearContent();
         label.setVisible(card == null);
         if (card == null) {
             return;
@@ -47,6 +51,8 @@ public class BoardZoneView extends StackPane {
         CardVisual visual = new CardVisual(card, width * 0.9, height * 0.9, "board-card");
         visual.addMetadata(card);
         getChildren().add(visual);
+        visual.setOnMouseEntered(event -> cardHoverHandler.accept(card, this));
+        visual.setOnMouseExited(event -> cardHoverHandler.accept(null, this));
         visual.setScaleX(0.2);
         visual.setScaleY(0.2);
         visual.setOpacity(0);
@@ -61,9 +67,51 @@ public class BoardZoneView extends StackPane {
         fade.play();
     }
 
+    public void setCardHoverHandler(BiConsumer<Card, BoardZoneView> handler) {
+        cardHoverHandler = handler == null ? (card, source) -> { } : handler;
+    }
+
     public void showDeckCount(int count) {
-        getChildren().removeIf(node -> node instanceof CardVisual);
+        clearContent();
         label.setVisible(true);
         label.setText("DECK\n" + count);
+        if (count <= 0) {
+            return;
+        }
+
+        int visibleCards = Math.min(5, count);
+        double cardWidth = width * 0.78;
+        double cardHeight = height * 0.82;
+        for (int index = visibleCards - 1; index >= 0; index--) {
+            ImageView back = new ImageView(new Image(resource(
+                backAssetPath()), true));
+            back.setPreserveRatio(true);
+            back.setFitWidth(cardWidth);
+            back.setFitHeight(cardHeight);
+            back.setTranslateX(index * width * 0.025);
+            back.setTranslateY(index * height * 0.018);
+            back.setMouseTransparent(true);
+            getChildren().add(1, back);
+        }
+    }
+
+    public void setDeckFaction(String faction) {
+        setUserData(faction);
+    }
+
+    private void clearContent() {
+        getChildren().removeIf(node -> node != label
+            && node != getChildren().get(0));
+    }
+
+    private static String resource(String path) {
+        return BoardZoneView.class.getResource(path).toExternalForm();
+    }
+
+    private String backAssetPath() {
+        String faction = getUserData() == null ? "murgol" : getUserData().toString();
+        String path = "/images/cards/card-back-" + faction.toLowerCase() + ".png";
+        return BoardZoneView.class.getResource(path) == null
+            ? "/images/cards/card-back-murgol.png" : path;
     }
 }

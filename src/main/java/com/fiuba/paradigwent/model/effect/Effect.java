@@ -7,4 +7,16 @@ import com.fiuba.paradigwent.model.GameContext;
 **/
 public interface Effect {
     void apply(GameContext context);    
+
+    default boolean requiresTarget() {
+        return false;
+    }
+
+    default String getDescription() {
+        return getClass().getSimpleName().replace("Effect", "");
+    }
+
+    default String getTargetDescription() {
+        return "";
+    }
 }

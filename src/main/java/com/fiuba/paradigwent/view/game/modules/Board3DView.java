@@ -19,7 +19,7 @@ import com.fiuba.paradigwent.model.board.PlayerSide;
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 
-import java.util.ArrayList;
+import java.util.function.BiConsumer;
 
 public class Board3DView extends Pane {
 
@@ -60,6 +60,12 @@ public class Board3DView extends Pane {
     private BoardZoneView playerDiscardZone;
     private BoardZoneView opponentDeckZone;
     private BoardZoneView playerDeckZone;
+    private GemView opponentFirstGem;
+    private GemView opponentSecondGem;
+    private GemView playerFirstGem;
+    private GemView playerSecondGem;
+    private int displayedOpponentLives = 2;
+    private int displayedPlayerLives = 2;
 
     public Board3DView(double width, double height) {
         this(width, height, null);
@@ -141,14 +147,14 @@ public class Board3DView extends Pane {
 
 
         // Gemas de vida en el tablero
-        List<GemView> gems = new ArrayList<GemView>();
         double gemSize = width * (24.0 / 1000.0);
-        gems.add(new GemView(gemX, opponentSecondGemY, gemSize));
-        gems.add(new GemView(gemX, playerGemY, gemSize));
-        gems.add(new GemView(gemX, opponentGemY, gemSize));
-        gems.add(new GemView(gemX, playerSecondGemY, gemSize));
+        opponentSecondGem = new GemView(gemX, opponentSecondGemY, gemSize);
+        playerFirstGem = new GemView(gemX, playerGemY, gemSize);
+        opponentFirstGem = new GemView(gemX, opponentGemY, gemSize);
+        playerSecondGem = new GemView(gemX, playerSecondGemY, gemSize);
         
-        Group gemasGroup = new Group(gems.get(0), gems.get(1), gems.get(2), gems.get(3));
+        Group gemasGroup = new Group(
+            opponentSecondGem, playerFirstGem, opponentFirstGem, playerSecondGem);
 
         
 
@@ -186,10 +192,55 @@ public class Board3DView extends Pane {
             weatherZone.showCard(board.getCurrentWeatherCard());
         }
         if (board != null) {
+            opponentDeckZone.setDeckFaction(
+                board.getOpponentSide().getOwner().getFaction());
+            playerDeckZone.setDeckFaction(
+                board.getPlayerSide().getOwner().getFaction());
+            refreshLives();
             showLatestDiscard(opponentDiscardZone, board.getOpponentSide().getOwner().getDiscard());
             showLatestDiscard(playerDiscardZone, board.getPlayerSide().getOwner().getDiscard());
             opponentDeckZone.showDeckCount(board.getOpponentSide().getOwner().getDeckSize());
             playerDeckZone.showDeckCount(board.getPlayerSide().getOwner().getDeckSize());
+        }
+    }
+
+    public void setCardHoverHandler(BiConsumer<Card, javafx.scene.Node> handler) {
+        BiConsumer<Card, javafx.scene.Node> safeHandler =
+            handler == null ? (card, source) -> { } : handler;
+        for (RowView row : rows) {
+            row.setCardHoverHandler((card, source) -> safeHandler.accept(card, source));
+        }
+        BiConsumer<Card, BoardZoneView> zoneHandler =
+            (card, source) -> safeHandler.accept(card, source);
+        weatherZone.setCardHoverHandler(zoneHandler);
+        opponentDiscardZone.setCardHoverHandler(zoneHandler);
+        playerDiscardZone.setCardHoverHandler(zoneHandler);
+    }
+
+    private void refreshLives() {
+        int opponentLives = Math.max(0, Math.min(2,
+            board.getOpponentSide().getOwner().getLives()));
+        int playerLives = Math.max(0, Math.min(2,
+            board.getPlayerSide().getOwner().getLives()));
+
+        destroyMissingGems(opponentLives, displayedOpponentLives,
+            opponentFirstGem, opponentSecondGem);
+        destroyMissingGems(playerLives, displayedPlayerLives,
+            playerFirstGem, playerSecondGem);
+
+        displayedOpponentLives = opponentLives;
+        displayedPlayerLives = playerLives;
+    }
+
+    private void destroyMissingGems(int currentLives, int previousLives,
+            GemView firstGem, GemView secondGem) {
+        if (currentLives < previousLives) {
+            if (currentLives < 1 && previousLives >= 1) {
+                firstGem.destroyGem();
+            }
+            if (currentLives < 2 && previousLives >= 2) {
+                secondGem.destroyGem();
+            }
         }
     }
 

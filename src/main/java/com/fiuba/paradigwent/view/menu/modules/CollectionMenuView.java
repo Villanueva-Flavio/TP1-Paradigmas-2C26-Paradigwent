@@ -400,7 +400,7 @@ public class CollectionMenuView extends VBox {
         CardVisual preview = createCardImage(card, 600, 860, false);
         mainView.getRoot().heightProperty().addListener((observable, oldValue, newValue) -> {
             double previewHeight = Math.min(860, newValue.doubleValue() * 0.86);
-            preview.updateSize(previewHeight / 1.46, previewHeight);
+            preview.updateSize(CardVisual.widthForHeight(previewHeight), previewHeight);
         });
         preview.setOnMouseEntered(event -> previewHideDelay.stop());
         preview.setOnMouseExited(event -> {

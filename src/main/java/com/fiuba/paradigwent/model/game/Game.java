@@ -82,8 +82,10 @@ public class Game {
         board.discard();
         finished = checkMatchFinished();
         if (!finished) {
-            player1.drawCard(1);
-            player2.drawCard(1);
+            player1.startRound();
+            player2.startRound();
+            player1.drawCard(10);
+            player2.drawCard(10);
         }
         return true;
     }
