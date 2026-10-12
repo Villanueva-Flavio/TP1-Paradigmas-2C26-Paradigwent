@@ -48,6 +48,10 @@ public class Board3DView extends Pane {
     private final Group tablero2_5d;
 
     public Board3DView(double width, double height) {
+        this(width, height, CardRace.HUMAN);
+    }
+
+    public Board3DView(double width, double height, CardRace race) {
         setPrefSize(width, height);
 
         double boardWidth = width * BOARD_WIDTH_RATIO;
@@ -106,11 +110,11 @@ public class Board3DView extends Pane {
         superficieTablero.setLayoutY(boardY);
 
         Group zonasLaterales = new Group(
-            new BoardZoneView("DECK", zoneX, opponentDeckY, zoneWidth, zoneHeight, GameView.COLOR.get("Deck")),
+            new DeckView(race, zoneX, opponentDeckY, zoneWidth, zoneHeight),
             new BoardZoneView("DISCARD", zoneX, opponentDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
             new BoardZoneView("Weather", zoneX, weatherY, zoneWidth, zoneHeight, GameView.COLOR.get("Weather")),
             new BoardZoneView("DISCARD", zoneX, playerDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
-            new BoardZoneView("DECK", zoneX, playerDeckY, zoneWidth, zoneHeight, GameView.COLOR.get("Deck"))
+            new DeckView(race, zoneX, playerDeckY, zoneWidth, zoneHeight)
         );
 
 

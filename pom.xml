@@ -91,7 +91,7 @@
                <artifactId>javafx-maven-plugin</artifactId>
                <version>0.0.8</version>
                <configuration>
-                   <mainClass>com.fiuba.paradigwent.view.View</mainClass>
+                   <mainClass>com.fiuba.paradigwent.view.MainView</mainClass>
                </configuration>
            </plugin>
 

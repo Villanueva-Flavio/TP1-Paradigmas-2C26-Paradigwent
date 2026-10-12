@@ -1,4 +1,4 @@
-package com.fiuba.paradigwent.view.menu;
+package com.fiuba.paradigwent.view.menu.modules;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -16,13 +16,14 @@ import javafx.util.Pair;
 
 import java.util.List;
 
-import com.fiuba.paradigwent.view.View;
+import com.fiuba.paradigwent.view.MainView;
 
 public class ConfigMenuView extends VBox {
 
-    private final View mainView;
+    private final MainView mainView;
     private final Stage stage;
     private String currentResolution = "1920x1080";
+    private ComboBox<String> resolutionCombo;
     private Timeline confirmationTimeline;
     private int countdownSeconds = 10;
     private boolean isUpdatingCombo = false;
@@ -33,18 +34,18 @@ public class ConfigMenuView extends VBox {
      * @param stage The Stage instance.
      * @param resolutions A list of available resolutions.
     **/
-    public ConfigMenuView(View mainView, Stage stage, List<Pair<Integer, Integer>> resolutions) {
+    public ConfigMenuView(MainView mainView, Stage stage, List<Pair<Integer, Integer>> resolutions) {
         this.mainView = mainView;
         this.stage = stage;
 
         configureLayout();
 
         Label lblResolution = createResolutionLabel();
-        ComboBox<String> comboResolution = createResolutionComboBox(resolutions);
+        resolutionCombo = createResolutionComboBox(resolutions);
         Button btnFullscreen = createFullscreenButton();
         Button btnBack = createBackButton();
 
-        getChildren().addAll(lblResolution, comboResolution, btnFullscreen, btnBack);
+        getChildren().addAll(lblResolution, resolutionCombo, btnFullscreen, btnBack);
     }
 
     /** 
@@ -236,5 +237,11 @@ public class ConfigMenuView extends VBox {
         comboResolution.setValue(previousRes);
         currentResolution = previousRes;
         isUpdatingCombo = false;
+    }
+
+    public void refreshResolution() {
+        Pair<Integer, Integer> resolution = mainView.getCurrentResolution();
+        currentResolution = resolution.getKey() + "x" + resolution.getValue();
+        resolutionCombo.setValue(currentResolution);
     }
 }
