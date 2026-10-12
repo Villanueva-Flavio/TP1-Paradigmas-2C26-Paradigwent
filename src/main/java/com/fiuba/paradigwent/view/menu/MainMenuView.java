@@ -1,6 +1,6 @@
 package com.fiuba.paradigwent.view.menu;
 
-import com.fiuba.paradigwent.view.View;
+import com.fiuba.paradigwent.view.MainView;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,7 +15,7 @@ public class MainMenuView extends VBox {
      * @param mainView The main View instance.
      * @param stage The Stage instance.
     **/
-    public MainMenuView(View mainView, Stage stage) {
+    public MainMenuView(MainView mainView, Stage stage) {
         
         setSpacing(20);
         setAlignment(Pos.CENTER);

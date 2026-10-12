@@ -2,12 +2,14 @@ package com.fiuba.paradigwent.view;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 
 import javafx.scene.Scene;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.effect.Light;
 import javafx.scene.effect.Lighting;
 import javafx.scene.image.Image;
@@ -28,46 +30,46 @@ import javafx.util.Pair;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import com.fiuba.paradigwent.view.menu.*;
+import com.fiuba.paradigwent.view.menu.modules.CollectionMenuView;
+import com.fiuba.paradigwent.view.menu.modules.ConfigMenuView;
+import com.fiuba.paradigwent.view.menu.modules.FactionsMenuView;
+import com.fiuba.paradigwent.view.menu.modules.InGameConfigMenuView;
 import com.fiuba.paradigwent.view.game.GameView;
 
 /**
  * @brief Application entry point and coordinator for the menu and game views.
  */
-public class View extends Application {
+public class MainView extends Application {
 
-    private static final String CSS_PATH = "/css/styles.css";
-    private static final String FONT_PATH = "/fonts/Headstone.ttf";
-    private static final String TITLE_IMAGE_PATH = "/images/title.png";
-    private static final String BACKGROUND_VIDEO_PATH = "/videos/main_menu_background.mp4";
-    private static final Integer TEXT_SIZE = 15;
-    private static final double TITLE_PADDING_TOP = 40;          // Esto habrá que pasarlo a diccionarios de cada categoria. eg: CAMERA["Azimuth"], CAMERA["Elevation"], etc.
-    private static final double TITLE_PADDING_LEFT = 60;
-    private static final double TITLE_WIDTH = 800;
-    private static final double LIGHT_AZIMUTH = 45.0;
-    private static final double LIGHT_ELEVATION = 60.0;
-    private static final double TITLE_SURFACE_SCALE = 4.5;
-    private static final int DEFAULT_RESOLUTION_WIDTH = 1920;
-    private static final int DEFAULT_RESOLUTION_HEIGHT = 1080;
-    private static final int CONFIG_RESOLUTION_WIDTH = 1600;
-    private static final int CONFIG_RESOLUTION_HEIGHT = 900;
-    private static final int HD_RESOLUTION_WIDTH = 1280;
-    private static final int HD_RESOLUTION_HEIGHT = 720;
-    private static final int LAPTOP_RESOLUTION_WIDTH = 1366;
-    private static final int LAPTOP_RESOLUTION_HEIGHT = 768;
-    private static final List<Pair<Integer, Integer>> SUPPORTED_RESOLUTIONS = new ArrayList<>(Arrays.asList(
-            new Pair<>(DEFAULT_RESOLUTION_WIDTH, DEFAULT_RESOLUTION_HEIGHT),
-            new Pair<>(CONFIG_RESOLUTION_WIDTH, CONFIG_RESOLUTION_HEIGHT),
-            new Pair<>(HD_RESOLUTION_WIDTH, HD_RESOLUTION_HEIGHT),
-            new Pair<>(LAPTOP_RESOLUTION_WIDTH, LAPTOP_RESOLUTION_HEIGHT)
-    ));
+    private static final Map<String, String> ASSETS = Map.of(
+        "CSS", "/css/styles.css",
+        "FONT", "/fonts/Headstone.ttf",
+        "TITLE_IMAGE", "/images/title.png",
+        "BACKGROUND_VIDEO", "/videos/main_menu_background.mp4"
+    );
+    private static final Map<String, Double> UI_DIMENSIONS = Map.of(
+        "TEXT_SIZE", 15.0,
+        "TITLE_PADDING_TOP", 40.0,
+        "TITLE_PADDING_LEFT", 60.0,
+        "TITLE_WIDTH", 800.0
+    );
+    private static final Map<String, Double> LIGHTING = Map.of(
+        "AZIMUTH", 45.0,
+        "ELEVATION", 60.0,
+        "SURFACE_SCALE", 4.5
+    );
+    private static final List<Pair<Integer, Integer>> SUPPORTED_RESOLUTIONS = List.of(
+        new Pair<>(1920, 1080),
+        new Pair<>(1600, 900),
+        new Pair<>(1280, 720),
+        new Pair<>(1366, 768)
+    );
     private StackPane root = new StackPane();
     private BorderPane uiOverlay = new BorderPane();
-    private Pane globalDimmer = new Pane();
     private String fontFamilyName = "System";
     private Font customFont;
     private MainMenuView mainMenuView;
@@ -76,6 +78,7 @@ public class View extends Application {
     private CollectionMenuView collectionMenuView;
     private InGameConfigMenuView inGameConfigMenuView;
     private GameView gameView;
+    private Pair<Integer, Integer> currentResolution = SUPPORTED_RESOLUTIONS.get(0);
 
     /**
      * @brief Initializes the views, scene, stylesheet, and primary stage.
@@ -84,7 +87,7 @@ public class View extends Application {
     @Override
     public void start(Stage primaryStage) {
         setup(primaryStage);
-        URL cssResource = getClass().getResource(CSS_PATH);
+        URL cssResource = getClass().getResource(ASSETS.get("CSS"));
 
         this.mainMenuView = new MainMenuView(this, primaryStage);
         this.configMenuView = new ConfigMenuView(this, primaryStage, SUPPORTED_RESOLUTIONS);
@@ -95,10 +98,8 @@ public class View extends Application {
 
         showMainMenu();
         root.getChildren().add(uiOverlay);
-        globalDimmer.getStyleClass().add("global-dimmer");
-        globalDimmer.setVisible(false);
-        root.getChildren().add(globalDimmer);
-        
+        root.widthProperty().addListener((observable, oldValue, newValue) -> adaptMenuLayout());
+        root.heightProperty().addListener((observable, oldValue, newValue) -> adaptMenuLayout());
         Scene scene = new Scene(root, SUPPORTED_RESOLUTIONS.get(0).getKey(), SUPPORTED_RESOLUTIONS.get(0).getValue());
         scene.getStylesheets().add(cssResource.toExternalForm());
         primaryStage.setScene(scene);
@@ -126,14 +127,17 @@ public class View extends Application {
     **/
     public void setContent(Node node) {
         root.getChildren().remove(inGameConfigMenuView);
-        globalDimmer.setVisible(false);
         VBox topLeftContainer = new VBox();
         ImageView titleView = createTitleView();
-        topLeftContainer.setPadding(new Insets(TITLE_PADDING_TOP, 0, 0, TITLE_PADDING_LEFT));
+        titleView.fitWidthProperty().bind(Bindings.min(500, root.widthProperty().multiply(0.32)));
+        topLeftContainer.setPadding(new Insets(
+            UI_DIMENSIONS.get("TITLE_PADDING_TOP"), 0, 0,
+            UI_DIMENSIONS.get("TITLE_PADDING_LEFT")));
         topLeftContainer.getChildren().add(titleView);
         uiOverlay.setCenter(null);
         uiOverlay.setLeft(topLeftContainer);
         uiOverlay.setRight(node);
+        adaptMenuLayout();
     }
 
     /**
@@ -141,28 +145,32 @@ public class View extends Application {
      */
     public void showGameView()       {
         root.getChildren().remove(inGameConfigMenuView);
-        globalDimmer.setVisible(false);
         uiOverlay.setLeft(null);
         uiOverlay.setRight(null);
         uiOverlay.setCenter(gameView.getRootNode());
-        gameView.setDimmed(false);
     }
     /** @brief Shows the main menu. */
     public void showMainMenu()       { setContent(mainMenuView);       }
     /** @brief Shows the configuration menu. */
-    public void showConfigMenu()     { setContent(configMenuView);     }
+    public void showConfigMenu()     {
+        configMenuView.refreshResolution();
+        setContent(configMenuView);
+    }
     /** @brief Shows the factions menu. */
     public void showFactionsMenu()   { setContent(factionsMenuView);   }
     /** @brief Shows the collection menu. */
-    public void showCollectionMenu() { setContent(collectionMenuView); }
+    public void showCollectionMenu() {
+        root.getChildren().remove(inGameConfigMenuView);
+        uiOverlay.setLeft(null);
+        uiOverlay.setRight(null);
+        uiOverlay.setCenter(collectionMenuView);
+    }
     /** @brief Shows the in-game configuration menu. */
     public void showInGameConfigMenu() {
+        inGameConfigMenuView.refreshResolution();
         uiOverlay.setLeft(null);
         uiOverlay.setCenter(gameView.getRootNode());
         uiOverlay.setRight(null);
-        gameView.setDimmed(false);
-        globalDimmer.setVisible(true);
-
         if (!root.getChildren().contains(inGameConfigMenuView)) {
             root.getChildren().add(inGameConfigMenuView);
         }
@@ -183,6 +191,7 @@ public class View extends Application {
 
     public void applyResolution(Stage stage, int width, int height) {
         Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
+        currentResolution = new Pair<>(width, height);
 
         stage.setFullScreen(false);
         if (width > visualBounds.getWidth() || height > visualBounds.getHeight()) {
@@ -194,6 +203,10 @@ public class View extends Application {
         stage.setWidth(width);
         stage.setHeight(height);
         stage.centerOnScreen();
+    }
+
+    public Pair<Integer, Integer> getCurrentResolution() {
+        return currentResolution;
     }
 
     /** 
@@ -217,13 +230,13 @@ public class View extends Application {
     * @brief Loads the configured custom font and updates the active family name.
     **/
     private void loadCustomFont() {
-        try (InputStream fontStream = getClass().getResourceAsStream(FONT_PATH)) {
+        try (InputStream fontStream = getClass().getResourceAsStream(ASSETS.get("FONT"))) {
             if (fontStream != null) {
-                this.customFont = Font.loadFont(fontStream, TEXT_SIZE);
+                this.customFont = Font.loadFont(fontStream, UI_DIMENSIONS.get("TEXT_SIZE"));
                 this.fontFamilyName = this.customFont.getFamily();
             }
         } catch (Exception e) {
-            System.err.println("❌ Error loading asset: " + FONT_PATH + " - " + e.getMessage());
+            System.err.println("❌ Error loading asset: " + ASSETS.get("FONT") + " - " + e.getMessage());
         }
     }
 
@@ -233,7 +246,7 @@ public class View extends Application {
     **/
     private void setupBackgroundVideo() {
         try {
-            URL videoResource = getClass().getResource(BACKGROUND_VIDEO_PATH);
+            URL videoResource = getClass().getResource(ASSETS.get("BACKGROUND_VIDEO"));
             if (videoResource != null) {
                 Media media = new Media(videoResource.toExternalForm());
                 MediaPlayer mediaPlayer = new MediaPlayer(media);
@@ -248,7 +261,7 @@ public class View extends Application {
                 root.getChildren().add(mediaView);
             }
         } catch (Exception e) {
-            System.err.println("❌ Error loading asset: " + BACKGROUND_VIDEO_PATH + " - " + e.getMessage());
+            System.err.println("❌ Error loading asset: " + ASSETS.get("BACKGROUND_VIDEO") + " - " + e.getMessage());
             root.setStyle("-fx-background-color: #0f0f14;");
         }
     }
@@ -259,29 +272,54 @@ public class View extends Application {
     **/
     private ImageView createTitleView() {
         try {
-            URL titleResource = getClass().getResource(TITLE_IMAGE_PATH);
+            URL titleResource = getClass().getResource(ASSETS.get("TITLE_IMAGE"));
             if (titleResource != null) {
                 Image titleImg = new Image(titleResource.toExternalForm());
                 ImageView titleView = new ImageView(titleImg);
                 titleView.setPreserveRatio(true);
-                titleView.setFitWidth(TITLE_WIDTH);
+                titleView.setFitWidth(UI_DIMENSIONS.get("TITLE_WIDTH"));
 
                 Lighting lighting = new Lighting();
                 Light.Distant light = new Light.Distant();
-                light.setAzimuth(LIGHT_AZIMUTH);
-                light.setElevation(LIGHT_ELEVATION);
+                light.setAzimuth(LIGHTING.get("AZIMUTH"));
+                light.setElevation(LIGHTING.get("ELEVATION"));
                 light.setColor(Color.WHITE);
 
                 lighting.setLight(light);
-                lighting.setSurfaceScale(TITLE_SURFACE_SCALE);
+                lighting.setSurfaceScale(LIGHTING.get("SURFACE_SCALE"));
                 titleView.setEffect(lighting);
 
                 return titleView;
             }
         } catch (Exception e) {
-            System.err.println("❌ Error loading asset: " + TITLE_IMAGE_PATH + " - " + e.getMessage());
+            System.err.println("❌ Error loading asset: " + ASSETS.get("TITLE_IMAGE") + " - " + e.getMessage());
         }
         return null;
+    }
+
+    private void adaptMenuLayout() {
+        double width = uiOverlay.getWidth();
+        if (width <= 0) return;
+
+        double componentWidth = Math.min(360, Math.max(180, width * 0.22));
+        adaptComponentWidths(uiOverlay, componentWidth);
+    }
+
+    private void adaptComponentWidths(Node node, double width) {
+        node.lookupAll(".menu-button").stream()
+            .filter(control -> !control.getStyleClass().contains("menu-button-dialog"))
+            .map(Button.class::cast)
+            .forEach(button -> {
+                button.setMinWidth(140);
+                button.setPrefWidth(width);
+            });
+
+        node.lookupAll(".menu-combo-box").stream()
+            .map(ComboBox.class::cast)
+            .forEach(comboBox -> {
+                comboBox.setMinWidth(140);
+                comboBox.setPrefWidth(width);
+            });
     }
 
     /**

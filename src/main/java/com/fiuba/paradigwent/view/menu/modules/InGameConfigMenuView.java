@@ -1,8 +1,8 @@
-package com.fiuba.paradigwent.view.menu;
+package com.fiuba.paradigwent.view.menu.modules;
 
 import java.util.List;
 
-import com.fiuba.paradigwent.view.View;
+import com.fiuba.paradigwent.view.MainView;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,11 +16,12 @@ import javafx.util.Pair;
 
 public class InGameConfigMenuView extends VBox {
 
-    private final View mainView;
+    private final MainView mainView;
     private final Stage stage;
     private String currentResolution = "1920x1080";
+    private ComboBox<String> resolutionCombo;
 
-    public InGameConfigMenuView(View mainView, Stage stage, List<Pair<Integer, Integer>> resolutions) {
+    public InGameConfigMenuView(MainView mainView, Stage stage, List<Pair<Integer, Integer>> resolutions) {
     this.mainView = mainView;
     this.stage = stage;
 
@@ -34,7 +35,7 @@ public class InGameConfigMenuView extends VBox {
     Label resolutionLabel = new Label("RESOLUTION");
     resolutionLabel.getStyleClass().add("menu-label");
 
-    ComboBox<String> resolutionCombo = new ComboBox<>();
+    resolutionCombo = new ComboBox<>();
     resolutionCombo.getItems().addAll(resolutions.stream()
         .map(resolution -> resolution.getKey() + "x" + resolution.getValue())
         .toList());
@@ -67,5 +68,11 @@ public class InGameConfigMenuView extends VBox {
     String[] dimensions = resolution.split("x");
     mainView.applyResolution(stage, Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1]));
     currentResolution = resolution;
+    }
+
+    public void refreshResolution() {
+        Pair<Integer, Integer> resolution = mainView.getCurrentResolution();
+        currentResolution = resolution.getKey() + "x" + resolution.getValue();
+        resolutionCombo.setValue(currentResolution);
     }
 }

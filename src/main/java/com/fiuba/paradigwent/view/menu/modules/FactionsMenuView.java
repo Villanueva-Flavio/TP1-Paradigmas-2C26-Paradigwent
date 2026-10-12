@@ -1,6 +1,6 @@
-package com.fiuba.paradigwent.view.menu;
+package com.fiuba.paradigwent.view.menu.modules;
 
-import com.fiuba.paradigwent.view.View;
+import com.fiuba.paradigwent.view.MainView;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -15,7 +15,7 @@ public class FactionsMenuView extends VBox {
      * Creates a new FactionsMenuView instance.
      * @param mainView The main View instance.
     **/
-    public FactionsMenuView(View mainView) {
+    public FactionsMenuView(MainView mainView) {
         setSpacing(20);
         setAlignment(Pos.CENTER);
         setPadding(new Insets(0, 80, 0, 0));

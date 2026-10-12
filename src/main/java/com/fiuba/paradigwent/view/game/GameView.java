@@ -3,10 +3,15 @@ package com.fiuba.paradigwent.view.game;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Parent;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.control.Button;
@@ -14,8 +19,10 @@ import java.util.Map;
 
 
 
-import com.fiuba.paradigwent.view.View;
+import com.fiuba.paradigwent.view.MainView;
 import com.fiuba.paradigwent.view.game.modules.Board3DView;
+import com.fiuba.paradigwent.view.game.modules.CardRace;
+import com.fiuba.paradigwent.view.game.modules.HandView;
 
 import java.util.HashMap;
 
@@ -64,12 +71,22 @@ public class GameView {
     private Board3DView capa2Plano3D;
     private Pane capa3UIOverlay;
     private Group contenidoEscalable;
-    private Rectangle dimmer;
+    private Group overlayEscalable;
+    private HandView handLayer;
+    private StackPane handPreview;
+    private final CardRace selectedRace;
+    private NumberBinding escalaViewport;
 
-    public GameView(View mainView) {
+    public GameView(MainView mainView) {
+        this(mainView, CardRace.HUMAN);
+    }
+
+    public GameView(MainView mainView, CardRace selectedRace) {
+        this.selectedRace = selectedRace;
         crearEstructuraCapas();
         construirCapa0Fondo();
         construirCapa3UI(mainView);
+        construirMano();
     }
 
     public Parent getRootNode() {
@@ -82,49 +99,60 @@ public class GameView {
         rootContainer.setMinSize(MIN_VIEW_WIDTH, MIN_VIEW_HEIGHT);
 
         capa0Fondo = new Pane();
-        capa2Plano3D = new Board3DView(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        capa2Plano3D = new Board3DView(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, selectedRace);
         capa3UIOverlay = new Pane();
+        capa3UIOverlay.setManaged(false);
         capa3UIOverlay.setPickOnBounds(false);
 
-        contenidoEscalable = new Group(capa2Plano3D, capa3UIOverlay);
+        contenidoEscalable = new Group(capa2Plano3D);
         contenidoEscalable.setManaged(false);
+        overlayEscalable = new Group(capa3UIOverlay);
+        overlayEscalable.setManaged(false);
 
-        dimmer = new Rectangle();
-        dimmer.widthProperty().bind(rootContainer.widthProperty());
-        dimmer.heightProperty().bind(rootContainer.heightProperty());
-        dimmer.setFill(Color.rgb(0, 0, 0, 0.65));
-        dimmer.setVisible(false);
-
-        NumberBinding escala = Bindings.min(
+        escalaViewport = Bindings.min(
             rootContainer.widthProperty().divide(REFERENCE_WIDTH),
             rootContainer.heightProperty().divide(REFERENCE_HEIGHT)
         ).multiply(REFERENCE_CONTENT_SCALE * CONTENT_SCALE);
 
-        contenidoEscalable.scaleXProperty().bind(escala);
-        contenidoEscalable.scaleYProperty().bind(escala);
+        javafx.scene.transform.Scale scaleTransform = new javafx.scene.transform.Scale();
+        scaleTransform.setPivotX(0);
+        scaleTransform.setPivotY(0);
+        scaleTransform.xProperty().bind(escalaViewport);
+        scaleTransform.yProperty().bind(escalaViewport);
 
+        contenidoEscalable.getTransforms().setAll(scaleTransform);
+        overlayEscalable.getTransforms().setAll(scaleTransform);
+
+        // Posicionamiento horizontal centrado para ambas capas
         contenidoEscalable.layoutXProperty().bind(
             rootContainer.widthProperty().divide(2)
-                .subtract(escala.multiply(VIRTUAL_WIDTH / 2))
+                .subtract(escalaViewport.multiply(VIRTUAL_WIDTH / 2))
         );
         contenidoEscalable.layoutYProperty().bind(
             rootContainer.heightProperty().multiply(CONTENT_OFFSET_Y_RATIO)
         );
 
-        rootContainer.getChildren().addAll(capa0Fondo, contenidoEscalable, dimmer);
-        rootContainer.widthProperty().addListener((observable, oldValue, newValue) ->
-            Platform.runLater(this::centerBoardInViewport));
-        rootContainer.heightProperty().addListener((observable, oldValue, newValue) ->
-            Platform.runLater(this::centerBoardInViewport));
-    }
+        overlayEscalable.layoutXProperty().bind(
+            rootContainer.widthProperty().divide(2)
+                .subtract(escalaViewport.multiply(VIRTUAL_WIDTH / 2))
+        );
+        overlayEscalable.layoutYProperty().bind(
+            rootContainer.heightProperty().multiply(CONTENT_OFFSET_Y_RATIO)
+        );
 
-    public void setDimmed(boolean dimmed) {
-        dimmer.setVisible(dimmed);
-        dimmer.setMouseTransparent(!dimmed);
+        rootContainer.getChildren().addAll(capa0Fondo, contenidoEscalable, overlayEscalable);
+        rootContainer.widthProperty().addListener((observable, oldValue, newValue) ->
+            Platform.runLater(this::centerContentsInViewport));
+        rootContainer.heightProperty().addListener((observable, oldValue, newValue) ->
+            Platform.runLater(this::centerContentsInViewport));
     }
 
     public void centerBoardInViewport() {
         capa2Plano3D.centerInViewport(contenidoEscalable);
+    }
+
+    private void centerContentsInViewport() {
+        centerBoardInViewport();
     }
 
     private void construirCapa0Fondo() {
@@ -135,13 +163,49 @@ public class GameView {
         capa0Fondo.getChildren().add(fondoMesa);
     }
 
-    private void construirCapa3UI(View mainView) {
+    private void construirCapa3UI(MainView mainView) {
         Button btnBack = mainView.createMenuButton("Options");
         btnBack.setOnAction(e -> {
             mainView.showInGameConfigMenu();
         });
-        btnBack.setLayoutX(VIRTUAL_WIDTH * 0.5);
-        btnBack.setLayoutY(VIRTUAL_HEIGHT * 0.1666666667);
-        capa3UIOverlay.getChildren().add(btnBack);
+        btnBack.setMaxWidth(360);
+        btnBack.prefWidthProperty().bind(Bindings.min(
+            360, rootContainer.widthProperty().multiply(0.28)));
+        StackPane.setAlignment(btnBack, Pos.TOP_RIGHT);
+        StackPane.setMargin(btnBack, new Insets(16, 16, 0, 0));
+        rootContainer.getChildren().add(btnBack);
+    }
+
+    private void construirMano() {
+        handLayer = new HandView(selectedRace, VIRTUAL_WIDTH, VIRTUAL_HEIGHT - 100);
+        handLayer.setOnPreviewRequested(this::showHandPreview);
+        handLayer.setOnPreviewCleared(this::hideHandPreview);
+        capa3UIOverlay.getChildren().add(handLayer);
+    }
+
+    private void showHandPreview(CardRace race) {
+        hideHandPreview();
+        handPreview = new StackPane();
+        handPreview.getStyleClass().add("collection-preview-overlay");
+        handPreview.setPickOnBounds(false);
+        Region backdrop = new Region();
+        backdrop.setMouseTransparent(true);
+        backdrop.setOpacity(0);
+        backdrop.getStyleClass().add("collection-preview-backdrop");
+        ImageView preview = new ImageView(new Image(getClass().getResource("/images/cards/" + race.getAssetName()).toExternalForm()));
+        preview.setPreserveRatio(true);
+        preview.setFitHeight(460);
+        preview.setMouseTransparent(true);
+        handPreview.getChildren().addAll(backdrop, preview);
+        StackPane.setAlignment(preview, Pos.CENTER_RIGHT);
+        StackPane.setMargin(preview, new Insets(0, 70, 0, 0));
+        rootContainer.getChildren().add(handPreview);
+    }
+
+    private void hideHandPreview() {
+        if (handPreview != null) {
+            rootContainer.getChildren().remove(handPreview);
+            handPreview = null;
+        }
     }
 }
