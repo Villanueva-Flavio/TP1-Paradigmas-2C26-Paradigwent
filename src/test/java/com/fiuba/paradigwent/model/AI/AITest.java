@@ -1,7 +1,7 @@
 package com.fiuba.paradigwent.model.AI;
 
-import com.fiuba.paradigwent.model.ai.AI;
-import com.fiuba.paradigwent.model.ai.RandomAIStrategy;
+import com.fiuba.paradigwent.model.AI.AI;
+import com.fiuba.paradigwent.model.AI.RandomAIStrategy;
 import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.player.Deck;

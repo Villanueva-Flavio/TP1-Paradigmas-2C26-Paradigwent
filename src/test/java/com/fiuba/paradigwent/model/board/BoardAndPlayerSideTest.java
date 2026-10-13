@@ -89,4 +89,41 @@ class BoardAndPlayerSideTest {
         assertNull(board.getPlayerSide().getStrongestMinion());
         assertNull(board.getOpponentSide().getStrongestMinion());
     }
+    /**
+     *  Test: Discarding a board moves all minions from both sides into the correct discard piles.
+     **/
+    @Test
+    void discardingBoardMovesAllMinionsToCorrectDiscardPiles() {
+        Player player = ModelTestFixtures.emptyPlayer("player");
+        Player opponent = ModelTestFixtures.emptyPlayer("opponent");
+        Board board = new Board(player, opponent);
+
+        Minion playerMelee = ModelTestFixtures.minion("pm", 3, AttackLineType.MELEE, null);
+        Minion playerRanged = ModelTestFixtures.minion("pr", 4, AttackLineType.RANGED, null);
+        Minion opponentMelee = ModelTestFixtures.minion("om", 5, AttackLineType.MELEE, null);
+        Minion opponentSiege = ModelTestFixtures.minion("os", 6, AttackLineType.SIEGE, null);
+
+        board.getPlayerSide().getAttackLine(AttackLineType.MELEE).addMinion(playerMelee);
+        board.getPlayerSide().getAttackLine(AttackLineType.RANGED).addMinion(playerRanged);
+        board.getOpponentSide().getAttackLine(AttackLineType.MELEE).addMinion(opponentMelee);
+        board.getOpponentSide().getAttackLine(AttackLineType.SIEGE).addMinion(opponentSiege);
+
+        board.discard();
+
+        // El jugador tiene exactamente sus 2 cartas en el descarte
+        assertEquals(2, player.getDiscard().size());
+        assertTrue(player.getDiscard().contains(playerMelee));
+        assertTrue(player.getDiscard().contains(playerRanged));
+        assertFalse(player.getDiscard().contains(opponentMelee));
+        assertFalse(player.getDiscard().contains(opponentSiege));
+
+        // El oponente tiene exactamente sus 2 cartas en el descarte
+        assertEquals(2, opponent.getDiscard().size());
+        assertTrue(opponent.getDiscard().contains(opponentMelee));
+        assertTrue(opponent.getDiscard().contains(opponentSiege));
+        assertFalse(opponent.getDiscard().contains(playerMelee));
+        assertFalse(opponent.getDiscard().contains(playerRanged));
+    }
+
+
 }
