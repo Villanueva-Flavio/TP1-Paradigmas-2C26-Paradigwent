@@ -16,7 +16,7 @@ public class RandomAIStrategy implements AIStrategy {
     @Override
     public Card selectCard(Hand hand, GameContext context) {
         var cards = hand.getHand();
-        if (cards.isEmpty() || random.nextInt(10) <= 2) {
+        if (cards.isEmpty() || random.nextInt(100) <= 5) {
             return null;
         }
         return cards.get(random.nextInt(cards.size()));

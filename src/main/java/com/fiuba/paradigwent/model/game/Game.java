@@ -60,11 +60,6 @@ public class Game {
         board.discard();
         updateMatchState();
 
-        if (!finished) {
-            player1.drawCard(10);
-            player2.drawCard(10);
-        }
-
         return true;
     }
 
