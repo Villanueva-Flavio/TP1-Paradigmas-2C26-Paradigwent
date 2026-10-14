@@ -179,8 +179,8 @@ public class CardVisual extends StackPane {
         String effect = card.getEffectDescription();
         String target = card.getTargetDescription();
         String effectText = effect.isBlank() ? "" : effect;
-        effectLabel = metadataLabel(
-            target.isBlank() ? effectText : effectText + "\n" + target, 20);
+        effectLabel = metadataLabel(effectText, 20);
+            //target.isBlank() ? effectText : effectText + "\n" + target, 20);
 
         cardHeader = new HBox(6, typeIcon, powerLabel, nameLabel);
         cardHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);

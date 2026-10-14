@@ -13,6 +13,11 @@ public class StealCardEffect implements Effect {
         this.amount = amount;
     }
 
+    @Override 
+    public String getDescription() {
+        return "Steals " + (amount == 1 ? "a card" : amount + " cards");
+    }
+
     @Override
     public void apply(GameContext context){
        context.getCurrentPlayer().drawCard(amount);

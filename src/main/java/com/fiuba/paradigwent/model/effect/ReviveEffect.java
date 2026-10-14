@@ -15,6 +15,11 @@ public class ReviveEffect implements Effect {
         this.amount = amount;
     }
 
+    @Override 
+    public String getDescription() {
+        return "Revives " + (amount == 1 ? "a card" : amount + " cards");
+    }
+
     @Override
     public void apply(GameContext context) {
         Player player = context.getCurrentPlayer();

@@ -11,12 +11,12 @@ public class ModifyPowerEffect implements Effect {
 
     @Override
     public String getDescription() {
-        return "Modificar poder de un minion";
+        return "Modify the power of a minion";
     }
 
     @Override
     public String getTargetDescription() {
-        return "Objetivo: un minion de cualquier línea";
+        return "Objective: A minion from any line";
     }
     private final int amount;
 

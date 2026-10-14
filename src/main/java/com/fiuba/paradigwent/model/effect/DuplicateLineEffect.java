@@ -16,14 +16,14 @@ public class DuplicateLineEffect implements Effect {
 
     @Override
     public String getDescription() {
-        return "Duplicar una línea de ataque";
+        return "Duplicates attack line damage";
     }
 
     @Override
     public String getTargetDescription() {
         return lineType == null || lineType == AttackLineType.NONE
-            ? "Objetivo: la línea de ataque de la carta jugada"
-            : "Afecta a la línea " + lineType;
+            ? "Objective: The attack line of the played card"
+            : "Objective: The " + lineType + " attack line";
     }
 
     @Override

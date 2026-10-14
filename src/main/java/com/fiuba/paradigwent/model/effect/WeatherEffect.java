@@ -15,6 +15,11 @@ public class WeatherEffect implements Effect {
         this.weatherType = weatherType == null ? WeatherType.CLEAR : weatherType;
     }
 
+    @Override 
+    public String getDescription() {
+        return "Applies " + weatherType + " weather.";
+    }
+
     @Override
     public void apply(GameContext context){
         context.getBoard().setCurrentWeather(weatherType);

@@ -16,14 +16,14 @@ public class DestroyCreatureEffect implements Effect{
 
     @Override
     public String getDescription() {
-        return "Destruir un minion";
+        return "Destroys a minion";
     }
 
     @Override
     public String getTargetDescription() {
         return targetType == AttackLineType.NONE
-            ? "Objetivo: un minion de cualquier línea"
-            : "Objetivo: un minion de la línea " + targetType;
+            ? "Objective: A minion"
+            : "Objective: A minion from  " + targetType + " line";
     }
     private final AttackLineType targetType;
 

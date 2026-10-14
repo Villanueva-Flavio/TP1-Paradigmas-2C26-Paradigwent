@@ -6,16 +6,16 @@
         "faction":"DWARF",
         "attackLineType":"RANGED",
         "stackLimit":2,
-        "basePower":1,
+        "basePower":4,
         "powerModifier":0,
-        "audioPath":"audio/cards/fredelia.ogg",
+        "audioPath":"audio/cards/dwarf8.ogg",
         "imagePath":"image/cards/dwarf8.jpg",
-        "description":"Integer tincidunt ante vel ipsum. Praesent blandit lacinia erat. Vestibulum sed magna at nunc commodo placerat.",
+        "description":"Mountain bearded deer hunter, deadly and skilled with its weapon.",
         "effects":[]
     },
     {
         "id":2,
-        "name":"Frost Front",
+        "name":"Freezing tsunami",
         "type":"WEATHER",
         "faction":"MURGOL",
         "attackLineType":"NONE",
@@ -24,7 +24,7 @@
         "weatherType":"FROST",
         "powerModifier":0,
         "audioPath":"audio/cards/billie.ogg",
-        "imagePath":"image/cards/billie.png",
+        "imagePath":"image/cards/weather1.png",
         "description":"A freezing front covers the battlefield and chills every combat line.",
         "effects":[]
     },
@@ -100,16 +100,16 @@
     },
     {
         "id":8,
-        "name":"Edmon",
+        "name":"Wall ballista",
         "type":"MINION",
         "faction":"DWARF",
         "attackLineType":"SIEGE",
         "stackLimit":3,
-        "basePower":2,
+        "basePower":7,
         "powerModifier":0,
-        "audioPath":"audio/cards/edmon.ogg",
-        "imagePath":"image/cards/edmon.png",
-        "description":"Pellentesque at nulla. Suspendisse potenti. Cras in purus eu magna vulputate luctus.",
+        "audioPath":"audio/cards/wall_ballista.ogg",
+        "imagePath":"image/cards/dwarf9.png",
+        "description":"Ballista from defensive walls, repurposed as a siege weapon.",
         "effects":[]
     },
     {
@@ -213,7 +213,7 @@
     },
     {
         "id":16,
-        "name":"Ellene",
+        "name":"Heal",
         "type":"SPELL",
         "faction":"DWARF",
         "attackLineType":"NONE",
@@ -221,9 +221,9 @@
         "basePower":0,
         "powerModifier":0,
         "audioPath":"audio/cards/ellene.ogg",
-        "imagePath":"image/cards/ellene.png",
-        "description":"Cras mi pede, malesuada in, imperdiet et, commodo vulputate, justo. In blandit ultrices enim. Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
-        "effects":[]
+        "imagePath":"image/cards/spell1.png",
+        "description":"Universal taught spell for first aid.",
+        "effects":[{"type": "REVIVE", "param":1}]
     },
     {
         "id":17,
@@ -269,7 +269,7 @@
     },
     {
         "id":20,
-        "name":"Cly",
+        "name":"Siege cannon",
         "type":"MINION",
         "faction":"DWARF",
         "attackLineType":"SIEGE",
@@ -277,8 +277,8 @@
         "basePower":9,
         "powerModifier":0,
         "audioPath":"audio/cards/cly.ogg",
-        "imagePath":"image/cards/cly.png",
-        "description":"Curabitur gravida nisi at nibh. In hac habitasse platea dictumst. Aliquam augue quam, sollicitudin vitae, consectetuer eget, rutrum at, lorem.",
+        "imagePath":"image/cards/dwarf10.png",
+        "description":"The most advanced technology now available.",
         "effects":[]
     },
     {
@@ -382,16 +382,16 @@
     },
     {
         "id":28,
-        "name":"Wolf hunter",
+        "name":"Wolf hunter Greybeard",
         "type":"MINION",
         "faction":"DWARF",
         "attackLineType":"RANGED",
         "stackLimit":3,
-        "basePower":2,
+        "basePower":3,
         "powerModifier":0,
         "audioPath":"audio/cards/dorita.ogg",
         "imagePath":"image/cards/dwarf7.jpg",
-        "description":"In quis justo. Maecenas rhoncus aliquam lacus. Morbi quis tortor id nulla ultrices aliquet.",
+        "description":"Living in cabins, by pure choice, they enjoy the combat in a daily basis.",
         "effects":[{"type":"MODIFYPOWER","param":1}]
     },
     {
@@ -429,12 +429,12 @@
         "faction":"DWARF",
         "attackLineType":"MELEE",
         "stackLimit":2,
-        "basePower":1,
+        "basePower":2,
         "powerModifier":0,
         "audioPath":"audio/cards/kylie.ogg",
         "imagePath":"image/cards/dwarf1.jpg",
-        "description":"Pellentesque at nulla. Suspendisse potenti. Cras in purus eu magna vulputate luctus.",
-        "effects":[{"type":"MODIFYPOWER","param":3}]
+        "description":"Prepared with the bare minimum to survive the challenges of a long travel.",
+        "effects":[]
     },
     {
         "id":32,
@@ -734,17 +734,17 @@
     },
     {
         "id":53,
-        "name":"Javier",
+        "name":"Firestorm",
         "type":"SPELL",
         "faction":"DWARF",
         "attackLineType":"NONE",
         "stackLimit":3,
         "basePower":0,
         "powerModifier":0,
-        "audioPath":"audio/cards/javier.ogg",
-        "imagePath":"image/cards/javier.png",
-        "description":"Maecenas tristique, est et tempus semper, est quam pharetra magna, ac consequat metus sapien ut nunc. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris viverra diam vitae quam. Suspendisse potenti.",
-        "effects":[{"type":"MODIFYPOWER","param":6}]
+        "audioPath":"audio/cards/firestorm.ogg",
+        "imagePath":"image/cards/spell2.png",
+        "description":"Cast a deadly rain of flaming boulders from mount Muria",
+        "effects":[{"type":"SCORCH","param":2}]
     },
     {
         "id":54,
@@ -753,12 +753,12 @@
         "faction":"DWARF",
         "attackLineType":"MELEE",
         "stackLimit":1,
-        "basePower":2,
+        "basePower":3,
         "powerModifier":0,
         "audioPath":"audio/cards/fax.ogg",
         "imagePath":"image/cards/dwarf5.jpg",
-        "description":"Duis aliquam convallis nunc. Proin at turpis a pede posuere nonummy. Integer non velit.",
-        "effects":[{"type":"MODIFYPOWER","param":6}]
+        "description":"Determined junior guards of the deadliest mountain city.",
+        "effects":[{"type":"MODIFYPOWER","param":1}]
     },
     {
         "id":55,
@@ -968,8 +968,8 @@
         "powerModifier":0,
         "audioPath":"audio/cards/byrle.ogg",
         "imagePath":"image/cards/dwarf3.jpg",
-        "description":"In quis justo. Maecenas rhoncus aliquam lacus. Morbi quis tortor id nulla ultrices aliquet.",
-        "effects":[{"type":"MODIFYPOWER","param":5}]
+        "description":"Leader of the band of trollslayers, known for their fierce determination.",
+        "effects":[{"type":"HORN","param":1}]
     },
     {
         "id":70,
@@ -1124,7 +1124,7 @@
         "powerModifier":0,
         "audioPath":"audio/cards/kym.ogg",
         "imagePath":"image/cards/dwarf4.jpg",
-        "description":"In quis justo. Maecenas rhoncus aliquam lacus. Morbi quis tortor id nulla ultrices aliquet.",
+        "description":"Basic unit of soldier from Ironhorn.",
         "effects":[]
     },
     {
@@ -1224,8 +1224,8 @@
         "powerModifier":0,
         "audioPath":"audio/cards/thea.ogg",
         "imagePath":"image/cards/dwarf6.jpg",
-        "description":"Vestibulum ac est lacinia nisi venenatis tristique. Fusce congue, diam id ornare imperdiet, sapien urna pretium nisl, ut volutpat sapien arcu sed augue. Aliquam erat volutpat.",
-        "effects":[{"type":"MODIFYPOWER","param":4}]
+        "description":"Reckless and very skillful apprentice of the Longbeard clan.",
+        "effects":[{"type":"SCORCH","param":1}]
     },
     {
         "id":88,
@@ -1276,12 +1276,12 @@
         "faction":"DWARF",
         "attackLineType":"MELEE",
         "stackLimit":3,
-        "basePower":1,
+        "basePower":5,
         "powerModifier":0,
         "audioPath":"audio/cards/giffard.ogg",
         "imagePath":"image/cards/dwarf2.jpg",
-        "description":"Aenean fermentum. Donec ut mauris eget massa tempor convallis. Nulla neque libero, convallis eget, eleifend luctus, ultricies eu, nibh.",
-        "effects":[{"type":"MODIFYPOWER","param":5}]
+        "description":"Skillful adventurer from the Snowbeard clan, lives in the mountains.",
+        "effects":[]
     },
     {
         "id":92,
@@ -1314,16 +1314,16 @@
     },
     {
         "id":94,
-        "name":"Lolita",
+        "name":"Steel brotherhood",
         "type":"MINION",
         "faction":"DWARF",
-        "attackLineType":"RANGED",
-        "stackLimit":2,
-        "basePower":9,
+        "attackLineType":"MELEE",
+        "stackLimit":1,
+        "basePower":10,
         "powerModifier":0,
         "audioPath":"audio/cards/lolita.ogg",
-        "imagePath":"image/cards/lolita.png",
-        "description":"Curabitur at ipsum ac tellus semper interdum. Mauris ullamcorper purus sit amet nulla. Quisque arcu libero, rutrum ac, lobortis vel, dapibus at, diam.",
+        "imagePath":"image/cards/dwarf11.jpg",
+        "description":"Trio of brother in arms ready to destroy until the last of their enemies.",
         "effects":[]
     },
     {
