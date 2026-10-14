@@ -7,6 +7,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.InnerShadow;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -29,8 +31,21 @@ public class BoardZoneView extends StackPane {
         this.height = height;
 
         Rectangle fondo = new Rectangle(width, height, GameView.COLOR.get("BoardBackground"));
-        fondo.setStroke(strokeColor);
-        fondo.setStrokeWidth(width * (1.5 / 60.0));
+        InnerShadow carvedEdge = new InnerShadow();
+        carvedEdge.setRadius(width * 0.12);
+        carvedEdge.setChoke(0.3);
+        carvedEdge.setOffsetY(2);
+        carvedEdge.setColor(Color.rgb(35, 18, 8, 0.75));
+
+        DropShadow raisedEdge = new DropShadow();
+        raisedEdge.setRadius(width * 0.08);
+        raisedEdge.setOffsetY(2);
+        raisedEdge.setSpread(0.12);
+        raisedEdge.setColor(Color.rgb(20, 10, 4, 0.7));
+        raisedEdge.setInput(carvedEdge);
+        fondo.setEffect(raisedEdge);
+        fondo.setStroke(Color.rgb(74, 40, 20, 0.9));
+        fondo.setStrokeWidth(width * (0.8 / 60.0));
         fondo.setArcWidth(width * 0.1);
         fondo.setArcHeight(width * 0.1);
 

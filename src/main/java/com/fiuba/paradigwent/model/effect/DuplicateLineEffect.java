@@ -31,6 +31,7 @@ public class DuplicateLineEffect implements Effect {
         AttackLineType targetLine = (lineType != null && lineType != AttackLineType.NONE)?
             lineType : context.getPlayedCard().getAttackLineType();
         
-        context.getBoard().getPlayerSide().getAttackLine(targetLine).activateHorn();
+        context.getBoard().getSideFor(context.getCurrentPlayer())
+            .getAttackLine(targetLine).activateHorn();
     }
 }

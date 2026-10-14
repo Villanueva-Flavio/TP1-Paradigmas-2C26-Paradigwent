@@ -67,6 +67,23 @@ public class PlayerSide {
         return strongest;
     }
 
+    public List<Minion> allMinions() {
+        List<Minion> result = new ArrayList<>();
+        for (AttackLine line : attackLines.values()) {
+            result.addAll(line.getMinions());
+        }
+        return result;
+    }
+
+    public boolean contains(Minion minion) {
+        return attackLines.values().stream()
+            .anyMatch(line -> line.getMinions().contains(minion));
+    }
+
+    public boolean removeMinion(Minion minion) {
+        return attackLines.values().stream().anyMatch(line -> line.removeIfPresent(minion));
+    }
+
     /**
      * @return The Player object representing the owner of this side of the board.
     **/

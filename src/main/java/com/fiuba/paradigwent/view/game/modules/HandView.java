@@ -15,13 +15,15 @@ import javafx.scene.Node;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.transform.Rotate;
+import javafx.geometry.Point2D;
 import javafx.util.Duration;
 
 public class HandView extends Pane {
     private static final int CARD_COUNT = 10;
     private static final double CARD_SPACING = 52;
     private static final double HAND_SIDE_MARGIN = 36;
-    private static final double HAND_BOTTOM_MARGIN = 22;
+    private static final double HAND_BOTTOM_MARGIN = -0;
+    private static final double HAND_SCALE = 0.80;
 
     private final List<Card> cards;
     private final PauseTransition previewDelay = new PauseTransition(Duration.millis(500));
@@ -32,6 +34,8 @@ public class HandView extends Pane {
     public HandView(List<Card> cards, double virtualWidth, double virtualHeight) {
         this.cards = new ArrayList<>(cards);
         setPrefSize(virtualWidth, virtualHeight);
+        setScaleX(HAND_SCALE);
+        setScaleY(HAND_SCALE);
         setPickOnBounds(false);
         addEventFilter(MouseEvent.MOUSE_PRESSED, this::handleCardPressed);
         construirCartas(virtualWidth, virtualHeight);
@@ -61,6 +65,16 @@ public class HandView extends Pane {
         cards.addAll(updatedCards);
         getChildren().clear();
         construirCartas(getPrefWidth(), getPrefHeight());
+    }
+
+    public Point2D getCardCenterInScene(Card card) {
+        for (Node child : getChildren()) {
+            if (child instanceof CardView cardView && cardView.getCard() == card) {
+                javafx.geometry.Bounds bounds = cardView.localToScene(cardView.getBoundsInLocal());
+                return new Point2D(bounds.getCenterX(), bounds.getCenterY());
+            }
+        }
+        return null;
     }
 
     private void handleCardPressed(MouseEvent event) {
@@ -96,10 +110,7 @@ public class HandView extends Pane {
         int visibleCardCount = Math.min(CARD_COUNT, cards.size());
         double center = (visibleCardCount - 1) / 2.0;
         double availableWidth = virtualWidth - HAND_SIDE_MARGIN * 2;
-        double spacing = visibleCardCount > 1
-            ? Math.min(CARD_SPACING,
-                (availableWidth - CardView.HIT_AREA_WIDTH) / (visibleCardCount - 1))
-            : 0;
+        double spacing = visibleCardCount > 1 ? Math.min(CARD_SPACING, (availableWidth - CardView.HIT_AREA_WIDTH) / (visibleCardCount - 1)) : 0;
         double baseY = virtualHeight - CardView.HIT_AREA_HEIGHT - HAND_BOTTOM_MARGIN;
 
         for (int index = 0; index < visibleCardCount; index++) {

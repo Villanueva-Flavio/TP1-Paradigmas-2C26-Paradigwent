@@ -1,7 +1,6 @@
 package com.fiuba.paradigwent.model.effect;
 
 import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.board.PlayerSide;
 import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 
@@ -37,24 +36,25 @@ public class DestroyCreatureEffect implements Effect{
 
     @Override 
     public void apply(GameContext context){
-        Minion target = (Minion) context.getTargetCard();
+        Minion target = context.getTargetCard() instanceof Minion minion ? minion : null;
         if(target == null){
-            target = context.getBoard().getStrongestMiniondOf(
-                context.getBoard().getOpponentSide());
+            target = strongestTarget(context);
         }
         if (target != null) {
-            for (PlayerSide side : new PlayerSide[] {
-                    context.getBoard().getPlayerSide(),
-                    context.getBoard().getOpponentSide() }) {
-                for (AttackLineType lineType : AttackLineType.values()) {
-                    if (lineType != AttackLineType.NONE
-                            && side.getAttackLine(lineType).getMinions().contains(target)) {
-                        side.getAttackLine(lineType).removeMinion(target);
-                        side.getOwner().sendToDiscard(Collections.singletonList(target));
-                        return;
-                    }
-                }
+            var owner = context.getBoard().ownerOf(target);
+            if (context.getBoard().removeMinion(target)) {
+                owner.sendToDiscard(Collections.singletonList(target));
             }
         }
+    }
+
+    private Minion strongestTarget(GameContext context) {
+        if (targetType == null || targetType == AttackLineType.NONE) {
+            return context.getBoard().strongestMinionOf(context.getOpponent());
+        }
+        return context.getBoard().minionsOf(context.getOpponent()).stream()
+            .filter(minion -> minion.getAttackLineType() == targetType)
+            .max(java.util.Comparator.comparingInt(Minion::getCurrentPower))
+            .orElse(null);
     }
 }

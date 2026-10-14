@@ -46,6 +46,10 @@ public class AttackLine {
         this.minions.remove(minion);
     }
 
+    public boolean removeIfPresent(Minion minion) {
+        return this.minions.remove(minion);
+    }
+
     /**
      * Activates the horn effect for the attack line, doubling its total power.
     **/

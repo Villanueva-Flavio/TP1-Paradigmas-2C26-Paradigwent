@@ -38,16 +38,15 @@ public class JSONCardLoader {
 
         try (InputStream inputStream = JSONCardLoader.class.getResourceAsStream(CARD_JSON_PATH)) {
             if (inputStream == null) {
-                System.err.println("❌ No se encontró el recurso: " + CARD_JSON_PATH);
-                return new ArrayList<>();
+                throw new IllegalStateException("No se encontró el recurso: " + CARD_JSON_PATH);
             }
             try (Reader reader = new InputStreamReader(inputStream)) {
                 Card[] cards = gson.fromJson(reader, Card[].class);
                 return cards != null ? new ArrayList<>(Arrays.asList(cards)) : new ArrayList<>();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ArrayList<>();
+        } catch (java.io.IOException | JsonParseException e) {
+            throw new IllegalStateException("No se pudieron cargar las cartas desde "
+                + CARD_JSON_PATH, e);
         }
     }
 

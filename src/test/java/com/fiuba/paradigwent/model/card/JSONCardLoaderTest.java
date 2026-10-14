@@ -36,9 +36,9 @@ class JSONCardLoaderTest {
     void deserializesMinionFieldsAndSubtype() {
         List<Card> cards = JSONCardLoader.loadCards();
 
-        Minion willette = assertInstanceOf(Minion.class, cards.get(0));
+        Minion firstCard = assertInstanceOf(Minion.class, cards.get(0));
 
-        assertEquals(AttackLineType.SIEGE, willette.getAttackLineType());
-        assertEquals(1, willette.getCurrentPower());
+        assertEquals(AttackLineType.RANGED, firstCard.getAttackLineType());
+        assertEquals(4, firstCard.getCurrentPower());
     }
 }

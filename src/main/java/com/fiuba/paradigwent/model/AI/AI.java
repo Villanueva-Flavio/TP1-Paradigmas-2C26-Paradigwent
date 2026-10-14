@@ -1,4 +1,4 @@
-package com.fiuba.paradigwent.model.AI;
+package com.fiuba.paradigwent.model.ai;
 
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.card.Card;
@@ -27,7 +27,7 @@ public class AI extends Player {
         }
 
         Card chosen = context.getPlayedCard();
-        if (chosen == null || !hand.getHand().contains(chosen)) {
+        if (chosen == null || !hand.contains(chosen)) {
             chosen = strategy.selectCard(hand, context);
         }
 

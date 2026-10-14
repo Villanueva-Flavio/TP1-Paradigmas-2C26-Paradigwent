@@ -54,6 +54,9 @@ public class Player {
             throw new IllegalStateException(
                     "A player who passed cannot play during this round");
         }
+        if (card == null || !hand.contains(card)) {
+            throw new IllegalArgumentException("The card must belong to the player's hand");
+        }
         this.hand.remove(card);
         card.play(context);
     }
@@ -80,11 +83,23 @@ public class Player {
         return this.hand.getHand();
     }
 
+    public boolean hasCard(Card card) {
+        return hand.contains(card);
+    }
+
+    public int handSize() {
+        return hand.size();
+    }
+
     /**
      * @return The list of cards in the player's discard pile.
     **/
     public ArrayList<Card> getDiscard() {
         return this.discard.getDiscard();
+    }
+
+    public int discardSize() {
+        return discard.size();
     }
 
     public int getDeckSize() {
@@ -145,9 +160,25 @@ public class Player {
      * @param card
     **/
     public void reviveCard(Card card) {
-        if (discard.getDiscard().contains(card)) {
+        if (discard.contains(card)) {
             discard.remove(card);
             hand.add(card);
         }
+    }
+
+    public int stealCardsFrom(Player opponent, int amount) {
+        if (opponent == null || amount <= 0) {
+            return 0;
+        }
+        int stolen = 0;
+        while (stolen < amount) {
+            Card card = opponent.hand.removeLast();
+            if (card == null) {
+                break;
+            }
+            hand.add(card);
+            stolen++;
+        }
+        return stolen;
     }
 }

@@ -1,10 +1,11 @@
 package com.fiuba.paradigwent.model.board;
 
-import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.card.Weather;
 import com.fiuba.paradigwent.model.enums.WeatherType;
 import com.fiuba.paradigwent.model.player.Player;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Board {
 
@@ -22,7 +23,7 @@ public class Board {
     public Board(Player player, Player opponent) {
         this.playerSide = new PlayerSide(player);
         this.opponentSide = new PlayerSide(opponent);
-        this.currentWeather = WeatherType.valueOf("CLEAR");
+        this.currentWeather = WeatherType.CLEAR;
         this.currentWeatherCard = null;
     }
 
@@ -42,15 +43,6 @@ public class Board {
      **/
     public PlayerSide getOpponentSide() {
         return opponentSide;
-    }
-
-    /**
-     * Returns the target card on the board. Currently, this method returns null, indicating that there is no specific target card.
-     *
-     * @return The target card on the board, or null if there is no specific target card.
-     **/
-    public Card getTargetCard() {
-        return null;
     }
 
     /**
@@ -97,7 +89,7 @@ public class Board {
     public void discard() {
         playerSide.discard();
         opponentSide.discard();
-        this.currentWeather = WeatherType.valueOf("CLEAR");
+        this.currentWeather = WeatherType.CLEAR;
         this.currentWeatherCard = null;
 
     }
@@ -110,6 +102,10 @@ public class Board {
      **/
     public Minion getStrongestMiniondOf(PlayerSide opponent) {
         return opponent == null ? null : opponent.getStrongestMinion();
+    }
+
+    public Minion strongestMinionOf(Player player) {
+        return player == null ? null : getSideFor(player).getStrongestMinion();
     }
 
     public int calculateTotalPower(Player player) {
@@ -131,6 +127,31 @@ public class Board {
         }
         throw new IllegalArgumentException("El jugador no pertenece a este tablero");
 
+    }
+
+    public List<Minion> allMinions() {
+        List<Minion> result = new ArrayList<>();
+        result.addAll(playerSide.allMinions());
+        result.addAll(opponentSide.allMinions());
+        return List.copyOf(result);
+    }
+
+    public List<Minion> minionsOf(Player player) {
+        return List.copyOf(getSideFor(player).allMinions());
+    }
+
+    public boolean removeMinion(Minion minion) {
+        return playerSide.removeMinion(minion) || opponentSide.removeMinion(minion);
+    }
+
+    public Player ownerOf(Minion minion) {
+        if (playerSide.contains(minion)) {
+            return playerSide.getOwner();
+        }
+        if (opponentSide.contains(minion)) {
+            return opponentSide.getOwner();
+        }
+        throw new IllegalArgumentException("The minion does not belong to this board");
     }
 
 }

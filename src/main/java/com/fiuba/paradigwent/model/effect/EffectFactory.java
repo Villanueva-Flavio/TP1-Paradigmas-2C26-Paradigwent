@@ -2,8 +2,25 @@ package com.fiuba.paradigwent.model.effect;
 
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.enums.WeatherType;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 public class EffectFactory {
+    private static final Map<String, Function<String, Effect>> CREATORS = createCreators();
+
+    private static Map<String, Function<String, Effect>> createCreators() {
+        Map<String, Function<String, Effect>> creators = new HashMap<>();
+        creators.put("MODIFYPOWER", param -> new ModifyPowerEffect(parseParamToInt(param, 1)));
+        creators.put("DESTROY", param -> new DestroyCreatureEffect(parseLineType(param)));
+        creators.put("SCORCH", param -> new DestroyCreatureEffect(parseLineType(param)));
+        creators.put("DUPLICATELINE", param -> new DuplicateLineEffect(parseLineType(param)));
+        creators.put("HORN", param -> new DuplicateLineEffect(parseLineType(param)));
+        creators.put("STEALCARD", param -> new StealCardEffect(parseParamToInt(param, 1)));
+        creators.put("WEATHER", param -> new WeatherEffect(parseWeatherType(param)));
+        creators.put("REVIVE", param -> new ReviveEffect(parseParamToInt(param, 1)));
+        return Map.copyOf(creators);
+    }
 
     /**
      * Creates an Effect instance based on the provided type and parameter. The method supports various effect types, including MODIFYPOWER, DESTROY, SCORCH, DUPLICATELINE, HORN, STEALCARD, and WEATHER. If the type is null or invalid, an IllegalArgumentException is thrown.
@@ -12,18 +29,14 @@ public class EffectFactory {
      * @return An instance of the corresponding Effect subclass based on the provided type and parameter.
     **/
     public static Effect createEffect(String type, String param){
-        if (type != null){
-            return switch (type.toUpperCase()) {
-                case "MODIFYPOWER" -> new ModifyPowerEffect(parseParamToInt(param, 1));
-                case "DESTROY", "SCORCH" -> new DestroyCreatureEffect(parseLineType(param));
-                case "DUPLICATELINE", "HORN" -> new DuplicateLineEffect(parseLineType(param));
-                case "STEALCARD" -> new StealCardEffect(parseParamToInt(param, 1));
-                case "WEATHER" -> new WeatherEffect(parseWeatherType(param));
-                case "REVIVE" -> new ReviveEffect(parseParamToInt(param, 1));
-                default -> throw new IllegalArgumentException("Invalid effect type: " + type);
-            };
+        if (type == null || type.isBlank()) {
+            throw new IllegalArgumentException("Effect type cannot be null or blank");
         }
-        throw new IllegalArgumentException("Effect type cannot be null");
+        Function<String, Effect> creator = CREATORS.get(type.trim().toUpperCase());
+        if (creator == null) {
+            throw new IllegalArgumentException("Invalid effect type: " + type);
+        }
+        return creator.apply(param);
     }
 
     /**

@@ -1,22 +1,17 @@
 package com.fiuba.paradigwent.controller;
 
-import com.fiuba.paradigwent.model.AI.AI;
-import com.fiuba.paradigwent.model.AI.RandomAIStrategy;
+import com.fiuba.paradigwent.model.ai.AI;
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.board.Board;
 import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.card.JSONCardLoader;
-import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.enums.Result;
 import com.fiuba.paradigwent.model.game.Game;
-import com.fiuba.paradigwent.model.player.Deck;
 import com.fiuba.paradigwent.model.player.Player;
 import com.fiuba.paradigwent.model.round.Round;
 import com.fiuba.paradigwent.view.game.modules.CardRace;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Coordinates the human player's actions, the AI's decisions and the view.
@@ -33,49 +28,16 @@ public final class GameController {
     private Card lastOpponentCard;
 
     public GameController(CardRace selectedRace) {
-        if (selectedRace == null) {
-            throw new IllegalArgumentException(
-                    "La facción seleccionada no puede ser nula."
-            );
-        }
+        GameSessionFactory.Session session = new GameSessionFactory().create(selectedRace);
+        game = session.game();
+        player = session.player();
+        opponent = session.opponent();
+        opponentRace = session.opponentRace();
+        round = session.round();
+        boardController = new BoardController(game.getBoard());
 
-        Random random = new Random();
-        List<Card> allCards = JSONCardLoader.loadCards();
-
-        List<Card> playerCards = cardsForFaction(allCards, selectedRace);
-        player = new Player(
-                "Player",
-                new Deck(new ArrayList<>(playerCards))
-        );
-        player.setFaction(selectedRace.name());
-
-        CardRace[] races = CardRace.values();
-        opponentRace = races[random.nextInt(races.length)];
-
-        List<Card> opponentCards = cardsForFaction(allCards, opponentRace);
-        opponent = new AI(
-                "Opponent",
-                new Deck(new ArrayList<>(opponentCards)),
-                new RandomAIStrategy(random)
-        );
-        opponent.setFaction(opponentRace.name());
-
-        Board board = new Board(player, opponent);
-        game = new Game(player, opponent, board);
-        game.startMatch();
-
-        // Round initializes each player's round-specific state.
-        round = new Round(player, opponent, board);
-        boardController = new BoardController(board);
-
-        GameStatePrinter.printInitialSituation(board);
+        GameStatePrinter.printInitialSituation(game.getBoard());
         printCurrentTurn();
-    }
-
-    private List<Card> cardsForFaction(List<Card> cards, CardRace race) {
-        return cards.stream()
-                .filter(card -> race.name().equals(card.getFaction()))
-                .toList();
     }
 
     public Board getBoard() {
@@ -88,6 +50,14 @@ public final class GameController {
 
     public List<Card> getPlayerHand() {
         return player.getHand();
+    }
+
+    public int getOpponentHandSize() {
+        return opponent.handSize();
+    }
+
+    public String getOpponentFaction() {
+        return opponent.getFaction();
     }
 
     public boolean requiresTarget(Card card) {
@@ -122,7 +92,7 @@ public final class GameController {
         if (round.getCurrentPlayer() != player) {
             return "no es el turno del jugador";
         }
-        if (!player.getHand().contains(card)) {
+        if (!player.hasCard(card)) {
             return "la carta no está en la mano";
         }
         if (card.requiresTarget()) {
@@ -137,20 +107,7 @@ public final class GameController {
     }
 
     public List<Card> getTargetCards() {
-        List<Card> targets = new ArrayList<>();
-
-        for (AttackLineType type : AttackLineType.values()) {
-            targets.addAll(
-                    getBoard().getPlayerSide().getAttackLine(type).getMinions()
-            );
-        }
-        for (AttackLineType type : AttackLineType.values()) {
-            targets.addAll(
-                    getBoard().getOpponentSide().getAttackLine(type).getMinions()
-            );
-        }
-
-        return targets;
+        return new ArrayList<>(getBoard().allMinions());
     }
 
     /**
@@ -172,7 +129,7 @@ public final class GameController {
         );
         Card card = opponent.selectCard(decisionContext);
 
-        if (card == null || !opponent.getHand().contains(card)) {
+        if (card == null || !opponent.hasCard(card)) {
             round.passTurn();
             finishRoundIfNeeded();
             printCurrentTurn();
@@ -261,8 +218,8 @@ public final class GameController {
             System.out.printf(
                     "[GAME] Nueva ronda: %s (mano=%d, mazo=%d); "
                             + "%s (mano=%d, mazo=%d)%n",
-                    player.getName(), player.getHand().size(), player.getDeckSize(),
-                    opponent.getName(), opponent.getHand().size(), opponent.getDeckSize()
+                    player.getName(), player.handSize(), player.getDeckSize(),
+                    opponent.getName(), opponent.handSize(), opponent.getDeckSize()
             );
 
             // Round resets hasPassedRound for both players.

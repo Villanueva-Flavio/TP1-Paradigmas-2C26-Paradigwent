@@ -20,34 +20,37 @@ import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.Set;
+import java.util.HashSet;
 
 public class Board3DView extends Pane {
 
     private static final Map<String, Double> RATIOS = Map.ofEntries(
         Map.entry("BOARD_WIDTH", 0.90),
-        Map.entry("BOARD_HEIGHT", 1.3333333333),
-        Map.entry("BOARD_X", 0.08),
-        Map.entry("BOARD_Y", 0.0333333333),
+        Map.entry("BOARD_HEIGHT", 1.08),
+        Map.entry("BOARD_X", 0.05),
+        Map.entry("BOARD_Y", 0.04),
         Map.entry("BOARD_ROW_Y", 0.03),
         Map.entry("BOARD_LINE_GAP", 0.01),
-        Map.entry("ROW_WIDTH", 0.70),
-        Map.entry("ROW_HEIGHT", 0.20),
-        Map.entry("ZONE_X", 0.89),
-        Map.entry("ZONE_WIDTH", 0.06),
-        Map.entry("ZONE_HEIGHT", 0.1666666667),
-        Map.entry("OPPONENT_DECK_Y", 0.0633333333),
-        Map.entry("OPPONENT_DISCARD_Y", 0.2466666667),
-        Map.entry("PLAYER_DISCARD_Y", 0.9791666667),
-        Map.entry("PLAYER_DECK_Y", 1.1625),
-        Map.entry("WEATHER_Y", 0.5),
-        Map.entry("GEM_X", 0.035),
-        Map.entry("OPPONENT_GEM_Y", 0.05),
-        Map.entry("OPPONENT_SECOND_GEM_Y", 0.1666666667),
-        Map.entry("PLAYER_GEM_Y", 0.95),
-        Map.entry("PLAYER_SECOND_GEM_Y", 1.05),
+        Map.entry("ROW_WIDTH", 0.64),
+        Map.entry("ROW_HEIGHT", 0.16),
+        Map.entry("ZONE_X", 0.84),
+        Map.entry("ZONE_WIDTH", 0.075),
+        Map.entry("ZONE_HEIGHT", 0.14),
+        Map.entry("OPPONENT_DECK_Y", 0.02),
+        Map.entry("OPPONENT_DISCARD_Y", 0.18),
+        Map.entry("PLAYER_DISCARD_Y", 0.82),
+        Map.entry("PLAYER_DECK_Y", 0.98),
+        Map.entry("WEATHER_Y", 0.50),
+        Map.entry("GEM_X", 0.015),
+        Map.entry("OPPONENT_GEM_Y", 0.10),
+        Map.entry("OPPONENT_SECOND_GEM_Y", 0.18),
+        Map.entry("PLAYER_GEM_Y", 0.84),
+        Map.entry("PLAYER_SECOND_GEM_Y", 0.92),
         Map.entry("CAMERA_LAYOUT_Y", 0.2333333333),
-        Map.entry("CAMERA_CONTENT_HEIGHT", 1.3291666667),
-        Map.entry("CAMERA_CONTENT_WIDTH", 0.95),
+        Map.entry("CAMERA_CONTENT_HEIGHT", 1.12),
+        Map.entry("CAMERA_CONTENT_WIDTH", 0.94),
         Map.entry("CONTENT_OFFSET_Y", 0.0740740741),
         Map.entry("CAMERA_ZOOM", 1.0)
     );
@@ -104,7 +107,10 @@ public class Board3DView extends Pane {
                 * RATIOS.get("CAMERA_ZOOM");
 
         // Marco central del tablero
-        Rectangle marcoTablero = new Rectangle(boardWidth, boardHeight, GameView.COLOR.get("Board"));
+        Rectangle marcoTablero = new Rectangle(
+            boardWidth,
+            boardHeight,
+            GameTextures.pattern(GameTextures.BOARD_WOOD, GameView.COLOR.get("Board")));
         marcoTablero.setStroke(GameView.COLOR.get("BoardBorder"));
         marcoTablero.setStrokeWidth(width * 0.002);
         marcoTablero.setArcWidth(width * 0.012);
@@ -217,6 +223,28 @@ public class Board3DView extends Pane {
         playerDiscardZone.setCardHoverHandler(zoneHandler);
     }
 
+    public void setTargetSelection(List<Card> targets, Consumer<Card> handler) {
+        Set<com.fiuba.paradigwent.model.card.Minion> selectable = new HashSet<>();
+        if (targets != null) {
+            for (Card target : targets) {
+                if (target instanceof com.fiuba.paradigwent.model.card.Minion minion) {
+                    selectable.add(minion);
+                }
+            }
+        }
+        Consumer<com.fiuba.paradigwent.model.card.Minion> selectionHandler =
+            minion -> handler.accept(minion);
+        for (RowView row : rows) {
+            row.setTargetSelection(selectable, selectionHandler);
+        }
+    }
+
+    public void clearTargetSelection() {
+        for (RowView row : rows) {
+            row.setTargetSelection(Set.of(), ignored -> { });
+        }
+    }
+
     private void refreshLives() {
         int opponentLives = Math.max(0, Math.min(2,
             board.getOpponentSide().getOwner().getLives()));
@@ -257,7 +285,8 @@ public class Board3DView extends Pane {
         double cameraContentHeight = height * RATIOS.get("CAMERA_CONTENT_HEIGHT");
         double boardLayoutY = height * RATIOS.get("CAMERA_LAYOUT_Y");
         double contentOffsetY = height * RATIOS.get("CONTENT_OFFSET_Y");
-        double cameraZoom = ((height - boardLayoutY - contentOffsetY) / cameraContentHeight * RATIOS.get("CAMERA_ZOOM")) * 1.1;
+        double cameraZoom = ((height - boardLayoutY - contentOffsetY) / cameraContentHeight
+            * RATIOS.get("CAMERA_ZOOM")) * 0.92;
         aplicarCamara(tablero2_5d, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
     }
 

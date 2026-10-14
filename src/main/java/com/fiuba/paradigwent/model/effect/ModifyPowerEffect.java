@@ -30,8 +30,7 @@ public class ModifyPowerEffect implements Effect {
 
     @Override
     public void apply(GameContext context){
-       Minion target = (Minion) context.getTargetCard();
-        if(target != null){
+       if (context.getTargetCard() instanceof Minion target) {
             target.modifyPower(amount);
         }
     }

@@ -40,9 +40,16 @@ public class CardVisual extends StackPane {
     private ImageView typeIcon;
     private Label effectLabel;
     private double scale;
+    private final double aspectRatio;
     private boolean compactMetadata;
 
     public CardVisual(Card card, double width, double height, String imageStyleClass) {
+        this(card, width, height, imageStyleClass, CARD_ASPECT_RATIO);
+    }
+
+    public CardVisual(Card card, double width, double height, String imageStyleClass,
+        double aspectRatio) {
+        this.aspectRatio = aspectRatio;
         artwork = new ImageView(new Image(resource(CardAssetResolver.resolve(card))));
         frame = new ImageView(new Image(resource(CardAssetResolver.resolveFactionFrame(card))));
 
@@ -60,8 +67,8 @@ public class CardVisual extends StackPane {
     }
 
     public void updateSize(double width, double height) {
-        double cardWidth = Math.min(width, height * CARD_ASPECT_RATIO);
-        double cardHeight = cardWidth / CARD_ASPECT_RATIO;
+        double cardWidth = Math.min(width, height * aspectRatio);
+        double cardHeight = cardWidth / aspectRatio;
         scale = cardWidth / SOURCE_WIDTH;
         double offsetX = (width - cardWidth) / 2;
         double offsetY = (height - cardHeight) / 2;

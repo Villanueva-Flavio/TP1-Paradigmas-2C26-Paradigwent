@@ -1,4 +1,4 @@
-package com.fiuba.paradigwent.model.AI;
+package com.fiuba.paradigwent.model.ai;
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.player.Hand;
@@ -15,7 +15,7 @@ public class RandomAIStrategy implements AIStrategy {
 
     @Override
     public Card selectCard(Hand hand, GameContext context) {
-        var cards = hand.getHand();
+        var cards = hand.view();
         if (cards.isEmpty() || random.nextInt(100) <= 5) {
             return null;
         }

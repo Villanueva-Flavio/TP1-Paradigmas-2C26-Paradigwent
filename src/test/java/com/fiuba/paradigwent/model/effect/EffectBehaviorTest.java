@@ -70,19 +70,21 @@ class EffectBehaviorTest {
      *   Test: The effect factory creates a steal card effect that draws up to a specified number of cards from the player's deck, and applying it adds those cards to the player's hand.
     **/
     @Test
-    void stealCardEffectDrawsUpToTheAvailableCards() {
+    void stealCardEffectMovesCardsFromOpponentHand() {
         List<Minion> cards = new java.util.ArrayList<>();
         for (int i = 0; i < 12; i++) {
             cards.add(ModelTestFixtures.minion("card-" + i, i, AttackLineType.MELEE, null));
         }
-        Player player = new Player("player", new Deck(new java.util.ArrayList<>(cards)));
-        Player opponent = ModelTestFixtures.emptyPlayer("opponent");
+        Player player = ModelTestFixtures.emptyPlayer("player");
+        Player opponent = new Player("opponent", new Deck(new java.util.ArrayList<>(cards)));
         Board board = new Board(player, opponent);
         int handBefore = player.getHand().size();
+        int opponentHandBefore = opponent.getHand().size();
 
         new StealCardEffect(5).apply(context(player, opponent, board, cards.get(0)));
 
-        assertEquals(handBefore + 2, player.getHand().size());
+        assertEquals(handBefore + 5, player.getHand().size());
+        assertEquals(opponentHandBefore - 5, opponent.getHand().size());
     }
 
     /**
