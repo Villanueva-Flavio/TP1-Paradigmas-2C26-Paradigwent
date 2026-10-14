@@ -16,9 +16,26 @@ public class RandomAIStrategy implements AIStrategy {
     @Override
     public Card selectCard(Hand hand, GameContext context) {
         var cards = hand.view();
-        if (cards.isEmpty() || random.nextInt(100) <= 5) {
+
+
+        if (cards.isEmpty() || shouldPass(context,random)) {
             return null;
         }
+
         return cards.get(random.nextInt(cards.size()));
+    }
+
+    private boolean shouldPass(GameContext context, Random random) {
+
+        int playerPower =  context.getBoard().getPlayerSide().totalPower();
+        int IAPower = context.getBoard().getOpponentSide().totalPower();
+
+        boolean powerDifference = IAPower >= playerPower;
+
+        boolean soloRound = context.getOpponent().hasPassedRound();
+        boolean randomPass = random.nextInt(100) <=2;
+
+
+        return randomPass ||  (soloRound && powerDifference);
     }
 }

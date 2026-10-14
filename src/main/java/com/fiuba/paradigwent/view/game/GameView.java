@@ -377,13 +377,68 @@ public class GameView {
         alert.showAndWait();
     }
 
+
     private void passTurn() {
-        controller.passTurn();
+        if (!controller.passTurn()) {
+            return;
+        }
+
+        refreshGameView();
+
+        if (controller.isOpponentTurn()) {
+            playNextOpponentTurn();
+        } else {
+            checkMatchFinished();
+        }
+    }
+
+
+    private void playNextOpponentTurn() {
+        if (controller.gameFinished()) {
+            checkMatchFinished();
+            return;
+        }
+
+        if (!controller.isOpponentTurn()) {
+            checkMatchFinished();
+            return;
+        }
+
+        PauseTransition pause =
+                new PauseTransition(Duration.millis(3000));
+
+        pause.setOnFinished(event -> {
+            controller.playOpponentTurn();
+
+            refreshGameView();
+
+            if (controller.isOpponentTurn()) {
+                playNextOpponentTurn();
+            } else {
+                checkMatchFinished();
+            }
+        });
+
+        pause.play();
+    }
+
+    private void refreshGameView() {
         playerHandView.refresh(controller.getPlayerHand());
         updateOpponentHand();
         boardView.refresh();
-        if (controller.gameFinished()) showMatchResult(controller.getMatchResult(), "The match is over.");
     }
+
+    private void checkMatchFinished() {
+        if (controller.gameFinished()) {
+            showMatchResult(
+                    controller.getMatchResult(),
+                    "The match is over."
+            );
+        }
+    }
+
+
+
 
     public void showMatchResult(Result result, String detail) {
         if (resultOverlay != null) return;

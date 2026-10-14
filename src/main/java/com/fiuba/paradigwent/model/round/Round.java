@@ -78,18 +78,6 @@ public class Round {
         advanceTurn();
     }
 
-    public void passPlayer(Player player) {
-        if (finished || player == null || player.hasPassedRound()) {
-            return;
-        }
-        player.passRound();
-        if (player == currentPlayer) {
-            advanceTurn();
-        } else if (player1.hasPassedRound() && player2.hasPassedRound()) {
-            finished = true;
-        }
-    }
-
     /**
      * Advances the turn to the opponent if they have not passed yet.
      * If both players have passed, marks the round as finished.
