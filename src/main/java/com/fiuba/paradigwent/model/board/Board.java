@@ -52,6 +52,8 @@ public class Board {
      **/
     public void setCurrentWeather(WeatherType currentWeather) {
         this.currentWeather = currentWeather == null ? WeatherType.CLEAR : currentWeather;
+        playerSide.applyWeather(this.currentWeather);
+        opponentSide.applyWeather(this.currentWeather);
         if (this.currentWeather == WeatherType.CLEAR) {
             this.currentWeatherCard = null;
         }
@@ -79,7 +81,7 @@ public class Board {
      * Clears the current weather on the board, setting it to CLEAR.
      **/
     public void clearWeather() {
-        this.currentWeather = WeatherType.CLEAR;
+        setCurrentWeather(WeatherType.CLEAR);
         this.currentWeatherCard = null;
     }
 
@@ -89,8 +91,7 @@ public class Board {
     public void discard() {
         playerSide.discard();
         opponentSide.discard();
-        this.currentWeather = WeatherType.CLEAR;
-        this.currentWeatherCard = null;
+        clearWeather();
 
     }
 

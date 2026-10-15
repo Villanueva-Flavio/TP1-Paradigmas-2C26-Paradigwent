@@ -5,6 +5,7 @@ import com.fiuba.paradigwent.model.board.Board;
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.enums.Result;
 import com.fiuba.paradigwent.model.player.Player;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
 
 /**
  * Represents and manages a round of the game between two players on a board.
@@ -51,13 +52,18 @@ public class Round {
     }
 
     public void playCard(Card card, Card targetCard) {
+        playCard(card, targetCard, null);
+    }
+
+    public void playCard(Card card, Card targetCard, AttackLineType targetLine) {
         if (finished || currentPlayer.hasPassedRound()) {
             return;
         }
 
         Player opponent = getOpponent(currentPlayer);
 
-        GameContext context = new GameContext(currentPlayer, opponent, board, card, targetCard);
+        GameContext context = new GameContext(
+            currentPlayer, opponent, board, card, targetCard, targetLine);
 
         currentPlayer.play(context);
 

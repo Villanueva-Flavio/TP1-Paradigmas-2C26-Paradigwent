@@ -6,14 +6,18 @@ import com.fiuba.paradigwent.view.game.GameView;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
-import javafx.animation.FadeTransition;
 import javafx.geometry.Pos;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.effect.InnerShadow;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -24,6 +28,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.Set;
 import java.util.Collections;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.enums.WeatherType;
 
 public class RowView extends StackPane {
     private static final int SLOT_COUNT = 9;
@@ -36,6 +42,13 @@ public class RowView extends StackPane {
     private final double rowWidth;
     private final double rowHeight;
     private final AttackLine line;
+    private final Rectangle background;
+    private final Rectangle weatherOverlay;
+    private final Pane weatherParticles;
+    private final FadeTransition weatherAnimation;
+    private final List<TranslateTransition> particleAnimations = new ArrayList<>();
+    private boolean lineSelectionActive;
+    private WeatherType displayedWeather = WeatherType.CLEAR;
     private BiConsumer<Minion, StackPane> cardHoverHandler = (card, source) -> { };
     private Set<Minion> selectableCards = Collections.emptySet();
     private Consumer<Minion> cardSelectionHandler = ignored -> { };
@@ -44,10 +57,11 @@ public class RowView extends StackPane {
         this.rowWidth = rowWidth;
         this.rowHeight = rowHeight;
         this.line = line;
+        this.lineSelectionActive = false;
         setPrefSize(rowWidth, rowHeight);
         setMaxSize(rowWidth, rowHeight);
 
-        Rectangle background = new Rectangle(
+        background = new Rectangle(
             rowWidth,
             rowHeight,
             GameTextures.pattern(GameTextures.SLOT_WOOD, GameView.COLOR.get("Row")));
@@ -70,6 +84,25 @@ public class RowView extends StackPane {
         background.setArcWidth(rowWidth * (8.0 / 700.0));
         background.setArcHeight(rowWidth * (8.0 / 700.0));
 
+        weatherOverlay = new Rectangle(rowWidth, rowHeight);
+        weatherOverlay.setMouseTransparent(true);
+        weatherOverlay.setManaged(false);
+        weatherOverlay.setVisible(false);
+        weatherAnimation = new FadeTransition(Duration.seconds(2.8), weatherOverlay);
+        weatherAnimation.setFromValue(0.35);
+        weatherAnimation.setToValue(0.75);
+        weatherAnimation.setAutoReverse(true);
+        weatherAnimation.setCycleCount(FadeTransition.INDEFINITE);
+
+        weatherParticles = new Pane();
+        weatherParticles.setPrefSize(rowWidth, rowHeight);
+        weatherParticles.setMinSize(rowWidth, rowHeight);
+        weatherParticles.setMaxSize(rowWidth, rowHeight);
+        weatherParticles.setMouseTransparent(true);
+        weatherParticles.setManaged(false);
+        weatherParticles.setVisible(false);
+        weatherParticles.setClip(new Rectangle(rowWidth, rowHeight));
+
         Text text = new Text(labelText);
         text.setFont(Font.font("System", FontWeight.BOLD, rowHeight * 0.1));
         text.setFill(GameView.COLOR.get("RowText"));
@@ -81,17 +114,141 @@ public class RowView extends StackPane {
         slots.setLayoutX(rowWidth * LABEL_SPACE_RATIO);
         slots.setPrefWidth(rowWidth * (1 - LABEL_SPACE_RATIO));
         slots.setMaxWidth(rowWidth * (1 - LABEL_SPACE_RATIO));
-        getChildren().addAll(background, text, slots);
+        getChildren().addAll(background, weatherOverlay, weatherParticles, text, slots);
         refresh();
     }
 
     public void refresh() {
         slots.getChildren().clear();
+        updateWeatherOverlay();
+        updateLineHighlight(false);
         List<Minion> centeredMinions = centeredMinions();
         for (Minion minion : centeredMinions) {
             StackPane slot = minion == null ? emptySlot() : cardSlot(minion);
             slots.getChildren().add(slot);
         }
+    }
+
+    public void setWeather(WeatherType weather) {
+        WeatherType nextWeather = weather == null ? WeatherType.CLEAR : weather;
+        if (displayedWeather == nextWeather) {
+            return;
+        }
+        stopParticles();
+        displayedWeather = nextWeather;
+        updateWeatherOverlay();
+    }
+
+    private void updateWeatherOverlay() {
+        boolean affected = line.isWeathered() && displayedWeather != WeatherType.CLEAR;
+        weatherOverlay.setVisible(affected);
+        if (!affected) {
+            weatherAnimation.stop();
+            weatherOverlay.setOpacity(0);
+            stopParticles();
+            return;
+        }
+
+        weatherOverlay.setFill(weatherGradient(displayedWeather));
+        weatherOverlay.setOpacity(0.35);
+        weatherParticles.setVisible(true);
+        if (particleAnimations.isEmpty()) {
+            createParticles(displayedWeather);
+        }
+        if (weatherAnimation.getStatus() != javafx.animation.Animation.Status.RUNNING) {
+            weatherAnimation.play();
+        }
+    }
+
+    private void createParticles(WeatherType weather) {
+        stopParticles();
+        int particleCount = weather == WeatherType.FOG ? 8 : 14;
+        for (int index = 0; index < particleCount; index++) {
+            double x = 18 + ((index * 67) % Math.max(1, (int) rowWidth - 36));
+            double y = 10 + ((index * 29) % Math.max(1, (int) rowHeight - 20));
+            Circle particle = new Circle(particleRadius(weather, index), particleColor(weather));
+            particle.setCenterX(x);
+            particle.setCenterY(y);
+            weatherParticles.getChildren().add(particle);
+
+            TranslateTransition movement = new TranslateTransition(
+                Duration.seconds(particleDuration(weather, index)), particle);
+            movement.setFromY(weather == WeatherType.RAIN ? -rowHeight * 0.35 : rowHeight * 0.20);
+            movement.setToY(weather == WeatherType.RAIN ? rowHeight * 0.35 : -rowHeight * 0.20);
+            movement.setFromX(weather == WeatherType.RAIN ? 0 : -rowWidth * 0.08);
+            movement.setToX(weather == WeatherType.RAIN ? rowWidth * 0.04 : rowWidth * 0.08);
+            movement.setAutoReverse(true);
+            movement.setCycleCount(TranslateTransition.INDEFINITE);
+            movement.play();
+            particleAnimations.add(movement);
+        }
+    }
+
+    private double particleRadius(WeatherType weather, int index) {
+        if (weather == WeatherType.RAIN) {
+            return 1.2 + (index % 3) * 0.5;
+        }
+        return 2.0 + (index % 3) * 0.8;
+    }
+
+    private Color particleColor(WeatherType weather, int index) {
+        return switch (weather) {
+            case FOG -> Color.rgb(235, 240, 245, 0.18);
+            case RAIN -> Color.rgb(145, 210, 255, 0.55);
+            case THUNDER -> Color.rgb(245, 232, 150, 0.65);
+            case FROST, SNOW -> Color.rgb(245, 252, 255, 0.72);
+            case CLEAR -> Color.TRANSPARENT;
+        };
+    }
+
+    private double particleDuration(WeatherType weather, int index) {
+        double base = weather == WeatherType.RAIN ? 1.15 : 2.4;
+        return base + (index % 4) * 0.25;
+    }
+
+    private void stopParticles() {
+        particleAnimations.forEach(TranslateTransition::stop);
+        particleAnimations.clear();
+        weatherParticles.getChildren().clear();
+        weatherParticles.setVisible(false);
+    }
+
+    private LinearGradient weatherGradient(WeatherType weather) {
+        Color primary;
+        Color secondary;
+        switch (weather) {
+            case FROST -> {
+                primary = Color.rgb(185, 235, 255, 0.52);
+                secondary = Color.rgb(70, 145, 220, 0.16);
+            }
+            case FOG -> {
+                primary = Color.rgb(235, 240, 245, 0.40);
+                secondary = Color.rgb(95, 105, 120, 0.18);
+            }
+            case RAIN -> {
+                primary = Color.rgb(55, 150, 235, 0.45);
+                secondary = Color.rgb(15, 65, 145, 0.20);
+            }
+            case THUNDER -> {
+                primary = Color.rgb(150, 125, 225, 0.42);
+                secondary = Color.rgb(245, 205, 65, 0.20);
+            }
+            case SNOW -> {
+                primary = Color.rgb(250, 253, 255, 0.58);
+                secondary = Color.rgb(120, 205, 245, 0.18);
+            }
+            case CLEAR -> {
+                primary = Color.TRANSPARENT;
+                secondary = Color.TRANSPARENT;
+            }
+            default -> throw new IllegalStateException("Unsupported weather: " + weather);
+        }
+        return new LinearGradient(
+            0, 0, 1, 0, true, CycleMethod.REFLECT,
+            new Stop(0, secondary),
+            new Stop(0.42, primary),
+            new Stop(0.58, primary),
+            new Stop(1, secondary));
     }
 
     public void setCardHoverHandler(BiConsumer<Minion, StackPane> handler) {
@@ -103,6 +260,36 @@ public class RowView extends StackPane {
         selectableCards = cards == null ? Collections.emptySet() : cards;
         cardSelectionHandler = handler == null ? ignored -> { } : handler;
         refresh();
+    }
+
+    public void setLineSelection(Consumer<AttackLineType> handler) {
+        lineSelectionActive = true;
+        setOnMouseEntered(event -> updateLineHighlight(true));
+        setOnMouseExited(event -> updateLineHighlight(false));
+        setOnMouseClicked(event -> handler.accept(line.getType()));
+        refresh();
+    }
+
+    public void clearLineSelection() {
+        lineSelectionActive = false;
+        setOnMouseEntered(null);
+        setOnMouseExited(null);
+        setOnMouseClicked(null);
+        updateLineHighlight(false);
+    }
+
+    private void updateLineHighlight(boolean hovering) {
+        if (line.hasHorn()) {
+            DropShadow glow = new DropShadow(42, Color.web("#ffd45a"));
+            glow.setSpread(0.72);
+            background.setEffect(glow);
+        } else if (lineSelectionActive && hovering) {
+            DropShadow glow = new DropShadow(34, Color.web("#fff1a3"));
+            glow.setSpread(0.55);
+            background.setEffect(glow);
+        } else {
+            background.setEffect(null);
+        }
     }
 
     private StackPane emptySlot() {
@@ -118,8 +305,10 @@ public class RowView extends StackPane {
         double cardWidth = cardHeight * BOARD_CARD_ASPECT_RATIO;
         CardVisual visual = new CardVisual(minion, cardWidth, cardHeight, "board-card",
             BOARD_CARD_ASPECT_RATIO);
-        visual.addMetadata(minion);
+        int displayedPower = line.getEffectivePower(minion) * (line.hasHorn() ? 2 : 1);
+        visual.addMetadata(minion, false, displayedPower);
         StackPane result = new StackPane(visual);
+        result.setUserData(displayedPower);
         result.setPrefSize(visual.getPrefWidth(), visual.getPrefHeight());
         result.setMinSize(visual.getPrefWidth(), visual.getPrefHeight());
         result.setPickOnBounds(true);

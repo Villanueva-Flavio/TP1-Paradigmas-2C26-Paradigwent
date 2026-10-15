@@ -2,6 +2,7 @@ package com.fiuba.paradigwent.model.board;
 
 import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.enums.WeatherType;
 import com.fiuba.paradigwent.model.player.Player;
 
 import java.util.ArrayList;
@@ -48,6 +49,20 @@ public class PlayerSide {
             line.deActivateHorn();
         }
         owner.sendToDiscard(minions);
+    }
+
+    public void applyWeather(WeatherType weather) {
+            for (AttackLineType type : AttackLineType.values()) {
+                boolean affected = switch (weather) {
+                    case FROST -> type == AttackLineType.MELEE;
+                    case FOG -> type == AttackLineType.RANGED;
+                    case RAIN -> type == AttackLineType.SIEGE;
+                    case THUNDER -> type == AttackLineType.MELEE || type == AttackLineType.SIEGE;
+                    case SNOW -> type == AttackLineType.MELEE || type == AttackLineType.RANGED;
+                    case CLEAR -> false;
+                };
+                attackLines.get(type).setWeathered(affected);
+            }
     }
 
     /**

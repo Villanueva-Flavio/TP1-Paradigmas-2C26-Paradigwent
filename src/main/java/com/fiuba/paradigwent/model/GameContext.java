@@ -3,6 +3,7 @@ package com.fiuba.paradigwent.model;
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.board.Board;
 import com.fiuba.paradigwent.model.player.Player;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
 
 public class GameContext {
     private final Player currentPlayer;
@@ -10,6 +11,7 @@ public class GameContext {
     private final Board board;
     private final Card playedCard;
     private final Card targetCard;
+    private final AttackLineType targetLine;
 
     /**
      * Constructs a GameContext with the specified current player, opponent, board, and played card.
@@ -24,11 +26,17 @@ public class GameContext {
 
     public GameContext(Player currentPlayer, Player opponent, Board board,
                        Card playedCard, Card targetCard) {
+        this(currentPlayer, opponent, board, playedCard, targetCard, null);
+    }
+
+    public GameContext(Player currentPlayer, Player opponent, Board board,
+                       Card playedCard, Card targetCard, AttackLineType targetLine) {
         this.currentPlayer = currentPlayer;
         this.opponent = opponent;
         this.board = board;
         this.playedCard = playedCard;
         this.targetCard = targetCard;
+        this.targetLine = targetLine;
     }
 
     /**
@@ -64,5 +72,9 @@ public class GameContext {
     **/
     public Card getTargetCard() {
         return targetCard;
+    }
+
+    public AttackLineType getTargetLine() {
+        return targetLine;
     }
 }

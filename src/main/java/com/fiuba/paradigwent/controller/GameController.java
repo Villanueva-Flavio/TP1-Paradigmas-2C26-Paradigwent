@@ -8,6 +8,9 @@ import com.fiuba.paradigwent.model.enums.Result;
 import com.fiuba.paradigwent.model.game.Game;
 import com.fiuba.paradigwent.model.player.Player;
 import com.fiuba.paradigwent.model.round.Round;
+import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.effect.DuplicateLineEffect;
 import com.fiuba.paradigwent.view.game.modules.CardRace;
 
 import java.util.ArrayList;
@@ -69,20 +72,24 @@ public final class GameController {
     }
 
     public boolean playCard(Card card, Card targetCard) {
-        String rejection = validatePlayerPlay(card, targetCard);
+        return playCard(card, targetCard, null);
+    }
+
+    public boolean playCard(Card card, Card targetCard, AttackLineType targetLine) {
+        String rejection = validatePlayerPlay(card, targetCard, targetLine);
         if (rejection != null) {
             GameStatePrinter.printRejected(rejection);
             return false;
         }
 
-        round.playCard(card, targetCard);
+        round.playCard(card, targetCard, targetLine);
         boardController.printSituation(player.getName(), card.getName());
         finishRoundIfNeeded();
         printCurrentTurn();
         return true;
     }
 
-    private String validatePlayerPlay(Card card, Card targetCard) {
+    private String validatePlayerPlay(Card card, Card targetCard, AttackLineType targetLine) {
         if (card == null) {
             return "la carta es nula";
         }
@@ -96,14 +103,29 @@ public final class GameController {
             return "la carta no está en la mano";
         }
         if (card.requiresTarget()) {
-            if (targetCard == null) {
+            if (targetCard == null && !isTargetOptional(card)) {
                 return "el hechizo requiere una carta objetivo";
             }
-            if (!getTargetCards().contains(targetCard)) {
+            if (targetCard != null && !getTargetCards().contains(targetCard)) {
                 return "la carta objetivo no está en el tablero";
             }
         }
+        if (requiresLineTarget(card)
+                && (targetLine == null || targetLine == AttackLineType.NONE)) {
+            return "la carta requiere una línea objetivo";
+        }
         return null;
+    }
+
+    public boolean requiresLineTarget(Card card) {
+        return card instanceof Minion minion
+            && minion.getEffects().stream()
+                .anyMatch(effect -> effect instanceof DuplicateLineEffect
+                    && effect.requiresTarget());
+    }
+
+    public boolean isTargetOptional(Card card) {
+        return card instanceof Minion minion && minion.hasOptionalTarget();
     }
 
     public List<Card> getTargetCards() {
@@ -137,7 +159,9 @@ public final class GameController {
         }
 
         Card target = card.requiresTarget() ? chooseOpponentTarget() : null;
-        if (card.requiresTarget() && target == null) {
+        AttackLineType targetLine = requiresLineTarget(card)
+            ? card.getAttackLineType() : null;
+        if (card.requiresTarget() && target == null && !isTargetOptional(card)) {
             // There is no legal target for this card, so the AI passes.
             round.passTurn();
             finishRoundIfNeeded();
@@ -147,7 +171,7 @@ public final class GameController {
 
         // Round creates a play context containing the selected card and target.
         // AI.play() recognizes the chosen card and delegates its execution to Player.
-        round.playCard(card, target);
+        round.playCard(card, target, targetLine);
         lastOpponentCard = card;
         boardController.printSituation(opponent.getName(), card.getName());
         finishRoundIfNeeded();

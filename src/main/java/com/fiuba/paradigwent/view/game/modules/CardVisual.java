@@ -2,6 +2,7 @@ package com.fiuba.paradigwent.view.game.modules;
 
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.card.CardAssetResolver;
+import com.fiuba.paradigwent.model.card.Minion;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -174,12 +175,24 @@ public class CardVisual extends StackPane {
     }
 
     public void addMetadata(Card card, boolean compact) {
+        int displayedPower = card instanceof Minion minion
+            ? minion.getCurrentPower() : card.getBasePower();
+        addMetadata(card, compact, displayedPower);
+    }
+
+    public void addMetadata(Card card, boolean compact, int displayedPower) {
         compactMetadata = compact;
         nameLabel = metadataLabel(card.getName(), 38);
         nameLabel.setTextOverrun(OverrunStyle.ELLIPSIS);
-        powerLabel = metadataLabel(Integer.toString(card.getBasePower()), 44);
-        powerLabel.setVisible(card.getBasePower() > 0);
-        powerLabel.setManaged(card.getBasePower() > 0);
+        int powerDifference = displayedPower - card.getBasePower();
+        powerLabel = metadataLabel(Integer.toString(displayedPower), 44);
+        if (powerDifference > 0) {
+            powerLabel.setTextFill(Color.web("#168a34"));
+        } else if (powerDifference < 0) {
+            powerLabel.setTextFill(Color.web("#c62828"));
+        }
+        powerLabel.setVisible(displayedPower > 0);
+        powerLabel.setManaged(displayedPower > 0);
         descriptionLabel = metadataLabel(card.getDescription(), 22);
         descriptionLabel.setWrapText(true);
         typeIcon = cardTypeIcon(card.getCardType());

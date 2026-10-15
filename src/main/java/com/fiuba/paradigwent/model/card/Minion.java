@@ -4,10 +4,16 @@ import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.board.AttackLine;
 import com.fiuba.paradigwent.model.board.PlayerSide;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.effect.Effect;
+import com.fiuba.paradigwent.model.effect.ModifyPowerEffect;
+import com.fiuba.paradigwent.model.effect.DuplicateLineEffect;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Minion extends Card{
 
     private int powerModifier;
+    private List<Effect> effects = new ArrayList<>();
 
     /**
      * Constructor for the Minion class, which represents a minion card in the game. It initializes the minion with its unique identifier, name, stack limit, base power, and attack line type.
@@ -44,6 +50,34 @@ public class Minion extends Card{
         PlayerSide side = context.getBoard().getSideFor(context.getCurrentPlayer());
         AttackLine line = side.getAttackLine(this.getAttackLineType());
         line.addMinion(this);
+        for (Effect effect : effects) {
+            effect.apply(context);
+        }
+
     }
 
+    public List<Effect> getEffects() {
+        return new ArrayList<>(effects);
+    }
+
+    @Override
+    public boolean requiresTarget() {
+        return effects.stream()
+            .anyMatch(effect -> !(effect instanceof DuplicateLineEffect)
+                && effect.requiresTarget());
+    }
+
+    @Override
+    public String getTargetDescription() {
+        return effects.stream()
+            .map(Effect::getTargetDescription)
+            .filter(description -> !description.isBlank())
+            .distinct()
+            .reduce((left, right) -> left + " | " + right)
+            .orElse("");
+    }
+
+    public boolean hasOptionalTarget() {
+        return effects.stream().anyMatch(effect -> effect instanceof ModifyPowerEffect);
+    }
 }

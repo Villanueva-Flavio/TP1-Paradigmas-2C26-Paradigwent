@@ -9,6 +9,7 @@ import java.util.Collections;
 public class AttackLine {
     private List<Minion> minions;
     private boolean activateHorn;
+    private boolean weathered;
     private final AttackLineType type;
 
     /**
@@ -18,6 +19,7 @@ public class AttackLine {
     public AttackLine(AttackLineType type){
         this.minions = new ArrayList<>();
         this.activateHorn  = false;
+        this.weathered = false;
         this.type = type;
     }
 
@@ -26,8 +28,12 @@ public class AttackLine {
      * @return The total power of the attack line.
     **/
     public int calculateTotalPower(){
-        int total = minions.stream().mapToInt(Minion::getCurrentPower).sum();
+        int total = minions.stream().mapToInt(this::getEffectivePower).sum();
         return activateHorn ? 2 * total : total;
+    }
+
+    public int getEffectivePower(Minion minion) {
+        return weathered ? 1 : minion.getCurrentPower();
     }
 
     /**
@@ -107,5 +113,13 @@ public class AttackLine {
     **/
     public void deActivateHorn() {
         this.activateHorn = false;
+    }
+
+    public void setWeathered(boolean weathered) {
+        this.weathered = weathered;
+    }
+
+    public boolean isWeathered() {
+        return weathered;
     }
 }

@@ -31,6 +31,7 @@ import java.util.Random;
 
 import com.fiuba.paradigwent.view.MainView;
 import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.enums.Result;
 import com.fiuba.paradigwent.controller.GameController;
 import com.fiuba.paradigwent.view.game.modules.Board3DView;
@@ -100,6 +101,8 @@ public class GameView {
     private StackPane resultOverlay;
     private boolean cardAnimationRunning;
     private Card cardWaitingForTarget;
+    private Card cardWaitingForLine;
+    private Label actionPrompt;
     private final Random animationRandom = new Random();
 
     public GameView(MainView mainView) {
@@ -204,6 +207,25 @@ public class GameView {
     }
 
     private void buildUiControls() {
+        actionPrompt = new Label();
+        actionPrompt.setVisible(false);
+        actionPrompt.setManaged(false);
+        actionPrompt.setTextFill(Color.WHITE);
+        actionPrompt.setStyle(
+            "-fx-background-color: rgba(12, 15, 22, 0.9);"
+                + "-fx-border-color: #ffd45a;"
+                + "-fx-border-width: 2;"
+                + "-fx-background-radius: 8;"
+                + "-fx-border-radius: 8;"
+                + "-fx-padding: 8 18;"
+                + "-fx-font-size: 16px;"
+                + "-fx-font-weight: bold;");
+        actionPrompt.setLayoutX((VIRTUAL_WIDTH - 420) / 2);
+        actionPrompt.setLayoutY(18);
+        actionPrompt.setPrefWidth(420);
+        actionPrompt.setAlignment(Pos.CENTER);
+        uiOverlay.getChildren().add(actionPrompt);
+
         Button optionsButton = mainView.createMenuButton("Options");
         Button passButton = mainView.createMenuButton("PASS TURN");
         optionsButton.setOnAction(event -> mainView.showInGameConfigMenu());
@@ -247,6 +269,10 @@ public class GameView {
 
     private void playCard(Card card) {
         if (cardAnimationRunning) return;
+        if (controller.requiresLineTarget(card)) {
+            beginLineSelection(card);
+            return;
+        }
         if (controller.requiresTarget(card)) {
             beginTargetSelection(card);
             return;
@@ -254,19 +280,41 @@ public class GameView {
         executeCard(card, null);
     }
 
+    private void beginLineSelection(Card card) {
+        cardWaitingForLine = card;
+        showActionPrompt("Select an attack line to buff");
+        boardView.setLineSelection(this::finishLineSelection);
+    }
+
+    private void finishLineSelection(AttackLineType line) {
+        Card card = cardWaitingForLine;
+        cardWaitingForLine = null;
+        hideActionPrompt();
+        boardView.clearLineSelection();
+        if (card != null) {
+            executeCard(card, null, line);
+        }
+    }
+
     private void beginTargetSelection(Card card) {
         List<Card> targets = controller.getTargetCards();
         if (targets.isEmpty()) {
+            if (controller.isTargetOptional(card)) {
+                executeCard(card, null);
+                return;
+            }
             showNoTargetAlert();
             return;
         }
         cardWaitingForTarget = card;
+        showActionPrompt(targetPrompt(card));
         boardView.setTargetSelection(targets, this::finishTargetSelection);
     }
 
     private void finishTargetSelection(Card target) {
         Card card = cardWaitingForTarget;
         cardWaitingForTarget = null;
+        hideActionPrompt();
         boardView.clearTargetSelection();
         if (card != null) {
             executeCard(card, target);
@@ -274,8 +322,12 @@ public class GameView {
     }
 
     private void executeCard(Card card, Card target) {
+        executeCard(card, target, null);
+    }
+
+    private void executeCard(Card card, Card target, AttackLineType line) {
         Point2D playerSourcePoint = playerHandView.getCardCenterInScene(card);
-        if (!controller.playCard(card, target)) return;
+        if (!controller.playCard(card, target, line)) return;
         cardAnimationRunning = true;
         playerHandView.removeCard(card);
         animateCardToBoard(card, false, playerSourcePoint, () -> {
@@ -377,7 +429,34 @@ public class GameView {
         alert.showAndWait();
     }
 
+    private String targetPrompt(Card card) {
+        String description = card.getTargetDescription().toLowerCase();
+        if (description.contains("destroy")) {
+            return "Select a minion to destroy";
+        }
+        if (description.contains("scorch")) {
+            return "Select a minion to scorch";
+        }
+        return "Select a minion to buff";
+    }
+
+    private void showActionPrompt(String message) {
+        actionPrompt.setText(message);
+        actionPrompt.setVisible(true);
+        actionPrompt.setManaged(true);
+        actionPrompt.toFront();
+    }
+
+    private void hideActionPrompt() {
+        actionPrompt.setVisible(false);
+        actionPrompt.setManaged(false);
+    }
+
     private void passTurn() {
+        cardWaitingForLine = null;
+        cardWaitingForTarget = null;
+        hideActionPrompt();
+        boardView.clearLineSelection();
         controller.passTurn();
         playerHandView.refresh(controller.getPlayerHand());
         updateOpponentHand();
@@ -488,7 +567,12 @@ public class GameView {
         backdrop.setOpacity(0);
         backdrop.getStyleClass().add("collection-preview-backdrop");
         CardVisual preview = new CardVisual(card, CardVisual.widthForHeight(460), 460, "collection-card-image");
-        preview.addMetadata(card);
+        Object displayedPower = source.getUserData();
+        if (displayedPower instanceof Number power && card instanceof com.fiuba.paradigwent.model.card.Minion) {
+            preview.addMetadata(card, false, power.intValue());
+        } else {
+            preview.addMetadata(card);
+        }
         preview.setMouseTransparent(true);
         handPreview.getChildren().addAll(backdrop, preview);
         rootContainer.getChildren().add(handPreview);

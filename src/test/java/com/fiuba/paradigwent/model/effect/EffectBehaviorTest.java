@@ -2,6 +2,7 @@ package com.fiuba.paradigwent.model.effect;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,6 +52,28 @@ class EffectBehaviorTest {
         assertTrue(board.getPlayerSide().getAttackLine(AttackLineType.RANGED).hasHorn());
     }
 
+    @Test
+    void hornIsImplementedByDuplicateLineEffect() {
+        assertInstanceOf(
+            DuplicateLineEffect.class,
+            EffectFactory.createEffect("HORN", "MELEE"));
+    }
+
+    @Test
+    void duplicateLineWithoutParameterUsesSelectedLine() {
+        Board board = ModelTestFixtures.boardWithEmptyPlayers();
+        Player player = board.getPlayerSide().getOwner();
+        Player opponent = board.getOpponentSide().getOwner();
+        Minion playedCard = ModelTestFixtures.minion("horn", 1, AttackLineType.MELEE, null);
+        GameContext context = new GameContext(
+            player, opponent, board, playedCard, null, AttackLineType.SIEGE);
+
+        EffectFactory.createEffect("DUPLICATELINE", null).apply(context);
+
+        assertTrue(board.getPlayerSide().getAttackLine(AttackLineType.SIEGE).hasHorn());
+        assertFalse(board.getPlayerSide().getAttackLine(AttackLineType.MELEE).hasHorn());
+    }
+
     /**
      *  Test: The effect factory creates a weather effect for a specific weather type, and applying it sets the board's current weather to that type.
     **/
@@ -64,6 +87,27 @@ class EffectBehaviorTest {
         new WeatherEffect(WeatherType.FROST).apply(context);
 
         assertEquals(WeatherType.FROST, board.getCurrentWeather());
+    }
+
+    @Test
+    void weatherSetsAffectedLinesToOneForBothSidesAndClearRemovesIt() {
+        Board board = ModelTestFixtures.boardWithEmptyPlayers();
+        Player player = board.getPlayerSide().getOwner();
+        Player opponent = board.getOpponentSide().getOwner();
+        Minion playerMelee = ModelTestFixtures.minion("player-melee", 6, AttackLineType.MELEE, null);
+        Minion opponentMelee = ModelTestFixtures.minion("opponent-melee", 8, AttackLineType.MELEE, null);
+        board.getPlayerSide().getAttackLine(AttackLineType.MELEE).addMinion(playerMelee);
+        board.getOpponentSide().getAttackLine(AttackLineType.MELEE).addMinion(opponentMelee);
+
+        new WeatherEffect(WeatherType.FROST).apply(context(player, opponent, board, playerMelee));
+
+        assertEquals(1, board.getPlayerSide().getAttackLine(AttackLineType.MELEE).calculateTotalPower());
+        assertEquals(1, board.getOpponentSide().getAttackLine(AttackLineType.MELEE).calculateTotalPower());
+
+        new WeatherEffect(WeatherType.CLEAR).apply(context(player, opponent, board, playerMelee));
+
+        assertEquals(6, board.getPlayerSide().getAttackLine(AttackLineType.MELEE).calculateTotalPower());
+        assertEquals(8, board.getOpponentSide().getAttackLine(AttackLineType.MELEE).calculateTotalPower());
     }
 
     /**

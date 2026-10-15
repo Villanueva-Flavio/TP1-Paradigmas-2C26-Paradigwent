@@ -189,8 +189,12 @@ public class Board3DView extends Pane {
     }
 
     public void refresh() {
+        com.fiuba.paradigwent.model.enums.WeatherType weather =
+            board == null ? com.fiuba.paradigwent.model.enums.WeatherType.CLEAR
+                : board.getCurrentWeather();
         for (RowView row : rows) {
             if (row != null) {
+                row.setWeather(weather);
                 row.refresh();
             }
         }
@@ -242,6 +246,20 @@ public class Board3DView extends Pane {
     public void clearTargetSelection() {
         for (RowView row : rows) {
             row.setTargetSelection(Set.of(), ignored -> { });
+        }
+    }
+
+    public void setLineSelection(Consumer<AttackLineType> handler) {
+        Consumer<AttackLineType> safeHandler =
+            handler == null ? ignored -> { } : handler;
+        for (int index = 3; index < rows.length; index++) {
+            rows[index].setLineSelection(safeHandler);
+        }
+    }
+
+    public void clearLineSelection() {
+        for (RowView row : rows) {
+            row.clearLineSelection();
         }
     }
 

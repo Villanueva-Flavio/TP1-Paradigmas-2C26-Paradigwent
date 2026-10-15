@@ -41,6 +41,20 @@ class AttackLineTest {
         assertEquals(6, line.calculateTotalPower());
     }
 
+    @Test
+    void weatheredLineUsesOnePowerPerMinion() {
+        AttackLine line = new AttackLine(AttackLineType.MELEE);
+        line.addMinion(ModelTestFixtures.minion("first", 5, AttackLineType.MELEE, null));
+        line.addMinion(ModelTestFixtures.minion("second", 3, AttackLineType.MELEE, null));
+
+        line.setWeathered(true);
+
+        assertEquals(2, line.calculateTotalPower());
+        assertTrue(line.isWeathered());
+        line.setWeathered(false);
+        assertEquals(8, line.calculateTotalPower());
+    }
+
     /**
      *  Test: An attack line can be activated with a horn, which doubles its total power, and can be deactivated.
     **/
