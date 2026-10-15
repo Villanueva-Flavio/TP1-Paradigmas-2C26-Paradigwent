@@ -1,6 +1,7 @@
 package com.fiuba.paradigwent.model.effect;
 
 import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.player.Player;
 
@@ -23,9 +24,23 @@ public class ReviveEffect implements Effect {
     @Override
     public void apply(GameContext context) {
         Player player = context.getCurrentPlayer();
-        for (int i = 0; i < amount && !player.getDiscard().isEmpty(); i++) {
-            Card cardToRevive = player.getDiscard().get(player.getDiscard().size() - 1);
-            player.reviveCard(cardToRevive);
+        for (int revived = 0; revived < amount; revived++) {
+            Minion minionToRevive = findMostRecentMinion(player.getDiscard());
+            if (minionToRevive == null
+                    || !player.reviveCardToBoard(
+                        minionToRevive,
+                        context.getBoard().getSideFor(player))) {
+                break;
+            }
         }
+    }
+
+    private Minion findMostRecentMinion(java.util.List<Card> discard) {
+        for (int i = discard.size() - 1; i >= 0; i--) {
+            if (discard.get(i) instanceof Minion minion) {
+                return minion;
+            }
+        }
+        return null;
     }
 }

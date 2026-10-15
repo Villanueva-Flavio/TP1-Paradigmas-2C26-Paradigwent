@@ -32,6 +32,7 @@ public class Board3DView extends Pane {
         Map.entry("BOARD_X", 0.05),
         Map.entry("BOARD_Y", 0.04),
         Map.entry("BOARD_ROW_Y", 0.03),
+        Map.entry("BOARD_ROW_OFFSET_X", 0.015),
         Map.entry("BOARD_LINE_GAP", 0.01),
         Map.entry("ROW_WIDTH", 0.64),
         Map.entry("ROW_HEIGHT", 0.16),
@@ -55,7 +56,7 @@ public class Board3DView extends Pane {
         Map.entry("CAMERA_ZOOM", 1.0)
     );
 
-    private final Group tablero2_5d;
+    private final Group boardScene;
     private final Board board;
     private final RowView[] rows = new RowView[6];
     private BoardZoneView weatherZone;
@@ -82,7 +83,8 @@ public class Board3DView extends Pane {
         double boardHeight = height * RATIOS.get("BOARD_HEIGHT");
         double boardX = width * RATIOS.get("BOARD_X");
         double boardLineGap = height * RATIOS.get("BOARD_LINE_GAP");
-        double boardRowX = width * RATIOS.get("BOARD_X");
+        double boardRowX = width * (RATIOS.get("BOARD_X")
+            + RATIOS.get("BOARD_ROW_OFFSET_X"));
         double boardRowY = height * RATIOS.get("BOARD_ROW_Y");
         double opponentDeckY = height * RATIOS.get("OPPONENT_DECK_Y");
         double opponentDiscardY = height * RATIOS.get("OPPONENT_DISCARD_Y");
@@ -107,19 +109,19 @@ public class Board3DView extends Pane {
                 * RATIOS.get("CAMERA_ZOOM");
 
         // Marco central del tablero
-        Rectangle marcoTablero = new Rectangle(
+        Rectangle boardFrame = new Rectangle(
             boardWidth,
             boardHeight,
             GameTextures.pattern(GameTextures.BOARD_WOOD, GameView.COLOR.get("Board")));
-        marcoTablero.setStroke(GameView.COLOR.get("BoardBorder"));
-        marcoTablero.setStrokeWidth(width * 0.002);
-        marcoTablero.setArcWidth(width * 0.012);
-        marcoTablero.setArcHeight(width * 0.012);
+        boardFrame.setStroke(GameView.COLOR.get("BoardBorder"));
+        boardFrame.setStrokeWidth(width * 0.002);
+        boardFrame.setArcWidth(width * 0.012);
+        boardFrame.setArcHeight(width * 0.012);
 
         // Contenedor de las 6 filas
-        VBox filasTablero = new VBox(boardLineGap);
-        filasTablero.setLayoutX(boardRowX);
-        filasTablero.setLayoutY(boardRowY);
+        VBox boardRows = new VBox(boardLineGap);
+        boardRows.setLayoutX(boardRowX);
+        boardRows.setLayoutY(boardRowY);
         double rowWidth = width * RATIOS.get("ROW_WIDTH");
         double rowHeight = height * RATIOS.get("ROW_HEIGHT");
 
@@ -137,13 +139,13 @@ public class Board3DView extends Pane {
             line(player, AttackLineType.RANGED));
         rows[5] = new RowView("Siege", GameView.COLOR.get("SiegeLine"), rowWidth, rowHeight,
             line(player, AttackLineType.SIEGE));
-        filasTablero.getChildren().addAll(rows);
+        boardRows.getChildren().addAll(rows);
 
-        Group superficieTablero = new Group(marcoTablero, filasTablero);
-        superficieTablero.setLayoutX(boardX);
-        superficieTablero.setLayoutY(boardY);
+        Group boardSurface = new Group(boardFrame, boardRows);
+        boardSurface.setLayoutX(boardX);
+        boardSurface.setLayoutY(boardY);
 
-        Group zonasLaterales = new Group(
+        Group sideZones = new Group(
             opponentDeckZone = new BoardZoneView("DECK", zoneX, opponentDeckY, zoneWidth, zoneHeight, GameView.COLOR.get("Deck")),
             opponentDiscardZone = new BoardZoneView("DISCARD", zoneX, opponentDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
             weatherZone = new BoardZoneView("Weather", zoneX, weatherY, zoneWidth, zoneHeight, GameView.COLOR.get("Weather")),
@@ -159,27 +161,25 @@ public class Board3DView extends Pane {
         opponentFirstGem = new GemView(gemX, opponentGemY, gemSize);
         playerSecondGem = new GemView(gemX, playerSecondGemY, gemSize);
         
-        Group gemasGroup = new Group(
+        Group gemsGroup = new Group(
             opponentSecondGem, playerFirstGem, opponentFirstGem, playerSecondGem);
 
-        
-
-        tablero2_5d = new Group(superficieTablero, zonasLaterales);
+        boardScene = new Group(boardSurface, sideZones);
 
         // Camara
 
-        aplicarEfectoMesa();
+        applyBoardEffect();
 
-        Rectangle limitesCamara = new Rectangle(
+        Rectangle cameraBounds = new Rectangle(
             cameraContentWidth,
             cameraContentHeight,
             javafx.scene.paint.Color.TRANSPARENT
         );
-        Group gemasCameraLayer = new Group(limitesCamara, gemasGroup);
-        gemasCameraLayer.setManaged(false);
-        gemasCameraLayer.setMouseTransparent(true);
-        aplicarCamara(gemasCameraLayer, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
-        getChildren().addAll(tablero2_5d, gemasCameraLayer);
+        Group gemsCameraLayer = new Group(cameraBounds, gemsGroup);
+        gemsCameraLayer.setManaged(false);
+        gemsCameraLayer.setMouseTransparent(true);
+        applyCamera(gemsCameraLayer, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
+        getChildren().addAll(boardScene, gemsCameraLayer);
         refresh();
     }
 
@@ -296,7 +296,7 @@ public class Board3DView extends Pane {
         }
     }
 
-    private void aplicarEfectoMesa() {
+    private void applyBoardEffect() {
         double width = getPrefWidth();
         double height = getPrefHeight();
         double cameraContentWidth = width * RATIOS.get("CAMERA_CONTENT_WIDTH");
@@ -305,23 +305,23 @@ public class Board3DView extends Pane {
         double contentOffsetY = height * RATIOS.get("CONTENT_OFFSET_Y");
         double cameraZoom = ((height - boardLayoutY - contentOffsetY) / cameraContentHeight
             * RATIOS.get("CAMERA_ZOOM")) * 0.92;
-        aplicarCamara(tablero2_5d, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
+        applyCamera(boardScene, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
     }
 
-    private void aplicarCamara(Node node, double width, double height, double zoom, double layoutY) {
+    private void applyCamera(Node node, double width, double height, double zoom, double layoutY) {
         double topInset = width * 0.12;
         double bottomInset = width * 0.02;
 
-        PerspectiveTransform perspectiva = new PerspectiveTransform();
-        perspectiva.setUlx(topInset);
-        perspectiva.setUly(0);
-        perspectiva.setUrx(width - topInset);
-        perspectiva.setUry(0);
-        perspectiva.setLlx(bottomInset);
-        perspectiva.setLly(height);
-        perspectiva.setLrx(width - bottomInset);
-        perspectiva.setLry(height);
-        node.setEffect(perspectiva);
+        PerspectiveTransform perspective = new PerspectiveTransform();
+        perspective.setUlx(topInset);
+        perspective.setUly(0);
+        perspective.setUrx(width - topInset);
+        perspective.setUry(0);
+        perspective.setLlx(bottomInset);
+        perspective.setLly(height);
+        perspective.setLrx(width - bottomInset);
+        perspective.setLry(height);
+        node.setEffect(perspective);
 
         Scale cameraScale = new Scale(
             zoom,
@@ -339,11 +339,11 @@ public class Board3DView extends Pane {
         javafx.scene.Scene scene = getScene();
         if (scene == null) return;
 
-        Bounds localBounds = tablero2_5d.getBoundsInLocal();
-        Point2D topLeft = tablero2_5d.localToScene(localBounds.getMinX(), localBounds.getMinY());
-        Point2D topRight = tablero2_5d.localToScene(localBounds.getMaxX(), localBounds.getMinY());
-        Point2D bottomLeft = tablero2_5d.localToScene(localBounds.getMinX(), localBounds.getMaxY());
-        Point2D bottomRight = tablero2_5d.localToScene(localBounds.getMaxX(), localBounds.getMaxY());
+        Bounds localBounds = boardScene.getBoundsInLocal();
+        Point2D topLeft = boardScene.localToScene(localBounds.getMinX(), localBounds.getMinY());
+        Point2D topRight = boardScene.localToScene(localBounds.getMaxX(), localBounds.getMinY());
+        Point2D bottomLeft = boardScene.localToScene(localBounds.getMinX(), localBounds.getMaxY());
+        Point2D bottomRight = boardScene.localToScene(localBounds.getMaxX(), localBounds.getMaxY());
         Point2D boardCenter = average(topLeft, topRight, bottomLeft, bottomRight);
 
         scaledContent.setTranslateX(

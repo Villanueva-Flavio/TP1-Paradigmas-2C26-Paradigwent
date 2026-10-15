@@ -166,7 +166,7 @@ public class RowView extends StackPane {
         for (int index = 0; index < particleCount; index++) {
             double x = 18 + ((index * 67) % Math.max(1, (int) rowWidth - 36));
             double y = 10 + ((index * 29) % Math.max(1, (int) rowHeight - 20));
-            Circle particle = new Circle(particleRadius(weather, index), particleColor(weather));
+            Circle particle = new Circle(particleRadius(weather, index), particleColor(weather, index));
             particle.setCenterX(x);
             particle.setCenterY(y);
             weatherParticles.getChildren().add(particle);

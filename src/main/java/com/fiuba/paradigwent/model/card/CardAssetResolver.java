@@ -10,10 +10,6 @@ public final class CardAssetResolver {
     private CardAssetResolver() {
     }
 
-    public static boolean usesFallback(Card card) {
-        return FALLBACK_ASSET.equals(resolve(card));
-    }
-
     public static String resolveFactionFrame(Card card) {
         if (card == null) {
             return FALLBACK_ASSET;

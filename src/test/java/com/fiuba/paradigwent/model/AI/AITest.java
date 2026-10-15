@@ -1,4 +1,4 @@
-package com.fiuba.paradigwent.model.AI;
+package com.fiuba.paradigwent.model.ai;
 
 import com.fiuba.paradigwent.model.ai.AI;
 import com.fiuba.paradigwent.model.ai.RandomAIStrategy;

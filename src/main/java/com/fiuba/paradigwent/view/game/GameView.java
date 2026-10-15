@@ -15,7 +15,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 import javafx.scene.control.Button;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
@@ -30,9 +29,18 @@ import java.util.List;
 import java.util.Random;
 
 import com.fiuba.paradigwent.view.MainView;
+import com.fiuba.paradigwent.view.AudioManager;
 import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.card.Spell;
+import com.fiuba.paradigwent.model.effect.DestroyCreatureEffect;
+import com.fiuba.paradigwent.model.effect.DuplicateLineEffect;
+import com.fiuba.paradigwent.model.effect.ModifyPowerEffect;
+import com.fiuba.paradigwent.model.effect.ReviveEffect;
+import com.fiuba.paradigwent.model.effect.Effect;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.enums.Result;
+import com.fiuba.paradigwent.model.enums.WeatherType;
 import com.fiuba.paradigwent.controller.GameController;
 import com.fiuba.paradigwent.view.game.modules.Board3DView;
 import com.fiuba.paradigwent.view.game.modules.CardRace;
@@ -103,6 +111,7 @@ public class GameView {
     private Card cardWaitingForTarget;
     private Card cardWaitingForLine;
     private Label actionPrompt;
+    private Label turnIndicator;
     private final Random animationRandom = new Random();
 
     public GameView(MainView mainView) {
@@ -120,6 +129,10 @@ public class GameView {
 
     public Parent getRootNode() {
         return rootContainer;
+    }
+
+    public WeatherType getCurrentWeather() {
+        return controller.getBoard().getCurrentWeather();
     }
 
     public void surrender() {
@@ -207,6 +220,15 @@ public class GameView {
     }
 
     private void buildUiControls() {
+        turnIndicator = new Label();
+        turnIndicator.setTextFill(Color.WHITE);
+        turnIndicator.setAlignment(Pos.CENTER);
+        turnIndicator.setPrefWidth(190);
+        turnIndicator.setLayoutX(16);
+        turnIndicator.setLayoutY((VIRTUAL_HEIGHT - 52) / 2);
+        updateTurnIndicator();
+        uiOverlay.getChildren().add(turnIndicator);
+
         actionPrompt = new Label();
         actionPrompt.setVisible(false);
         actionPrompt.setManaged(false);
@@ -259,6 +281,7 @@ public class GameView {
         updateOpponentHand();
         uiOverlay.getChildren().addAll(playerHandView, opponentHandView);
         opponentHandView.toFront();
+        AudioManager.playCardDraw();
     }
 
     private void updateOpponentHand() {
@@ -299,11 +322,7 @@ public class GameView {
     private void beginTargetSelection(Card card) {
         List<Card> targets = controller.getTargetCards();
         if (targets.isEmpty()) {
-            if (controller.isTargetOptional(card)) {
-                executeCard(card, null);
-                return;
-            }
-            showNoTargetAlert();
+            executeCard(card, null);
             return;
         }
         cardWaitingForTarget = card;
@@ -328,10 +347,14 @@ public class GameView {
     private void executeCard(Card card, Card target, AttackLineType line) {
         Point2D playerSourcePoint = playerHandView.getCardCenterInScene(card);
         if (!controller.playCard(card, target, line)) return;
+        playCardSound(card);
+        updateTurnIndicator();
         cardAnimationRunning = true;
         playerHandView.removeCard(card);
+        playerHandView.refresh(controller.getPlayerHand());
         animateCardToBoard(card, false, playerSourcePoint, () -> {
             boardView.refresh();
+            AudioManager.updateWeatherMusic(controller.getBoard().getCurrentWeather());
             scheduleOpponentTurn();
         });
     }
@@ -356,14 +379,40 @@ public class GameView {
             return;
         }
 
+        playCardSound(opponentCard);
+        playerHandView.refresh(controller.getPlayerHand());
         updateOpponentHand();
         animateCardToBoard(opponentCard, true, sourcePoint, this::finishCardAction);
     }
 
     private void finishCardAction() {
-        cardAnimationRunning = false;
         updateOpponentHand();
         boardView.refresh();
+        AudioManager.updateWeatherMusic(controller.getBoard().getCurrentWeather());
+        updateTurnIndicator();
+
+        if (controller.isOpponentTurn()) {
+            scheduleOpponentTurn();
+            return;
+        }
+
+        cardAnimationRunning = false;
+        checkMatchFinished();
+    }
+
+    private void playCardSound(Card card) {
+        AudioManager.playCardPlay();
+        for (Effect effect : effectsOf(card)) {
+            if (effect instanceof DestroyCreatureEffect) {
+                AudioManager.playDestroy();
+            } else if (effect instanceof ReviveEffect) {
+                AudioManager.playRevive();
+            } else if (effect instanceof ModifyPowerEffect) {
+                AudioManager.playBuff();
+            } else if (effect instanceof DuplicateLineEffect) {
+                AudioManager.playDuplicateLine();
+            }
+        }
     }
 
     private void animateCardToBoard(Card card, boolean opponent, Point2D sourcePoint, Runnable onFinished) {
@@ -421,23 +470,25 @@ public class GameView {
         return new ParallelTransition(move, scale, rotate);
     }
 
-    private void showNoTargetAlert() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Target required");
-        alert.setHeaderText("No valid target cards");
-        alert.setContentText("This spell cannot be played right now.");
-        alert.showAndWait();
-    }
-
     private String targetPrompt(Card card) {
-        String description = card.getTargetDescription().toLowerCase();
-        if (description.contains("destroy")) {
-            return "Select a minion to destroy";
-        }
-        if (description.contains("scorch")) {
-            return "Select a minion to scorch";
+        for (Effect effect : effectsOf(card)) {
+            if (effect instanceof DestroyCreatureEffect destroyEffect) {
+                return destroyEffect.isScorch()
+                    ? "Select a minion to scorch"
+                    : "Select a minion to destroy";
+            }
         }
         return "Select a minion to buff";
+    }
+
+    private List<Effect> effectsOf(Card card) {
+        if (card instanceof Minion minion) {
+            return minion.getEffects();
+        }
+        if (card instanceof Spell spell) {
+            return spell.getEffects();
+        }
+        return List.of();
     }
 
     private void showActionPrompt(String message) {
@@ -453,16 +504,50 @@ public class GameView {
     }
 
     private void passTurn() {
+        if (cardAnimationRunning) return;
         cardWaitingForLine = null;
         cardWaitingForTarget = null;
         hideActionPrompt();
         boardView.clearLineSelection();
-        controller.passTurn();
+        boolean passed = controller.passTurn();
         playerHandView.refresh(controller.getPlayerHand());
         updateOpponentHand();
         boardView.refresh();
-        if (controller.gameFinished()) showMatchResult(controller.getMatchResult(), "The match is over.");
+        updateTurnIndicator();
+        if (passed && controller.isOpponentTurn()) {
+            cardAnimationRunning = true;
+            scheduleOpponentTurn();
+        } else {
+            checkMatchFinished();
+        }
     }
+
+    private void updateTurnIndicator() {
+        if (turnIndicator == null) return;
+        boolean playerTurn = controller.isPlayerTurn();
+        turnIndicator.setText("Turn: " + controller.getCurrentPlayerName());
+        turnIndicator.setStyle(
+            "-fx-background-color: rgba(12, 15, 22, 0.92);"
+                + "-fx-border-color: " + (playerTurn ? "#78a6ff" : "#ff8a65") + ";"
+                + "-fx-border-width: 2;"
+                + "-fx-background-radius: 8;"
+                + "-fx-border-radius: 8;"
+                + "-fx-padding: 8 12;"
+                + "-fx-font-size: 16px;"
+                + "-fx-font-weight: bold;");
+    }
+
+    private void checkMatchFinished() {
+        if (controller.gameFinished()) {
+            showMatchResult(
+                    controller.getMatchResult(),
+                    "The match is over."
+            );
+        }
+    }
+
+
+
 
     public void showMatchResult(Result result, String detail) {
         if (resultOverlay != null) return;
@@ -534,6 +619,7 @@ public class GameView {
     private void showHandPreview(Card card) {
         hidePreview();
         handPreview = new StackPane();
+        handPreview.setManaged(false);
         handPreview.getStyleClass().add("collection-preview-overlay");
         handPreview.setPickOnBounds(false);
         Region backdrop = new Region();
@@ -560,6 +646,7 @@ public class GameView {
     private void showBoardPreviewAt(Card card, javafx.scene.Node source) {
         hidePreview();
         handPreview = new StackPane();
+        handPreview.setManaged(false);
         handPreview.getStyleClass().add("collection-preview-overlay");
         handPreview.setPickOnBounds(false);
         Region backdrop = new Region();

@@ -8,6 +8,7 @@ import java.util.Collections;
 
 /* incompleto targetType */
 public class DestroyCreatureEffect implements Effect{
+    private final boolean scorch;
     @Override
     public boolean requiresTarget() {
         return true;
@@ -31,7 +32,16 @@ public class DestroyCreatureEffect implements Effect{
      * @param targetType 
     **/
     public DestroyCreatureEffect(AttackLineType targetType){
+        this(targetType, false);
+    }
+
+    public DestroyCreatureEffect(AttackLineType targetType, boolean scorch){
         this.targetType = targetType;
+        this.scorch = scorch;
+    }
+
+    public boolean isScorch() {
+        return scorch;
     }
 
     @Override 

@@ -1,0 +1,99 @@
+@startuml
+
+title Paradigwent - Model
+
+hide members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "Game" {
+    class Game
+    class GameContext
+    class Round
+}
+
+package "Board" {
+    class Board
+    class PlayerSide
+    class AttackLine
+}
+
+package "Player" {
+    class Player
+    class Deck
+    class Hand
+    class Discard
+    class AI
+    interface AIStrategy
+    class RandomAIStrategy
+}
+
+package "Cards" {
+    abstract class Card
+    class Minion
+    class Spell
+    class Weather
+    class JSONCardLoader
+    class CardAssetResolver
+}
+
+package "Effects" {
+    interface Effect
+    class DestroyCreatureEffect
+    class DuplicateLineEffect
+    class EffectFactory
+    class ModifyPowerEffect
+    class ReviveEffect
+    class StealCardEffect
+    class WeatherEffect
+}
+
+package "Enums" {
+    enum AttackLineType
+    enum Faction
+    enum Result
+    enum WeatherType
+}
+
+Game *-- Board
+Game *-- Player
+Game *-- Round
+GameContext --> Board
+GameContext --> Player
+Round --> Board
+Round --> Player
+
+Board *-- PlayerSide
+PlayerSide *-- AttackLine
+AttackLine *-- Minion
+AttackLine --> AttackLineType
+
+AI --|> Player
+AI --> AIStrategy
+RandomAIStrategy ..|> AIStrategy
+Player *-- Deck
+Player *-- Hand
+Player *-- Discard
+
+Minion --|> Card
+Spell --|> Card
+Weather --|> Card
+Card --> Faction
+Card --> AttackLineType
+Card *-- Effect
+Weather --> WeatherType
+
+DestroyCreatureEffect ..|> Effect
+DuplicateLineEffect ..|> Effect
+ModifyPowerEffect ..|> Effect
+ReviveEffect ..|> Effect
+StealCardEffect ..|> Effect
+WeatherEffect ..|> Effect
+EffectFactory ..> Effect
+
+JSONCardLoader ..> Card
+JSONCardLoader ..> EffectFactory
+CardAssetResolver ..> Card
+
+@enduml

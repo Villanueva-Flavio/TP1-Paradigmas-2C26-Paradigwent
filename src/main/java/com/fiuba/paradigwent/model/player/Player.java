@@ -1,7 +1,9 @@
 package com.fiuba.paradigwent.model.player;
 
 import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.board.PlayerSide;
 import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.card.Minion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,10 +100,6 @@ public class Player {
         return this.discard.getDiscard();
     }
 
-    public int discardSize() {
-        return discard.size();
-    }
-
     public int getDeckSize() {
         return deck.size();
     }
@@ -164,6 +162,15 @@ public class Player {
             discard.remove(card);
             hand.add(card);
         }
+    }
+
+    public boolean reviveCardToBoard(Minion minion, PlayerSide side) {
+        if (minion == null || side == null || !discard.contains(minion)) {
+            return false;
+        }
+        discard.remove(minion);
+        side.getAttackLine(minion.getAttackLineType()).addMinion(minion);
+        return true;
     }
 
     public int stealCardsFrom(Player opponent, int amount) {

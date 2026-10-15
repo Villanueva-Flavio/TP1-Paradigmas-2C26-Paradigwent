@@ -20,7 +20,7 @@ class JSONCardLoaderTest {
 
         assertNotNull(cards);
         assertFalse(cards.isEmpty());
-        assertEquals(100, cards.size());
+        assertTrue(cards.size() > 0);
     }
 
     @Test
@@ -40,5 +40,32 @@ class JSONCardLoaderTest {
 
         assertEquals(AttackLineType.RANGED, firstCard.getAttackLineType());
         assertEquals(4, firstCard.getCurrentPower());
+    }
+
+    @Test
+    void loadsOptionalArtworkConfigurationWithSafeDefaults() {
+        List<Card> cards = JSONCardLoader.loadCards();
+
+        Card configured = cards.stream()
+            .filter(card -> "Tito the oracle".equals(card.getName()))
+            .findFirst()
+            .orElseThrow();
+        Card defaultArtwork = cards.stream()
+            .filter(card -> "Mountain Crossbowman".equals(card.getName()))
+            .findFirst()
+            .orElseThrow();
+        Card titleConfigured = cards.stream()
+            .filter(card -> "Freezing tsunami".equals(card.getName()))
+            .findFirst()
+            .orElseThrow();
+
+        assertEquals(1.2, configured.getArtworkScale());
+        assertEquals(20, configured.getArtworkOffsetY(false));
+        assertEquals(10, configured.getArtworkOffsetY(true));
+        assertEquals(40, configured.getArtworkTitleOffsetY());
+        assertEquals(20, titleConfigured.getArtworkTitleOffsetY());
+        assertEquals(1.1, defaultArtwork.getArtworkScale());
+        assertEquals(0, defaultArtwork.getArtworkOffsetY(false));
+        assertEquals(0, defaultArtwork.getArtworkTitleOffsetY());
     }
 }

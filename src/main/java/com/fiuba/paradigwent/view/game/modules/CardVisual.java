@@ -43,6 +43,7 @@ public class CardVisual extends StackPane {
     private double scale;
     private final double aspectRatio;
     private boolean compactMetadata;
+    private final Card card;
 
     public CardVisual(Card card, double width, double height, String imageStyleClass) {
         this(card, width, height, imageStyleClass, CARD_ASPECT_RATIO);
@@ -51,6 +52,7 @@ public class CardVisual extends StackPane {
     public CardVisual(Card card, double width, double height, String imageStyleClass,
         double aspectRatio) {
         this.aspectRatio = aspectRatio;
+        this.card = card;
         artwork = new ImageView(new Image(resource(CardAssetResolver.resolve(card))));
         frame = new ImageView(new Image(resource(CardAssetResolver.resolveFactionFrame(card))));
 
@@ -78,9 +80,12 @@ public class CardVisual extends StackPane {
         frame.setFitWidth(cardWidth);
         frame.setFitHeight(cardHeight);
         frame.relocate(offsetX, offsetY);
-        artwork.setFitWidth(ART_WIDTH * scale * 1.1);
-        artwork.setFitHeight(ART_HEIGHT * scale * 1.1);
-        artwork.relocate(offsetX + ART_X * scale, offsetY + ART_Y * scale * 0.9);
+        artwork.setFitWidth(ART_WIDTH * scale * card.getArtworkScale());
+        artwork.setFitHeight(ART_HEIGHT * scale * card.getArtworkScale());
+        double artworkOffsetY = card.getArtworkOffsetY(compactMetadata) * scale;
+        artwork.relocate(
+            offsetX + (ART_X + card.getArtworkOffsetX()) * scale,
+            offsetY + ART_Y * scale * 0.9 + artworkOffsetY);
         if (metadata != null) {
             double textWidth = 365 * scale;
             double textHeight = 225 * scale;
@@ -91,6 +96,7 @@ public class CardVisual extends StackPane {
             cardHeader.setPrefWidth(textWidth);
             cardHeader.setMinWidth(textWidth);
             cardHeader.setMaxWidth(textWidth);
+            cardHeader.setTranslateY(card.getArtworkTitleOffsetY() * scale);
             double reservedHeaderWidth = (compactMetadata ? 40 : 40) * scale;
             double powerWidth = powerLabel.isManaged() ? 52 * scale : 0;
             double nameWidth = Math.max(0, textWidth - reservedHeaderWidth - powerWidth);
@@ -130,10 +136,6 @@ public class CardVisual extends StackPane {
         node.setScaleY(1);
         node.resize(bounds[2] * scale, bounds[3] * scale);
         node.relocate(bounds[0] * scale, bounds[1] * scale);
-    }
-
-    public ImageView getArtwork() {
-        return artwork;
     }
 
     public static double widthForHeight(double height) {

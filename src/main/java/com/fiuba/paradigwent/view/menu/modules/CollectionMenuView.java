@@ -2,7 +2,6 @@ package com.fiuba.paradigwent.view.menu.modules;
 
 import com.fiuba.paradigwent.view.MainView;
 import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.card.CardAssetResolver;
 import com.fiuba.paradigwent.model.card.JSONCardLoader;
 import com.fiuba.paradigwent.view.game.modules.CardVisual;
 
@@ -13,7 +12,6 @@ import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
-import javafx.beans.binding.Bindings;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -22,8 +20,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -34,7 +30,6 @@ import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Locale;
 
 public class CollectionMenuView extends VBox {
@@ -43,7 +38,7 @@ public class CollectionMenuView extends VBox {
     private static final List<String> FACTION_ORDER = List.of(
         "DWARF", "HIGHELF", "HUMAN", "MURGOL", "ORC", "UNDEAD"
     );
-    private static final List<Card> ALL_CARDS = JSONCardLoader.loadCards();
+    private List<Card> allCards = JSONCardLoader.loadCards();
     private final GridPane cardGrid = new GridPane();
     private final ScrollPane cardScroll = new ScrollPane(cardGrid);
     private final MainView mainView;
@@ -51,7 +46,7 @@ public class CollectionMenuView extends VBox {
     private Button nextPageButton;
     private String activeCollection;
     private String searchTerm = "";
-    private List<Card> activeCards = ALL_CARDS;
+    private List<Card> activeCards = allCards;
     private int currentPage;
     private boolean pageAnimating;
     private StackPane previewOverlay;
@@ -105,6 +100,11 @@ public class CollectionMenuView extends VBox {
         getChildren().addAll(lblTitle, searchBar, factionButtons, typeFilters, cardScroll, pagination, btnBack);
     }
 
+    public void reloadCards() {
+        allCards = JSONCardLoader.loadCards();
+        refreshCards();
+    }
+
     private HBox createFactionButtons() {
         HBox buttons = new HBox(8);
         buttons.setAlignment(Pos.CENTER);
@@ -117,12 +117,12 @@ public class CollectionMenuView extends VBox {
 
     private Button createFactionButton(String faction) {
         Button button = new Button();
-        Card factionCard = ALL_CARDS.stream()
+        Card factionCard = allCards.stream()
             .filter(card -> faction.equals(card.getFaction()))
             .findFirst()
             .orElse(null);
         if (factionCard != null) {
-            button.setGraphic(createCardImage(factionCard, 48, 68, false));
+            //button.setGraphic(createCardImage(factionCard, 48, 68, false));
         }
         button.setFocusTraversable(false);
         button.getStyleClass().add("collection-faction-button");
@@ -182,7 +182,7 @@ public class CollectionMenuView extends VBox {
     }
 
     private void refreshCards() {
-        activeCards = ALL_CARDS.stream()
+        activeCards = allCards.stream()
             .filter(this::matchesActiveCollection)
             .filter(this::matchesSearch)
             .toList();

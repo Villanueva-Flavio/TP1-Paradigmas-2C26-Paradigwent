@@ -95,16 +95,6 @@ public class Board {
 
     }
 
-    /**
-     * Returns the strongest minion on the opponent's side of the board based on its current power.
-     *
-     * @param opponent The PlayerSide representing the opponent's side of the board.
-     * @return The strongest minion on the opponent's side, or null if there are no minions or if the opponent is null.
-     **/
-    public Minion getStrongestMiniondOf(PlayerSide opponent) {
-        return opponent == null ? null : opponent.getStrongestMinion();
-    }
-
     public Minion strongestMinionOf(Player player) {
         return player == null ? null : getSideFor(player).getStrongestMinion();
     }

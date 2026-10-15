@@ -12,7 +12,33 @@ public abstract class Card {
     private String faction;
     private String imagePath;
     private String framePath;
+    private Artwork artwork = new Artwork();
     protected int basePower;
+
+    public double getArtworkScale() {
+        return artwork == null ? 1.1 : artwork.scale;
+    }
+
+    public double getArtworkOffsetX() {
+        return artwork == null ? 0 : artwork.offsetX;
+    }
+
+    public double getArtworkOffsetY(boolean compact) {
+        if (artwork == null) return 0;
+        return compact ? artwork.compactOffsetY : artwork.offsetY;
+    }
+
+    public double getArtworkTitleOffsetY() {
+        return artwork == null ? 0 : artwork.titleOffsetY;
+    }
+
+    private static class Artwork {
+        private double scale = 1.1;
+        private double offsetX;
+        private double offsetY;
+        private double compactOffsetY;
+        private double titleOffsetY;
+    }
 
     /**
      * Constructs a Card object with the specified parameters.
@@ -37,16 +63,8 @@ public abstract class Card {
         return attackLineType;
     }
 
-    public String getId() {
-        return id;
-    }
-
     public String getName() {
         return name;
-    }
-
-    public int getStackLimit() {
-        return stackLimit;
     }
 
     public String getFaction() {

@@ -1,7 +1,6 @@
 package com.fiuba.paradigwent.view.game.modules;
 
 import com.fiuba.paradigwent.model.card.Card;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.input.MouseEvent;
 import java.util.function.Consumer;
@@ -44,7 +43,4 @@ public class CardView extends StackPane {
         return card;
     }
 
-    public ImageView getImageView() {
-        return visual.getArtwork();
-    }
 }

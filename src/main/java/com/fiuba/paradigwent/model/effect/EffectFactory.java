@@ -12,8 +12,8 @@ public class EffectFactory {
     private static Map<String, Function<String, Effect>> createCreators() {
         Map<String, Function<String, Effect>> creators = new HashMap<>();
         creators.put("MODIFYPOWER", param -> new ModifyPowerEffect(parseParamToInt(param, 1)));
-        creators.put("DESTROY", param -> new DestroyCreatureEffect(parseLineType(param)));
-        creators.put("SCORCH", param -> new DestroyCreatureEffect(parseLineType(param)));
+        creators.put("DESTROY", param -> new DestroyCreatureEffect(parseLineType(param), false));
+        creators.put("SCORCH", param -> new DestroyCreatureEffect(parseLineType(param), true));
         creators.put("DUPLICATELINE", param -> new DuplicateLineEffect(parseLineType(param)));
         creators.put("HORN", param -> new DuplicateLineEffect(parseLineType(param)));
         creators.put("STEALCARD", param -> new StealCardEffect(parseParamToInt(param, 1)));

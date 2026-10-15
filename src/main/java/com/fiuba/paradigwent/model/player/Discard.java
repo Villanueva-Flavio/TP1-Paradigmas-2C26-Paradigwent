@@ -45,10 +45,6 @@ public class Discard {
         return discard.size();
     }
 
-    public Card last() {
-        return discard.isEmpty() ? null : discard.get(discard.size() - 1);
-    }
-
     /**
      * Returns a copy of the current discard pile.
      * @return An ArrayList containing the cards in the discard pile.

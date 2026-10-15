@@ -106,17 +106,6 @@ public class Game {
     }
 
     /**
-     * Returns the winner once the match is finished.
-     * A null result means the match ended in a draw.
-     */
-    public Player checkMatchWinner() {
-        if (!finished) {
-            throw new IllegalStateException("La partida todavía no terminó.");
-        }
-        return winner;
-    }
-
-    /**
      * Returns the current life-based result. This preserves the controller's
      * ability to query the result without introducing a new exception.
      */
@@ -139,14 +128,6 @@ public class Game {
 
     public Board getBoard() {
         return board;
-    }
-
-    public Player getPlayer1() {
-        return player1;
-    }
-
-    public Player getPlayer2() {
-        return player2;
     }
 
     public boolean isFinished() {

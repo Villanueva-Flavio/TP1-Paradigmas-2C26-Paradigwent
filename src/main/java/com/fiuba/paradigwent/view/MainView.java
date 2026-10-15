@@ -150,6 +150,8 @@ public class MainView extends Application {
         if (gameView == null) {
             gameView = new GameView(this, selectedRace);
         }
+        AudioManager.playGameMusic();
+        AudioManager.updateWeatherMusic(gameView.getCurrentWeather());
         root.getChildren().remove(inGameConfigMenuView);
         uiOverlay.setLeft(null);
         uiOverlay.setRight(null);
@@ -171,6 +173,7 @@ public class MainView extends Application {
     public void showMainMenu()       {
         selectingRaceForMatch = false;
         gameView = null;
+        AudioManager.playMenuMusic();
         setContent(mainMenuView);
     }
     /** @brief Shows the configuration menu. */
@@ -203,6 +206,7 @@ public class MainView extends Application {
     }
     /** @brief Shows the collection menu. */
     public void showCollectionMenu() {
+        collectionMenuView.reloadCards();
         root.getChildren().remove(inGameConfigMenuView);
         uiOverlay.setLeft(null);
         uiOverlay.setRight(null);
@@ -225,12 +229,6 @@ public class MainView extends Application {
     * @return Root StackPane of the application.
     **/
     public StackPane getRoot() { return root; }
-
-    /** 
-    * @brief Returns the loaded custom font.
-    * @return Custom font, or null when the asset could not be loaded.
-    **/
-    public Font getCustomFont() { return customFont; }
 
     public void applyResolution(Stage stage, int width, int height) {
         Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();

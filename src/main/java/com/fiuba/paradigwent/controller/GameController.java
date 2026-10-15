@@ -47,10 +47,6 @@ public final class GameController {
         return boardController.getBoard();
     }
 
-    public Game getGame() {
-        return game;
-    }
-
     public List<Card> getPlayerHand() {
         return player.getHand();
     }
@@ -63,8 +59,16 @@ public final class GameController {
         return opponent.getFaction();
     }
 
+    public String getCurrentPlayerName() {
+        return round.getCurrentPlayer().getName();
+    }
+
+    public boolean isPlayerTurn() {
+        return round.getCurrentPlayer() == player;
+    }
+
     public boolean requiresTarget(Card card) {
-        return card != null && card.requiresTarget();
+        return card != null && card.requiresTarget() && !getTargetCards().isEmpty();
     }
 
     public boolean playCard(Card card) {
@@ -103,7 +107,8 @@ public final class GameController {
             return "la carta no está en la mano";
         }
         if (card.requiresTarget()) {
-            if (targetCard == null && !isTargetOptional(card)) {
+            boolean noTargetsAvailable = getTargetCards().isEmpty();
+            if (targetCard == null && !isTargetOptional(card) && !noTargetsAvailable) {
                 return "el hechizo requiere una carta objetivo";
             }
             if (targetCard != null && !getTargetCards().contains(targetCard)) {
@@ -159,19 +164,15 @@ public final class GameController {
         }
 
         Card target = card.requiresTarget() ? chooseOpponentTarget() : null;
-        AttackLineType targetLine = requiresLineTarget(card)
-            ? card.getAttackLineType() : null;
-        if (card.requiresTarget() && target == null && !isTargetOptional(card)) {
-            // There is no legal target for this card, so the AI passes.
+        if (card.requiresTarget() && target == null && !getTargetCards().isEmpty()) {
+
             round.passTurn();
             finishRoundIfNeeded();
             printCurrentTurn();
             return false;
         }
 
-        // Round creates a play context containing the selected card and target.
-        // AI.play() recognizes the chosen card and delegates its execution to Player.
-        round.playCard(card, target, targetLine);
+        round.playCard(card, target);
         lastOpponentCard = card;
         boardController.printSituation(opponent.getName(), card.getName());
         finishRoundIfNeeded();
@@ -194,32 +195,44 @@ public final class GameController {
      * when the round is still active. Returns true when the pass was accepted,
      * not only when it happened to finish the round.
      */
+
     public boolean passTurn() {
         if (game.isFinished() || round.isFinished()) {
-            GameStatePrinter.printRejected("la partida o la ronda ya terminó");
+            GameStatePrinter.printRejected(
+                    "la partida o la ronda ya terminó"
+            );
             return false;
         }
+
         if (round.getCurrentPlayer() != player) {
-            GameStatePrinter.printRejected("no es el turno del jugador");
+            GameStatePrinter.printRejected(
+                    "no es el turno del jugador"
+            );
             return false;
         }
 
         round.passTurn();
         finishRoundIfNeeded();
+        printCurrentTurn();
 
-        // If the human pass did not finish the round, the AI now owns the turn.
-        // Run the AI turn immediately instead of leaving the game waiting.
-        if (!game.isFinished()
-                && !round.isFinished()
-                && round.getCurrentPlayer() == opponent) {
-            playOpponentCard();
-        } else {
-            printCurrentTurn();
-        }
-
-        // The action was accepted even if the round continues.
         return true;
     }
+
+    public boolean playOpponentTurn() {
+        if (!isOpponentTurn()) {
+            return false;
+        }
+
+        playOpponentCard();
+        return true;
+    }
+
+    public boolean isOpponentTurn() {
+        return !game.isFinished()
+                && !round.isFinished()
+                && round.getCurrentPlayer() == opponent;
+    }
+
 
     private boolean finishRoundIfNeeded() {
         if (!round.isFinished()) {
@@ -252,6 +265,7 @@ public final class GameController {
 
         return true;
     }
+
 
     private void printCurrentTurn() {
         if (!game.isFinished() && !round.isFinished()) {

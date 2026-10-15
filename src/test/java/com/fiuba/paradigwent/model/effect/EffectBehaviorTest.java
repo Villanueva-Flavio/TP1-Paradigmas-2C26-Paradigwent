@@ -132,10 +132,10 @@ class EffectBehaviorTest {
     }
 
     /**
-     *  Test: The effect factory creates a revive effect that moves the most recently discarded card back to the player's hand, and applying it performs this action.
+     *  Test: The revive effect moves the most recently discarded minion directly to its attack line.
     **/
     @Test
-    void reviveEffectMovesTheMostRecentDiscardedCardToHand() {
+    void reviveEffectMovesTheMostRecentDiscardedMinionToBoard() {
         Player player = ModelTestFixtures.emptyPlayer("player");
         Player opponent = ModelTestFixtures.emptyPlayer("opponent");
         Board board = new Board(player, opponent);
@@ -144,7 +144,8 @@ class EffectBehaviorTest {
 
         new ReviveEffect(1).apply(context(player, opponent, board, card));
 
-        assertTrue(player.getHand().contains(card));
+        assertTrue(board.getPlayerSide().getAttackLine(AttackLineType.MELEE).getMinions().contains(card));
+        assertFalse(player.getHand().contains(card));
         assertFalse(player.getDiscard().contains(card));
     }
 
