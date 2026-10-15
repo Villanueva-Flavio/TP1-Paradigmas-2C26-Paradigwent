@@ -37,6 +37,11 @@ El proyecto se gestiona con Maven y utiliza:
 - Gson 2.10.1 para cargar cartas y efectos desde JSON.
 - JUnit 5 para las pruebas automatizadas.
 
+## Presentaciones
+
+- Flavio Villanueva: https://www.youtube.com/watch?v=JU3p1aqJBso
+- Emanuel Peña: https://www.youtube.com/watch?v=8Vpf08s2UkM
+
 ## Funcionalidades principales
 
 - Juego de un jugador contra la CPU.
@@ -235,6 +240,7 @@ El proyecto incluye diagramas PlantUML separados para facilitar su lectura:
 Esta sección se completará con los créditos definitivos de los recursos
 utilizados en el proyecto.
 
+(A agregar)
 1. **Asset 1:** nombre del autor, recurso utilizado y enlace.
 2. **Asset 2:** nombre del autor, recurso utilizado y enlace.
 3. **Asset 3:** nombre del autor, recurso utilizado y enlace.
