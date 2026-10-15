@@ -1,0 +1,22 @@
+### Maven ###
+target/
+target/*
+build/
+build/*
+.mvn/
+.mvn/*
+
+### IntelliJ IDEA ###
+.idea/
+.idea/*
+
+### VS Code ###
+.vscode/
+.vscode/*
+
+### Mac OS ###
+.DS_Store
+
+### OTHERS ###
+.github/
+.github/*
