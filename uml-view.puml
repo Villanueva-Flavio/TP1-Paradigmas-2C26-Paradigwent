@@ -1,0 +1,71 @@
+@startuml
+
+title Paradigwent - View
+
+hide members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "Application" as Application {
+    class Main
+    class MainView
+    class AudioManager
+}
+
+package "Menus" as Menus {
+    class MainMenuView
+    class CollectionMenuView
+    class ConfigMenuView
+    class FactionsMenuView
+    class InGameConfigMenuView
+}
+
+package "Game view" as GameViewPackage {
+    class GameView
+    class Board3DView
+    class BoardZoneView
+    class RowView
+    class HandView
+    class OpponentHandView
+    class DeckView
+    class CardView
+    class CardVisual
+    class GemView
+    class GameTextures
+    enum CardRace
+}
+
+package "Controller" as ControllerPackage {
+    class GameController
+}
+
+Main ..> MainView
+MainView *-- MainMenuView
+MainView *-- CollectionMenuView
+MainView *-- ConfigMenuView
+MainView *-- FactionsMenuView
+MainView *-- InGameConfigMenuView
+MainView *-- GameView
+MainView *-- AudioManager
+
+GameView --> GameController
+GameView *-- Board3DView
+GameView *-- HandView
+GameView *-- OpponentHandView
+
+Board3DView *-- RowView
+Board3DView *-- BoardZoneView
+Board3DView *-- GemView
+RowView *-- CardVisual
+
+note right of GameView
+  Flujo arquitectónico recomendado:
+  View -> Controller -> Model
+
+  Las dependencias de datos usadas
+  para renderizar se omiten para
+  mantener legibilidad.
+end note
+
+@enduml

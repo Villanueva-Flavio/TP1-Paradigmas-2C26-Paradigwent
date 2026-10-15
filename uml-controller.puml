@@ -1,0 +1,63 @@
+@startuml
+
+title Paradigwent - Controllers
+
+hide members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+package "Controllers" {
+    class BoardController
+    class GameController
+    class GameSessionFactory
+    class GameStatePrinter
+    class Session
+}
+
+package "Model" {
+    class Game
+    class Board
+    class Player
+    class AI
+    class Round
+    class Card
+    class Minion
+    class Weather
+    class AttackLine
+    class AttackLineType
+    class DuplicateLineEffect
+    class JSONCardLoader
+    class Deck
+    class RandomAIStrategy
+}
+
+GameController --> Game
+GameController --> Board
+GameController --> Player
+GameController --> AI
+GameController --> Round
+GameController ..> Card
+GameController ..> Minion
+GameController ..> DuplicateLineEffect
+GameController ..> BoardController
+GameController ..> GameStatePrinter
+
+BoardController --> Board
+BoardController ..> AttackLine
+BoardController ..> Minion
+BoardController ..> Weather
+BoardController ..> AttackLineType
+
+GameSessionFactory ..> JSONCardLoader
+GameSessionFactory ..> Game
+GameSessionFactory ..> Board
+GameSessionFactory ..> Round
+GameSessionFactory ..> Player
+GameSessionFactory ..> Deck
+GameSessionFactory ..> RandomAIStrategy
+GameSessionFactory ..> Session
+
+GameStatePrinter ..> Board
+
+@enduml
