@@ -24,11 +24,13 @@ public class GameContext {
         this(currentPlayer, opponent, board, playedCard, null);
     }
 
+    /**      * Constructs a new GameContext.      */
     public GameContext(Player currentPlayer, Player opponent, Board board,
                        Card playedCard, Card targetCard) {
         this(currentPlayer, opponent, board, playedCard, targetCard, null);
     }
 
+    /**      * Constructs a new GameContext.      */
     public GameContext(Player currentPlayer, Player opponent, Board board,
                        Card playedCard, Card targetCard, AttackLineType targetLine) {
         this.currentPlayer = currentPlayer;
@@ -73,7 +75,10 @@ public class GameContext {
     public Card getTargetCard() {
         return targetCard;
     }
-
+    /**
+     * Returns the value provided by getTargetLine.
+     * @return the value produced by the method
+     */
     public AttackLineType getTargetLine() {
         return targetLine;
     }

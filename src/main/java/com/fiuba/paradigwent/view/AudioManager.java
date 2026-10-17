@@ -41,30 +41,42 @@ public final class AudioManager {
     private static WeatherType currentWeatherMusic;
     private static final Set<MediaPlayer> activeEffects = new HashSet<>();
 
+    /**      * Constructs a new AudioManager.      */
     private AudioManager() {
     }
-
+    /**
+     * Executes the operation represented by playMenuMusic.
+     */
     public static void playMenuMusic() {
         stopGameMusic();
         backgroundPlayer = loop(MENU_MUSIC, backgroundPlayer, 0.6);
     }
-
+    /**
+     * Executes the operation represented by playGameMusic.
+     */
     public static void playGameMusic() {
         stopMenuMusic();
         backgroundPlayer = loop(GAME_MUSIC, backgroundPlayer, 0.6);
     }
-
+    /**
+     * Executes the operation represented by stopMenuMusic.
+     */
     public static void stopMenuMusic() {
         stop(backgroundPlayer);
         backgroundPlayer = null;
     }
-
+    /**
+     * Executes the operation represented by stopGameMusic.
+     */
     public static void stopGameMusic() {
         stop(backgroundPlayer);
         backgroundPlayer = null;
         stopWeatherMusic();
     }
-
+    /**
+     * Executes the operation represented by updateWeatherMusic.
+     * @param weather the value used by the method
+     */
     public static void updateWeatherMusic(WeatherType weather) {
         if (weather == null) {
             weather = WeatherType.CLEAR;
@@ -81,37 +93,57 @@ public final class AudioManager {
             }
         }
     }
-
+    /**
+     * Executes the operation represented by stopWeatherMusic.
+     */
     public static void stopWeatherMusic() {
         stop(weatherPlayer);
         weatherPlayer = null;
         currentWeatherMusic = null;
     }
-
+    /**
+     * Executes the operation represented by playCardPlay.
+     */
     public static void playCardPlay() {
         playOneShot(CARD_PLAY);
     }
-
+    /**
+     * Executes the operation represented by playCardDraw.
+     */
     public static void playCardDraw() {
         playOneShot(CARD_DRAW);
     }
-
+    /**
+     * Executes the operation represented by playDestroy.
+     */
     public static void playDestroy() {
         playOneShot(DESTROY);
     }
-
+    /**
+     * Executes the operation represented by playRevive.
+     */
     public static void playRevive() {
         playOneShot(REVIVE);
     }
-
+    /**
+     * Executes the operation represented by playBuff.
+     */
     public static void playBuff() {
         playOneShot(BUFF);
     }
-
+    /**
+     * Executes the operation represented by playDuplicateLine.
+     */
     public static void playDuplicateLine() {
         playOneShot(DUPLICATE_LINE);
     }
-
+    /**
+     * Executes the operation represented by loop.
+     * @param path the value used by the method
+     * @param previous the value used by the method
+     * @param volume the value used by the method
+     * @return the value produced by the method
+     */
     private static MediaPlayer loop(String path, MediaPlayer previous, double volume) {
         stop(previous);
         URL resource = AudioManager.class.getResource(path);
@@ -127,7 +159,10 @@ public final class AudioManager {
         player.play();
         return player;
     }
-
+    /**
+     * Executes the operation represented by playOneShot.
+     * @param path the value used by the method
+     */
     private static void playOneShot(String path) {
         URL resource = AudioManager.class.getResource(path);
         if (resource == null) {
@@ -144,19 +179,28 @@ public final class AudioManager {
         });
         player.play();
     }
-
+    /**
+     * Executes the operation represented by finishEffect.
+     * @param player the value used by the method
+     */
     private static void finishEffect(MediaPlayer player) {
         activeEffects.remove(player);
         player.dispose();
     }
-
+    /**
+     * Executes the operation represented by stop.
+     * @param player the value used by the method
+     */
     private static void stop(MediaPlayer player) {
         if (player != null) {
             player.stop();
             player.dispose();
         }
     }
-
+    /**
+     * Executes the operation represented by reportMissing.
+     * @param path the value used by the method
+     */
     private static void reportMissing(String path) {
         System.err.println("[AUDIO] Missing resource: " + path);
     }

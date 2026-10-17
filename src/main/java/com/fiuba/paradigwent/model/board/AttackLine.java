@@ -31,7 +31,11 @@ public class AttackLine {
         int total = minions.stream().mapToInt(this::getEffectivePower).sum();
         return activateHorn ? 2 * total : total;
     }
-
+    /**
+     * Returns the value provided by getEffectivePower.
+     * @param minion the value used by the method
+     * @return the value produced by the method
+     */
     public int getEffectivePower(Minion minion) {
         return weathered ? 1 : minion.getCurrentPower();
     }
@@ -51,7 +55,11 @@ public class AttackLine {
     public void removeMinion(Minion minion){
         this.minions.remove(minion);
     }
-
+    /**
+     * Updates the collection through removeIfPresent.
+     * @param minion the value used by the method
+     * @return the value produced by the method
+     */
     public boolean removeIfPresent(Minion minion) {
         return this.minions.remove(minion);
     }
@@ -78,7 +86,10 @@ public class AttackLine {
     public AttackLineType getType() {
         return type;
     }
-
+    /**
+     * Returns the value provided by getMinions.
+     * @return the value produced by the method
+     */
     public List<Minion> getMinions() {
         return Collections.unmodifiableList(minions);
     }
@@ -114,11 +125,17 @@ public class AttackLine {
     public void deActivateHorn() {
         this.activateHorn = false;
     }
-
+    /**
+     * Updates the value managed by setWeathered.
+     * @param weathered the value used by the method
+     */
     public void setWeathered(boolean weathered) {
         this.weathered = weathered;
     }
-
+    /**
+     * Reports the state represented by isWeathered.
+     * @return the value produced by the method
+     */
     public boolean isWeathered() {
         return weathered;
     }

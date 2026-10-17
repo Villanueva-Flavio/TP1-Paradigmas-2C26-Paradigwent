@@ -19,4 +19,32 @@ public interface Effect {
     default String getTargetDescription() {
         return "";
     }
+
+    default boolean isLineTargetEffect() {
+        return false;
+    }
+
+    default boolean isOptionalTargetEffect() {
+        return false;
+    }
+
+    default boolean isDestroyCreatureEffect() {
+        return false;
+    }
+
+    default boolean isReviveEffect() {
+        return false;
+    }
+
+    default boolean isModifyPowerEffect() {
+        return false;
+    }
+
+    default boolean isDuplicateLineEffect() {
+        return false;
+    }
+
+    default String getTargetPrompt() {
+        return "";
+    }
 }

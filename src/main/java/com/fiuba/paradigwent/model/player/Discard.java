@@ -11,16 +11,16 @@ public class Discard {
     private ArrayList<Card> discard;
 
     /**
-     * Constructs a new Discard with an empty list of discarded cards.
-    **/
+     * Constructs an empty discard pile.
+     */
     public Discard() {
-        this.discard= new ArrayList<>();
+        this.discard = new ArrayList<>();
     }
 
     /**
-     * Adds a card to the discard pile.
-     * @param card
-    **/
+     * Updates the collection through add.
+     * @param card the value used by the method
+     */
     public void add(Card card) {
         this.discard.add(card);
     }
@@ -32,15 +32,25 @@ public class Discard {
     public void remove(Card card) {
         this.discard.remove(card);
     }
-
+    /**
+     * Executes the operation represented by contains.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     public boolean contains(Card card) {
         return discard.contains(card);
     }
-
+    /**
+     * Reports the state represented by isEmpty.
+     * @return the value produced by the method
+     */
     public boolean isEmpty() {
         return discard.isEmpty();
     }
-
+    /**
+     * Executes the operation represented by size.
+     * @return the value produced by the method
+     */
     public int size() {
         return discard.size();
     }
@@ -52,7 +62,10 @@ public class Discard {
     public ArrayList<Card> getDiscard() {
         return new ArrayList<>(discard);
     }
-
+    /**
+     * Executes the operation represented by view.
+     * @return the value produced by the method
+     */
     public List<Card> view() {
         return List.copyOf(discard);
     }

@@ -21,7 +21,10 @@ import com.fiuba.paradigwent.model.effect.EffectFactory;
 
 public class JSONCardLoader {
     private static final String CARD_JSON_PATH = "/json/cards.json";
-
+    /**
+     * Executes the operation represented by loadCards.
+     * @return the value produced by the method
+     */
     public static List<Card> loadCards() {
         GsonBuilder gsonBuilder = new GsonBuilder();
 
@@ -51,6 +54,13 @@ public class JSONCardLoader {
     }
 
     private static class CardDeserializer implements JsonDeserializer<Card> {
+        /**
+         * Executes the operation represented by deserialize.
+         * @param json the value used by the method
+         * @param typeOfT the value used by the method
+         * @param context the value used by the method
+         * @return the value produced by the method
+         */
         @Override
         public Card deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject jsonObject = json.getAsJsonObject();

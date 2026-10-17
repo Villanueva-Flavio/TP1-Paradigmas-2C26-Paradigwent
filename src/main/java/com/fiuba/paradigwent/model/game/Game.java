@@ -17,6 +17,7 @@ public class Game {
     private boolean finished;
     private Player winner;
 
+    /**      * Constructs a new Game.      */
     public Game(Player player1, Player player2, Board board) {
         if (player1 == null || player2 == null || board == null) {
             throw new IllegalArgumentException(
@@ -62,7 +63,10 @@ public class Game {
 
         return true;
     }
-
+    /**
+     * Executes the operation represented by applyRoundResult.
+     * @param result the value used by the method
+     */
     private void applyRoundResult(Result result) {
         switch (result) {
             case PLAYER1_WIN -> player2.loseLife();
@@ -73,7 +77,9 @@ public class Game {
             }
         }
     }
-
+    /**
+     * Executes the operation represented by updateMatchState.
+     */
     private void updateMatchState() {
         finished = player1.getLives() <= 0 || player2.getLives() <= 0;
 
@@ -87,7 +93,10 @@ public class Game {
             winner = null;
         }
     }
-
+    /**
+     * Executes the operation represented by surrender.
+     * @param player the value used by the method
+     */
     public void surrender(Player player) {
         if (finished) {
             return;
@@ -125,11 +134,17 @@ public class Game {
         }
         return Result.DRAW;
     }
-
+    /**
+     * Returns the value provided by getBoard.
+     * @return the value produced by the method
+     */
     public Board getBoard() {
         return board;
     }
-
+    /**
+     * Reports the state represented by isFinished.
+     * @return the value produced by the method
+     */
     public boolean isFinished() {
         return finished;
     }

@@ -16,6 +16,7 @@ public class OpponentHandView extends Pane {
     private static final double CARD_STEP = 52;
     private static final double HAND_SCALE = 0.65;
 
+    /**      * Constructs a new OpponentHandView.      */
     public OpponentHandView(double x, double y) {
         setLayoutX(x);
         setLayoutY(y - 100);
@@ -25,7 +26,11 @@ public class OpponentHandView extends Pane {
         setRotate(180);
         setMouseTransparent(true);
     }
-
+    /**
+     * Displays the information handled by showHand.
+     * @param cardCount the value used by the method
+     * @param faction the value used by the method
+     */
     public void showHand(int cardCount, String faction) {
         getChildren().clear();
         int visibleCards = Math.min(MAX_VISIBLE_CARDS, Math.max(0, cardCount));
@@ -44,7 +49,10 @@ public class OpponentHandView extends Pane {
             getChildren().add(back);
         }
     }
-
+    /**
+     * Returns the value provided by getDrawPointInScene.
+     * @return the value produced by the method
+     */
     public Point2D getDrawPointInScene() {
         javafx.geometry.Bounds bounds = localToScene(getBoundsInLocal());
         return new Point2D(bounds.getCenterX(), bounds.getMinY() + CARD_HEIGHT / 2);

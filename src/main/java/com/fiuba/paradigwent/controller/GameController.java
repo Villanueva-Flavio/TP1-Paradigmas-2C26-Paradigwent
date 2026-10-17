@@ -8,9 +8,7 @@ import com.fiuba.paradigwent.model.enums.Result;
 import com.fiuba.paradigwent.model.game.Game;
 import com.fiuba.paradigwent.model.player.Player;
 import com.fiuba.paradigwent.model.round.Round;
-import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
-import com.fiuba.paradigwent.model.effect.DuplicateLineEffect;
 import com.fiuba.paradigwent.view.game.modules.CardRace;
 
 import java.util.ArrayList;
@@ -30,6 +28,7 @@ public final class GameController {
     private Round round;
     private Card lastOpponentCard;
 
+    /**      * Constructs a new GameController.      */
     public GameController(CardRace selectedRace) {
         GameSessionFactory.Session session = new GameSessionFactory().create(selectedRace);
         game = session.game();
@@ -42,43 +41,80 @@ public final class GameController {
         GameStatePrinter.printInitialSituation(game.getBoard());
         printCurrentTurn();
     }
-
+    /**
+     * Returns the value provided by getBoard.
+     * @return the value produced by the method
+     */
     public Board getBoard() {
         return boardController.getBoard();
     }
-
+    /**
+     * Returns the value provided by getPlayerHand.
+     * @return the value produced by the method
+     */
     public List<Card> getPlayerHand() {
         return player.getHand();
     }
-
+    /**
+     * Returns the value provided by getOpponentHandSize.
+     * @return the value produced by the method
+     */
     public int getOpponentHandSize() {
         return opponent.handSize();
     }
-
+    /**
+     * Returns the value provided by getOpponentFaction.
+     * @return the value produced by the method
+     */
     public String getOpponentFaction() {
         return opponent.getFaction();
     }
-
+    /**
+     * Returns the value provided by getCurrentPlayerName.
+     * @return the value produced by the method
+     */
     public String getCurrentPlayerName() {
         return round.getCurrentPlayer().getName();
     }
-
+    /**
+     * Reports the state represented by isPlayerTurn.
+     * @return the value produced by the method
+     */
     public boolean isPlayerTurn() {
         return round.getCurrentPlayer() == player;
     }
-
+    /**
+     * Executes the operation represented by requiresTarget.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     public boolean requiresTarget(Card card) {
         return card != null && card.requiresTarget() && !getTargetCards().isEmpty();
     }
-
+    /**
+     * Executes the operation represented by playCard.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     public boolean playCard(Card card) {
         return playCard(card, null);
     }
-
+    /**
+     * Executes the operation represented by playCard.
+     * @param card the value used by the method
+     * @param targetCard the value used by the method
+     * @return the value produced by the method
+     */
     public boolean playCard(Card card, Card targetCard) {
         return playCard(card, targetCard, null);
     }
-
+    /**
+     * Executes the operation represented by playCard.
+     * @param card the value used by the method
+     * @param targetCard the value used by the method
+     * @param targetLine the value used by the method
+     * @return the value produced by the method
+     */
     public boolean playCard(Card card, Card targetCard, AttackLineType targetLine) {
         String rejection = validatePlayerPlay(card, targetCard, targetLine);
         if (rejection != null) {
@@ -92,7 +128,13 @@ public final class GameController {
         printCurrentTurn();
         return true;
     }
-
+    /**
+     * Executes the operation represented by validatePlayerPlay.
+     * @param card the value used by the method
+     * @param targetCard the value used by the method
+     * @param targetLine the value used by the method
+     * @return the value produced by the method
+     */
     private String validatePlayerPlay(Card card, Card targetCard, AttackLineType targetLine) {
         if (card == null) {
             return "la carta es nula";
@@ -121,18 +163,27 @@ public final class GameController {
         }
         return null;
     }
-
+    /**
+     * Executes the operation represented by requiresLineTarget.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     public boolean requiresLineTarget(Card card) {
-        return card instanceof Minion minion
-            && minion.getEffects().stream()
-                .anyMatch(effect -> effect instanceof DuplicateLineEffect
-                    && effect.requiresTarget());
+        return card.getEffects().stream()
+            .anyMatch(effect -> effect.isLineTargetEffect() && effect.requiresTarget());
     }
-
+    /**
+     * Reports the state represented by isTargetOptional.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     public boolean isTargetOptional(Card card) {
-        return card instanceof Minion minion && minion.hasOptionalTarget();
+        return card.hasOptionalTarget();
     }
-
+    /**
+     * Returns the value provided by getTargetCards.
+     * @return the value produced by the method
+     */
     public List<Card> getTargetCards() {
         return new ArrayList<>(getBoard().allMinions());
     }
@@ -179,13 +230,19 @@ public final class GameController {
         printCurrentTurn();
         return true;
     }
-
+    /**
+     * Executes the operation represented by chooseOpponentTarget.
+     * @return the value produced by the method
+     */
     private Card chooseOpponentTarget() {
         // Basic targeting policy: choose the first minion currently on the board.
         // This can later be replaced by a card-aware target-selection strategy.
         return getTargetCards().stream().findFirst().orElse(null);
     }
-
+    /**
+     * Returns the value provided by getLastOpponentCard.
+     * @return the value produced by the method
+     */
     public Card getLastOpponentCard() {
         return lastOpponentCard;
     }
@@ -217,7 +274,10 @@ public final class GameController {
 
         return true;
     }
-
+    /**
+     * Executes the operation represented by playOpponentTurn.
+     * @return the value produced by the method
+     */
     public boolean playOpponentTurn() {
         if (!isOpponentTurn()) {
             return false;
@@ -226,14 +286,19 @@ public final class GameController {
         playOpponentCard();
         return true;
     }
-
+    /**
+     * Reports the state represented by isOpponentTurn.
+     * @return the value produced by the method
+     */
     public boolean isOpponentTurn() {
         return !game.isFinished()
                 && !round.isFinished()
                 && round.getCurrentPlayer() == opponent;
     }
-
-
+    /**
+     * Executes the operation represented by finishRoundIfNeeded.
+     * @return the value produced by the method
+     */
     private boolean finishRoundIfNeeded() {
         if (!round.isFinished()) {
             return false;
@@ -265,14 +330,17 @@ public final class GameController {
 
         return true;
     }
-
-
+    /**
+     * Displays the information handled by printCurrentTurn.
+     */
     private void printCurrentTurn() {
         if (!game.isFinished() && !round.isFinished()) {
             GameStatePrinter.printTurn(round.getCurrentPlayer().getName());
         }
     }
-
+    /**
+     * Executes the operation represented by surrender.
+     */
     public void surrender() {
         if (game.isFinished()) {
             return;
@@ -280,11 +348,17 @@ public final class GameController {
         game.surrender(player);
         GameStatePrinter.printSurrender(player.getName());
     }
-
+    /**
+     * Executes the operation represented by gameFinished.
+     * @return the value produced by the method
+     */
     public boolean gameFinished() {
         return game.isFinished();
     }
-
+    /**
+     * Returns the value provided by getMatchResult.
+     * @return the value produced by the method
+     */
     public Result getMatchResult() {
         return game.getMatchResult();
     }

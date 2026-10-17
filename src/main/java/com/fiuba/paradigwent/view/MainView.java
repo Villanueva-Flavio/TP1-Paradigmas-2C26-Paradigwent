@@ -157,7 +157,9 @@ public class MainView extends Application {
         uiOverlay.setRight(null);
         uiOverlay.setCenter(gameView.getRootNode());
     }
-
+    /**
+     * Executes the operation represented by surrenderGame.
+     */
     public void surrenderGame() {
         if (gameView == null) {
             showMainMenu();
@@ -191,7 +193,10 @@ public class MainView extends Application {
         selectingRaceForMatch = true;
         showFactionsMenu();
     }
-
+    /**
+     * Executes the operation represented by selectRace.
+     * @param race the value used by the method
+     */
     public void selectRace(CardRace race) {
         if (race != null) {
             selectedRace = race;
@@ -229,7 +234,12 @@ public class MainView extends Application {
     * @return Root StackPane of the application.
     **/
     public StackPane getRoot() { return root; }
-
+    /**
+     * Executes the operation represented by applyResolution.
+     * @param stage the value used by the method
+     * @param width the value used by the method
+     * @param height the value used by the method
+     */
     public void applyResolution(Stage stage, int width, int height) {
         Rectangle2D visualBounds = Screen.getPrimary().getVisualBounds();
         currentResolution = new Pair<>(width, height);
@@ -337,7 +347,9 @@ public class MainView extends Application {
         }
         return null;
     }
-
+    /**
+     * Executes the operation represented by adaptMenuLayout.
+     */
     private void adaptMenuLayout() {
         double width = uiOverlay.getWidth();
         if (width <= 0) return;
@@ -345,7 +357,11 @@ public class MainView extends Application {
         double componentWidth = Math.min(360, Math.max(180, width * 0.22));
         adaptComponentWidths(uiOverlay, componentWidth);
     }
-
+    /**
+     * Executes the operation represented by adaptComponentWidths.
+     * @param node the value used by the method
+     * @param width the value used by the method
+     */
     private void adaptComponentWidths(Node node, double width) {
         node.lookupAll(".menu-button").stream()
             .filter(control -> !control.getStyleClass().contains("menu-button-dialog"))

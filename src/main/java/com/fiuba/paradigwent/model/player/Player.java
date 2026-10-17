@@ -30,11 +30,17 @@ public class Player {
         this.discard = new Discard();
         this.hasPassedRound = false;
     }
-
+    /**
+     * Updates the value managed by setFaction.
+     * @param faction the value used by the method
+     */
     public void setFaction(String faction) {
         this.faction = faction;
     }
-
+    /**
+     * Returns the value provided by getFaction.
+     * @return the value produced by the method
+     */
     public String getFaction() {
         return faction;
     }
@@ -62,8 +68,10 @@ public class Player {
         this.hand.remove(card);
         card.play(context);
     }
-
-
+    /**
+     * Executes the operation represented by play.
+     * @param context the value used by the method
+     */
     public void play(GameContext context) {
         play(context.getPlayedCard(), context);
     }
@@ -84,11 +92,18 @@ public class Player {
     public ArrayList<Card> getHand() {
         return this.hand.getHand();
     }
-
+    /**
+     * Reports the state represented by hasCard.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     public boolean hasCard(Card card) {
         return hand.contains(card);
     }
-
+    /**
+     * Executes the operation represented by handSize.
+     * @return the value produced by the method
+     */
     public int handSize() {
         return hand.size();
     }
@@ -99,7 +114,10 @@ public class Player {
     public ArrayList<Card> getDiscard() {
         return this.discard.getDiscard();
     }
-
+    /**
+     * Returns the value provided by getDeckSize.
+     * @return the value produced by the method
+     */
     public int getDeckSize() {
         return deck.size();
     }
@@ -163,7 +181,12 @@ public class Player {
             hand.add(card);
         }
     }
-
+    /**
+     * Executes the operation represented by reviveCardToBoard.
+     * @param minion the value used by the method
+     * @param side the value used by the method
+     * @return the value produced by the method
+     */
     public boolean reviveCardToBoard(Minion minion, PlayerSide side) {
         if (minion == null || side == null || !discard.contains(minion)) {
             return false;
@@ -172,7 +195,12 @@ public class Player {
         side.getAttackLine(minion.getAttackLineType()).addMinion(minion);
         return true;
     }
-
+    /**
+     * Executes the operation represented by stealCardsFrom.
+     * @param opponent the value used by the method
+     * @param amount the value used by the method
+     * @return the value produced by the method
+     */
     public int stealCardsFrom(Player opponent, int amount) {
         if (opponent == null || amount <= 0) {
             return 0;

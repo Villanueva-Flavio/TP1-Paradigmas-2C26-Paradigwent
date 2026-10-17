@@ -31,6 +31,7 @@ public class HandView extends Pane {
     private Runnable onPreviewCleared = () -> { };
     private Consumer<Card> onCardSelected = ignored -> { };
 
+    /**      * Constructs a new HandView.      */
     public HandView(List<Card> cards, double virtualWidth, double virtualHeight) {
         this.cards = new ArrayList<>(cards);
         setPrefSize(virtualWidth, virtualHeight);
@@ -40,43 +41,66 @@ public class HandView extends Pane {
         addEventFilter(MouseEvent.MOUSE_PRESSED, this::handleCardPressed);
         construirCartas(virtualWidth, virtualHeight);
     }
-
+    /**
+     * Updates the value managed by setOnPreviewRequested.
+     * @param callback the value used by the method
+     */
     public void setOnPreviewRequested(Consumer<Card> callback) {
         onPreviewRequested = callback;
     }
-
+    /**
+     * Updates the value managed by setOnPreviewCleared.
+     * @param callback the value used by the method
+     */
     public void setOnPreviewCleared(Runnable callback) {
         onPreviewCleared = callback;
     }
-
+    /**
+     * Updates the value managed by setOnCardSelected.
+     * @param callback the value used by the method
+     */
     public void setOnCardSelected(Consumer<Card> callback) {
         onCardSelected = callback == null ? ignored -> { } : callback;
     }
-
+    /**
+     * Updates the collection through removeCard.
+     * @param card the value used by the method
+     */
     public void removeCard(Card card) {
         if (cards.remove(card)) {
             getChildren().clear();
             construirCartas(getPrefWidth(), getPrefHeight());
         }
     }
-
+    /**
+     * Executes the operation represented by refresh.
+     * @param updatedCards the value used by the method
+     */
     public void refresh(List<Card> updatedCards) {
         cards.clear();
         cards.addAll(updatedCards);
         getChildren().clear();
         construirCartas(getPrefWidth(), getPrefHeight());
     }
-
+    /**
+     * Returns the value provided by getCardCenterInScene.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     public Point2D getCardCenterInScene(Card card) {
         for (Node child : getChildren()) {
-            if (child instanceof CardView cardView && cardView.getCard() == card) {
+            if (child.getClass() == CardView.class && ((CardView) child).getCard() == card) {
+                CardView cardView = (CardView) child;
                 javafx.geometry.Bounds bounds = cardView.localToScene(cardView.getBoundsInLocal());
                 return new Point2D(bounds.getCenterX(), bounds.getCenterY());
             }
         }
         return null;
     }
-
+    /**
+     * Executes the operation represented by handleCardPressed.
+     * @param event the value used by the method
+     */
     private void handleCardPressed(MouseEvent event) {
         if (event.getButton() != MouseButton.PRIMARY) {
             return;
@@ -90,7 +114,11 @@ public class HandView extends Pane {
         onCardSelected.accept(selectedCardView.getCard());
         event.consume();
     }
-
+    /**
+     * Executes the operation represented by findCardView.
+     * @param target the value used by the method
+     * @return the value produced by the method
+     */
     private CardView findCardView(Object target) {
         Node node = (Node) target;
         while (node != null && node != this) {
@@ -101,7 +129,11 @@ public class HandView extends Pane {
         }
         return null;
     }
-
+    /**
+     * Executes the operation represented by construirCartas.
+     * @param virtualWidth the value used by the method
+     * @param virtualHeight the value used by the method
+     */
     private void construirCartas(double virtualWidth, double virtualHeight) {
         if (cards.isEmpty()) {
             return;
@@ -130,7 +162,12 @@ public class HandView extends Pane {
             getChildren().add(card);
         }
     }
-
+    /**
+     * Executes the operation represented by configureHover.
+     * @param card the value used by the method
+     * @param rotation the value used by the method
+     * @param baseAngle the value used by the method
+     */
     private void configureHover(CardView card, Rotate rotation, double baseAngle) {
         card.setPickOnBounds(true);
         card.setOnMouseEntered(event -> {

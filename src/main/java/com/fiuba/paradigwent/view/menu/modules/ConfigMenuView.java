@@ -238,7 +238,9 @@ public class ConfigMenuView extends VBox {
         currentResolution = previousRes;
         isUpdatingCombo = false;
     }
-
+    /**
+     * Executes the operation represented by refreshResolution.
+     */
     public void refreshResolution() {
         Pair<Integer, Integer> resolution = mainView.getCurrentResolution();
         currentResolution = resolution.getKey() + "x" + resolution.getValue();

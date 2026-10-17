@@ -15,12 +15,26 @@ public class ReviveEffect implements Effect {
     public ReviveEffect(int amount) {
         this.amount = amount;
     }
-
+    /**
+     * Returns the value provided by getDescription.
+     * @return the value produced by the method
+     */
     @Override 
     public String getDescription() {
         return "Revives " + (amount == 1 ? "a card" : amount + " cards");
     }
-
+    /**
+     * Reports the state represented by isReviveEffect.
+     * @return the value produced by the method
+     */
+    @Override
+    public boolean isReviveEffect() {
+        return true;
+    }
+    /**
+     * Executes the operation represented by apply.
+     * @param context the value used by the method
+     */
     @Override
     public void apply(GameContext context) {
         Player player = context.getCurrentPlayer();
@@ -34,12 +48,15 @@ public class ReviveEffect implements Effect {
             }
         }
     }
-
+    /**
+     * Executes the operation represented by findMostRecentMinion.
+     * @param discard the value used by the method
+     * @return the value produced by the method
+     */
     private Minion findMostRecentMinion(java.util.List<Card> discard) {
         for (int i = discard.size() - 1; i >= 0; i--) {
-            if (discard.get(i) instanceof Minion minion) {
-                return minion;
-            }
+            Minion minion = discard.get(i).asMinion().orElse(null);
+            if (minion != null) return minion;
         }
         return null;
     }

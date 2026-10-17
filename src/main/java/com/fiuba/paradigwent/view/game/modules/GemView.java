@@ -17,7 +17,14 @@ import java.util.ArrayList;
 public class GemView extends Group {
     private List<Rectangle> gemParts = new ArrayList<>();
     private final double size;
-
+    /**
+     * Updates the value managed by setGemSpecifications.
+     * @param gemPart the value used by the method
+     * @param rotation the value used by the method
+     * @param translateX the value used by the method
+     * @param translateY the value used by the method
+     * @param size the value used by the method
+     */
     private void setGemSpecifications(Rectangle gemPart, double rotation, double translateX, double translateY, double size) {
         gemPart.setRotate(rotation);
         gemPart.setTranslateX(translateX * size / 24.0);
@@ -25,7 +32,13 @@ public class GemView extends Group {
         gemPart.setArcHeight(size * 5.0 / 24.0);
         gemPart.setArcWidth(size * 5.0 / 24.0);
     }
-
+    /**
+     * Updates the value managed by setGemAnimation.
+     * @param gem the value used by the method
+     * @param scaleX the value used by the method
+     * @param scaleY the value used by the method
+     * @param duration the value used by the method
+     */
     private void setGemAnimation(Group gem, double scaleX, double scaleY, double duration) {
         Timeline pulse = new Timeline(
             new KeyFrame(Duration.ZERO,
@@ -43,6 +56,7 @@ public class GemView extends Group {
         pulse.play();
     }
 
+    /**      * Constructs a new GemView.      */
     public GemView(double x, double y, double size) {
         this.size = size;
         setLayoutX(x);
@@ -63,7 +77,9 @@ public class GemView extends Group {
 
         getChildren().add(heartContainer);
     }
-
+    /**
+     * Executes the operation represented by destroyGem.
+     */
     public void destroyGem(){
         Timeline fadeOut = new Timeline(
             new KeyFrame(Duration.ZERO,

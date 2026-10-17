@@ -14,12 +14,18 @@ public class WeatherEffect implements Effect {
     public WeatherEffect(WeatherType weatherType){
         this.weatherType = weatherType == null ? WeatherType.CLEAR : weatherType;
     }
-
+    /**
+     * Returns the value provided by getDescription.
+     * @return the value produced by the method
+     */
     @Override 
     public String getDescription() {
         return "Applies " + weatherType + " weather.";
     }
-
+    /**
+     * Executes the operation represented by apply.
+     * @param context the value used by the method
+     */
     @Override
     public void apply(GameContext context){
         context.getBoard().setCurrentWeather(weatherType);

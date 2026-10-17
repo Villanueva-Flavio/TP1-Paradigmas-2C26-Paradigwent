@@ -58,12 +58,18 @@ public class Board {
             this.currentWeatherCard = null;
         }
     }
-
+    /**
+     * Updates the value managed by setCurrentWeather.
+     * @param weather the value used by the method
+     */
     public void setCurrentWeather(Weather weather) {
         this.currentWeatherCard = weather;
         setCurrentWeather(weather == null ? WeatherType.CLEAR : weather.getWeatherType());
     }
-
+    /**
+     * Returns the value provided by getCurrentWeatherCard.
+     * @return the value produced by the method
+     */
     public Weather getCurrentWeatherCard() {
         return currentWeatherCard;
     }
@@ -94,11 +100,19 @@ public class Board {
         clearWeather();
 
     }
-
+    /**
+     * Executes the operation represented by strongestMinionOf.
+     * @param player the value used by the method
+     * @return the value produced by the method
+     */
     public Minion strongestMinionOf(Player player) {
         return player == null ? null : getSideFor(player).getStrongestMinion();
     }
-
+    /**
+     * Executes the operation represented by calculateTotalPower.
+     * @param player the value used by the method
+     * @return the value produced by the method
+     */
     public int calculateTotalPower(Player player) {
         if (playerSide.getOwner().equals(player)) {
             return playerSide.totalPower();
@@ -108,7 +122,11 @@ public class Board {
         }
         return 0;
     }
-
+    /**
+     * Returns the value provided by getSideFor.
+     * @param player the value used by the method
+     * @return the value produced by the method
+     */
     public PlayerSide getSideFor(Player player) {
         if (player == playerSide.getOwner()) {
             return playerSide;
@@ -119,22 +137,37 @@ public class Board {
         throw new IllegalArgumentException("El jugador no pertenece a este tablero");
 
     }
-
+    /**
+     * Executes the operation represented by allMinions.
+     * @return the value produced by the method
+     */
     public List<Minion> allMinions() {
         List<Minion> result = new ArrayList<>();
         result.addAll(playerSide.allMinions());
         result.addAll(opponentSide.allMinions());
         return List.copyOf(result);
     }
-
+    /**
+     * Executes the operation represented by minionsOf.
+     * @param player the value used by the method
+     * @return the value produced by the method
+     */
     public List<Minion> minionsOf(Player player) {
         return List.copyOf(getSideFor(player).allMinions());
     }
-
+    /**
+     * Updates the collection through removeMinion.
+     * @param minion the value used by the method
+     * @return the value produced by the method
+     */
     public boolean removeMinion(Minion minion) {
         return playerSide.removeMinion(minion) || opponentSide.removeMinion(minion);
     }
-
+    /**
+     * Executes the operation represented by ownerOf.
+     * @param minion the value used by the method
+     * @return the value produced by the method
+     */
     public Player ownerOf(Minion minion) {
         if (playerSide.contains(minion)) {
             return playerSide.getOwner();

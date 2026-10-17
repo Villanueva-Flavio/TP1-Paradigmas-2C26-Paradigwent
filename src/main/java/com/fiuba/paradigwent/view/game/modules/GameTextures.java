@@ -22,9 +22,14 @@ public final class GameTextures {
     private static final Map<String, Image> IMAGE_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, Paint> PATTERN_CACHE = new ConcurrentHashMap<>();
 
+    /**      * Constructs a new GameTextures.      */
     private GameTextures() {
     }
-
+    /**
+     * Executes the operation represented by load.
+     * @param resourcePath the value used by the method
+     * @return the value produced by the method
+     */
     public static Image load(String resourcePath) {
         Image cached = IMAGE_CACHE.get(resourcePath);
         if (cached != null) {
@@ -47,7 +52,12 @@ public final class GameTextures {
         IMAGE_CACHE.put(resourcePath, image);
         return image;
     }
-
+    /**
+     * Executes the operation represented by pattern.
+     * @param resourcePath the value used by the method
+     * @param fallback the value used by the method
+     * @return the value produced by the method
+     */
     public static Paint pattern(String resourcePath, Paint fallback) {
         Paint cached = PATTERN_CACHE.get(resourcePath);
         if (cached != null) {
