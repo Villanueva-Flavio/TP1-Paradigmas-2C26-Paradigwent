@@ -10,15 +10,23 @@ public class AI extends Player {
 
     private final AIStrategy strategy;
 
+    /**      * Constructs a new AI.      */
     public AI(String name, Deck deck, AIStrategy strategy) {
         super(name, deck);
         this.strategy = strategy;
     }
-
+    /**
+     * Executes the operation represented by selectCard.
+     * @param context the value used by the method
+     * @return the value produced by the method
+     */
     public Card selectCard(GameContext context) {
         return strategy.selectCard(hand, context);
     }
-
+    /**
+     * Executes the operation represented by play.
+     * @param context the value used by the method
+     */
     @Override
     public void play(GameContext context) {
         if (hasPassedRound) {

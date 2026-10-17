@@ -5,10 +5,9 @@ import com.fiuba.paradigwent.model.board.AttackLine;
 import com.fiuba.paradigwent.model.board.PlayerSide;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.effect.Effect;
-import com.fiuba.paradigwent.model.effect.ModifyPowerEffect;
-import com.fiuba.paradigwent.model.effect.DuplicateLineEffect;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Minion extends Card{
 
@@ -36,6 +35,22 @@ public class Minion extends Card{
     public int getCurrentPower() {
         return basePower + powerModifier;
     }
+    /**
+     * Returns the value provided by getDisplayedPower.
+     * @return the value produced by the method
+     */
+    @Override
+    public int getDisplayedPower() {
+        return getCurrentPower();
+    }
+    /**
+     * Executes the operation represented by asMinion.
+     * @return the value produced by the method
+     */
+    @Override
+    public Optional<Minion> asMinion() {
+        return Optional.of(this);
+    }
 
     /**
      * Modifies the power of the minion by a specified amount. This method adjusts the power modifier, which affects the minion's current power.
@@ -44,7 +59,10 @@ public class Minion extends Card{
     public void modifyPower(int modifier) {
         this.powerModifier += modifier;
     }
-
+    /**
+     * Executes the operation represented by play.
+     * @param context the value used by the method
+     */
     @Override
     public void play(GameContext context) {
         PlayerSide side = context.getBoard().getSideFor(context.getCurrentPlayer());
@@ -55,18 +73,27 @@ public class Minion extends Card{
         }
 
     }
-
+    /**
+     * Returns the value provided by getEffects.
+     * @return the value produced by the method
+     */
     public List<Effect> getEffects() {
         return new ArrayList<>(effects);
     }
-
+    /**
+     * Executes the operation represented by requiresTarget.
+     * @return the value produced by the method
+     */
     @Override
     public boolean requiresTarget() {
         return effects.stream()
-            .anyMatch(effect -> !(effect instanceof DuplicateLineEffect)
+            .anyMatch(effect -> !effect.isLineTargetEffect()
                 && effect.requiresTarget());
     }
-
+    /**
+     * Returns the value provided by getTargetDescription.
+     * @return the value produced by the method
+     */
     @Override
     public String getTargetDescription() {
         return effects.stream()
@@ -76,8 +103,12 @@ public class Minion extends Card{
             .reduce((left, right) -> left + " | " + right)
             .orElse("");
     }
-
+    /**
+     * Reports the state represented by hasOptionalTarget.
+     * @return the value produced by the method
+     */
+    @Override
     public boolean hasOptionalTarget() {
-        return effects.stream().anyMatch(effect -> effect instanceof ModifyPowerEffect);
+        return effects.stream().anyMatch(Effect::isOptionalTargetEffect);
     }
 }

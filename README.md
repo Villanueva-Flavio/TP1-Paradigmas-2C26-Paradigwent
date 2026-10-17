@@ -39,8 +39,8 @@ El proyecto se gestiona con Maven y utiliza:
 
 ## Presentaciones
 
-- Flavio Villanueva: https://www.youtube.com/watch?v=JU3p1aqJBso
-- Emanuel Peña: https://www.youtube.com/watch?v=8Vpf08s2UkM
+- Flavio Villanueva: https://youtu.be/EjGyXx06GLU
+- Emanuel Peña: https://youtu.be/WrCmUzXgxmY
 
 ## Funcionalidades principales
 

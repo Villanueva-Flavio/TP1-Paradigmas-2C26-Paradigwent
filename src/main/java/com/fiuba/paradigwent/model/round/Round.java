@@ -19,15 +19,7 @@ public class Round {
     private final Board board;
     private Player currentPlayer;
     private boolean finished;
-
-    /**
-     * Constructs a new Round between two players on a given board.
-     * Initializes the turn to player1 and enables both players to start the round.
-     *
-     * @param player1 the first player of the round
-     * @param player2 the second player of the round
-     * @param board the board on which the round takes place
-     */
+    /**      * Constructs a new Round.      */
     public Round(Player player1, Player player2, Board board) {
         this.player1 = player1;
         this.player2 = player2;
@@ -50,11 +42,20 @@ public class Round {
     public void playCard(Card card) {
         playCard(card, null);
     }
-
+    /**
+     * Executes the operation represented by playCard.
+     * @param card the value used by the method
+     * @param targetCard the value used by the method
+     */
     public void playCard(Card card, Card targetCard) {
         playCard(card, targetCard, null);
     }
-
+    /**
+     * Executes the operation represented by playCard.
+     * @param card the value used by the method
+     * @param targetCard the value used by the method
+     * @param targetLine the value used by the method
+     */
     public void playCard(Card card, Card targetCard, AttackLineType targetLine) {
         if (finished || currentPlayer.hasPassedRound()) {
             return;

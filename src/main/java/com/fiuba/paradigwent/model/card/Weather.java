@@ -29,7 +29,10 @@ public class Weather extends  Card{
     public WeatherType getWeatherType() {
         return weatherType;
     }
-
+    /**
+     * Executes the operation represented by play.
+     * @param context the value used by the method
+     */
     @Override
     public void play(GameContext context) {
         context.getBoard().setCurrentWeather(this);

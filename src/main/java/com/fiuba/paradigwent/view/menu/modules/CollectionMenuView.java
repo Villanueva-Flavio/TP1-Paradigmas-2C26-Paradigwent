@@ -54,6 +54,7 @@ public class CollectionMenuView extends VBox {
     private Button activeFilterButton;
     private final PauseTransition previewHideDelay = new PauseTransition(Duration.millis(180));
 
+    /**      * Constructs a new CollectionMenuView.      */
     public CollectionMenuView(MainView mainView) {
         this.mainView = mainView;
         setSpacing(12);
@@ -99,12 +100,17 @@ public class CollectionMenuView extends VBox {
 
         getChildren().addAll(lblTitle, searchBar, factionButtons, typeFilters, cardScroll, pagination, btnBack);
     }
-
+    /**
+     * Executes the operation represented by reloadCards.
+     */
     public void reloadCards() {
         allCards = JSONCardLoader.loadCards();
         refreshCards();
     }
-
+    /**
+     * Executes the operation represented by createFactionButtons.
+     * @return the value produced by the method
+     */
     private HBox createFactionButtons() {
         HBox buttons = new HBox(8);
         buttons.setAlignment(Pos.CENTER);
@@ -114,7 +120,11 @@ public class CollectionMenuView extends VBox {
             .forEach(buttons.getChildren()::add);
         return buttons;
     }
-
+    /**
+     * Executes the operation represented by createFactionButton.
+     * @param faction the value used by the method
+     * @return the value produced by the method
+     */
     private Button createFactionButton(String faction) {
         Button button = new Button();
         Card factionCard = allCards.stream()
@@ -130,7 +140,10 @@ public class CollectionMenuView extends VBox {
         button.setOnAction(event -> toggleCollectionFilter(faction, button));
         return button;
     }
-
+    /**
+     * Executes the operation represented by createTypeFilters.
+     * @return the value produced by the method
+     */
     private HBox createTypeFilters() {
         HBox filters = new HBox(8);
         filters.setAlignment(Pos.CENTER);
@@ -145,7 +158,10 @@ public class CollectionMenuView extends VBox {
         }
         return filters;
     }
-
+    /**
+     * Executes the operation represented by createPagination.
+     * @return the value produced by the method
+     */
     private HBox createPagination() {
         previousPageButton = new Button("<");
         nextPageButton = new Button(">");
@@ -160,7 +176,11 @@ public class CollectionMenuView extends VBox {
         updatePageButtons();
         return pagination;
     }
-
+    /**
+     * Executes the operation represented by toggleCollectionFilter.
+     * @param collection the value used by the method
+     * @param filter the value used by the method
+     */
     private void toggleCollectionFilter(String collection, Button filter) {
         if (activeFilterButton == filter) {
             filter.getStyleClass().remove("active");
@@ -174,13 +194,18 @@ public class CollectionMenuView extends VBox {
         activeFilterButton = filter;
         selectCollection(collection);
     }
-
+    /**
+     * Executes the operation represented by selectCollection.
+     * @param collection the value used by the method
+     */
     private void selectCollection(String collection) {
         hidePreview();
         activeCollection = collection;
         refreshCards();
     }
-
+    /**
+     * Executes the operation represented by refreshCards.
+     */
     private void refreshCards() {
         activeCards = allCards.stream()
             .filter(this::matchesActiveCollection)
@@ -190,13 +215,21 @@ public class CollectionMenuView extends VBox {
         hidePreview();
         animatePage(1);
     }
-
+    /**
+     * Executes the operation represented by matchesActiveCollection.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     private boolean matchesActiveCollection(Card card) {
         return activeCollection == null
             || typeName(card).equals(activeCollection)
             || activeCollection.equals(card.getFaction());
     }
-
+    /**
+     * Executes the operation represented by matchesSearch.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     private boolean matchesSearch(Card card) {
         if (searchTerm.isBlank()) {
             return true;
@@ -205,7 +238,10 @@ public class CollectionMenuView extends VBox {
             && card.getName().toLowerCase(Locale.ROOT)
                 .contains(searchTerm.toLowerCase(Locale.ROOT));
     }
-
+    /**
+     * Executes the operation represented by changePage.
+     * @param direction the value used by the method
+     */
     private void changePage(int direction) {
         hidePreview();
         int pageCount = (int) Math.ceil((double) activeCards.size() / CARDS_PER_PAGE);
@@ -213,7 +249,11 @@ public class CollectionMenuView extends VBox {
         currentPage += direction;
         animatePage(direction);
     }
-
+    /**
+     * Displays the information handled by renderCards.
+     * @param animate the value used by the method
+     * @param direction the value used by the method
+     */
     private void renderCards(boolean animate, int direction) {
         cardGrid.getChildren().clear();
         cardGrid.setAlignment(Pos.CENTER);
@@ -234,7 +274,10 @@ public class CollectionMenuView extends VBox {
         updatePageButtons();
         if (animate) animateGrid(direction);
     }
-
+    /**
+     * Executes the operation represented by calculateCardWidth.
+     * @return the value produced by the method
+     */
     private double calculateCardWidth() {
         if (cardScroll.getWidth() <= 0 || cardScroll.getHeight() <= 0) return 112;
         double availableWidth = cardScroll.getWidth() - 32;
@@ -245,15 +288,22 @@ public class CollectionMenuView extends VBox {
         double heightBased = (availableHeight - rows * 16) / (rows * 1.46);
         return Math.max(80, Math.min(widthBased, heightBased));
     }
-
+    /**
+     * Executes the operation represented by calculateColumnCount.
+     * @return the value produced by the method
+     */
     private int calculateColumnCount() {
         return 5;
     }
-
+    /**
+     * Executes the operation represented by resizeCards.
+     */
     private void resizeCards() {
         if (!cardGrid.getChildren().isEmpty()) resizeCardImages();
     }
-
+    /**
+     * Executes the operation represented by resizeCardImages.
+     */
     private void resizeCardImages() {
         double cardWidth = calculateCardWidth();
         double cardHeight = cardWidth * 1.46;
@@ -268,7 +318,10 @@ public class CollectionMenuView extends VBox {
             });
         cardGrid.requestLayout();
     }
-
+    /**
+     * Executes the operation represented by animatePage.
+     * @param direction the value used by the method
+     */
     private void animatePage(int direction) {
         if (cardGrid.getChildren().isEmpty()) {
             renderCards(false, 0);
@@ -295,7 +348,10 @@ public class CollectionMenuView extends VBox {
         });
         exit.play();
     }
-
+    /**
+     * Executes the operation represented by animateGrid.
+     * @param direction the value used by the method
+     */
     private void animateGrid(int direction) {
         cardGrid.setTranslateX(direction * 70);
         cardGrid.setOpacity(0);
@@ -305,22 +361,40 @@ public class CollectionMenuView extends VBox {
         slideIn.setToX(0);
         new ParallelTransition(fadeIn, slideIn).play();
     }
-
+    /**
+     * Executes the operation represented by updatePageButtons.
+     */
     private void updatePageButtons() {
         if (previousPageButton == null || nextPageButton == null) return;
         int pageCount = (int) Math.ceil((double) activeCards.size() / CARDS_PER_PAGE);
         previousPageButton.setDisable(currentPage == 0);
         nextPageButton.setDisable(currentPage >= pageCount - 1);
     }
-
+    /**
+     * Executes the operation represented by typeName.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     private String typeName(Card card) {
         return card.getClass().getSimpleName().toUpperCase();
     }
-
+    /**
+     * Executes the operation represented by createCardImage.
+     * @param card the value used by the method
+     * @param width the value used by the method
+     * @param height the value used by the method
+     * @return the value produced by the method
+     */
     private CardVisual createCardImage(Card card, double width, double height) {
         return createCardImage(card, width, height, true);
     }
-
+    /**
+     * Executes the operation represented by createCardSlot.
+     * @param card the value used by the method
+     * @param width the value used by the method
+     * @param height the value used by the method
+     * @return the value produced by the method
+     */
     private StackPane createCardSlot(Card card, double width, double height) {
         CardVisual image = createCardImage(card, width, height, false);
         StackPane slot = new StackPane(image);
@@ -340,7 +414,11 @@ public class CollectionMenuView extends VBox {
         if (interactive) configureCardHover(visual, card);
         return visual;
     }
-
+    /**
+     * Executes the operation represented by configureCardHover.
+     * @param card the value used by the method
+     * @param cardData the value used by the method
+     */
     private void configureCardHover(Node card, Card cardData) {
         Rotate rotateX = new Rotate(0, 0, 0, 0, Rotate.X_AXIS);
         Rotate rotateY = new Rotate(0, 0, 0, 0, Rotate.Y_AXIS);
@@ -386,7 +464,11 @@ public class CollectionMenuView extends VBox {
             if (hovering[0]) showPreview(cardData, card);
         });
     }
-
+    /**
+     * Displays the information handled by showPreview.
+     * @param card the value used by the method
+     * @param reference the value used by the method
+     */
     private void showPreview(Card card, Node reference) {
         hidePreview();
         previewLocked = false;
@@ -422,7 +504,11 @@ public class CollectionMenuView extends VBox {
         mainView.getRoot().getChildren().add(previewOverlay);
         positionPreview(reference, preview);
     }
-
+    /**
+     * Executes the operation represented by positionPreview.
+     * @param reference the value used by the method
+     * @param preview the value used by the method
+     */
     private void positionPreview(Node reference, CardVisual preview) {
         javafx.geometry.Bounds sceneBounds = reference.localToScene(reference.getBoundsInLocal());
         javafx.geometry.Point2D rootPoint = mainView.getRoot().sceneToLocal(
@@ -431,7 +517,9 @@ public class CollectionMenuView extends VBox {
         double maxY = Math.max(0, mainView.getRoot().getHeight() - preview.getPrefHeight() - 16);
         preview.relocate(Math.min(rootPoint.getX(), maxX), Math.min(rootPoint.getY(), maxY));
     }
-
+    /**
+     * Executes the operation represented by hidePreview.
+     */
     private void hidePreview() {
         previewHideDelay.stop();
         if (previewOverlay != null) {
@@ -440,7 +528,9 @@ public class CollectionMenuView extends VBox {
         }
         previewLocked = false;
     }
-
+    /**
+     * Executes the operation represented by schedulePreviewHide.
+     */
     private void schedulePreviewHide() {
         if (previewLocked) return;
         previewHideDelay.setOnFinished(event -> hidePreview());

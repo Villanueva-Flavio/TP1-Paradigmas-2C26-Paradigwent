@@ -14,6 +14,7 @@ public class CardView extends StackPane {
     private final Card card;
     private final CardVisual visual;
 
+    /**      * Constructs a new CardView.      */
     public CardView(Card card) {
         this.card = card;
         visual = new CardVisual(card, WIDTH, HEIGHT, "hand-card");
@@ -34,11 +35,17 @@ public class CardView extends StackPane {
     }
 
     private Consumer<Card> onCardClicked = ignored -> { };
-
+    /**
+     * Updates the value managed by setOnCardClicked.
+     * @param callback the value used by the method
+     */
     public void setOnCardClicked(Consumer<Card> callback) {
         onCardClicked = callback == null ? ignored -> { } : callback;
     }
-
+    /**
+     * Returns the value provided by getCard.
+     * @return the value produced by the method
+     */
     public Card getCard() {
         return card;
     }

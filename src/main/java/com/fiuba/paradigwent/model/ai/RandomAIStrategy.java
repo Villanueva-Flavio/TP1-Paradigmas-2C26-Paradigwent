@@ -9,10 +9,16 @@ public class RandomAIStrategy implements AIStrategy {
 
     private final Random random;
 
+    /**      * Constructs a new RandomAIStrategy.      */
     public RandomAIStrategy(Random random) {
         this.random = random;
     }
-
+    /**
+     * Executes the operation represented by selectCard.
+     * @param hand the value used by the method
+     * @param context the value used by the method
+     * @return the value produced by the method
+     */
     @Override
     public Card selectCard(Hand hand, GameContext context) {
         var cards = hand.view();
@@ -24,7 +30,12 @@ public class RandomAIStrategy implements AIStrategy {
 
         return cards.get(random.nextInt(cards.size()));
     }
-
+    /**
+     * Executes the operation represented by shouldPass.
+     * @param context the value used by the method
+     * @param random the value used by the method
+     * @return the value produced by the method
+     */
     private boolean shouldPass(GameContext context, Random random) {
 
         int playerPower =  context.getBoard().getPlayerSide().totalPower();

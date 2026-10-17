@@ -71,10 +71,12 @@ public class Board3DView extends Pane {
     private int displayedOpponentLives = 2;
     private int displayedPlayerLives = 2;
 
+    /**      * Constructs a new Board3DView.      */
     public Board3DView(double width, double height) {
         this(width, height, null);
     }
 
+    /**      * Constructs a new Board3DView.      */
     public Board3DView(double width, double height, Board board) {
         this.board = board;
         setPrefSize(width, height);
@@ -182,12 +184,19 @@ public class Board3DView extends Pane {
         getChildren().addAll(boardScene, gemsCameraLayer);
         refresh();
     }
-
+    /**
+     * Executes the operation represented by line.
+     * @param side the value used by the method
+     * @param type the value used by the method
+     * @return the value produced by the method
+     */
     private com.fiuba.paradigwent.model.board.AttackLine line(PlayerSide side, AttackLineType type) {
         return side == null ? new com.fiuba.paradigwent.model.board.AttackLine(type)
             : side.getAttackLine(type);
     }
-
+    /**
+     * Executes the operation represented by refresh.
+     */
     public void refresh() {
         com.fiuba.paradigwent.model.enums.WeatherType weather =
             board == null ? com.fiuba.paradigwent.model.enums.WeatherType.CLEAR
@@ -213,7 +222,11 @@ public class Board3DView extends Pane {
             playerDeckZone.showDeckCount(board.getPlayerSide().getOwner().getDeckSize());
         }
     }
-
+    /**
+     * Updates the value managed by setCardHoverHandler.
+     * @param Card the value used by the method
+     * @param handler the value used by the method
+     */
     public void setCardHoverHandler(BiConsumer<Card, javafx.scene.Node> handler) {
         BiConsumer<Card, javafx.scene.Node> safeHandler =
             handler == null ? (card, source) -> { } : handler;
@@ -226,14 +239,16 @@ public class Board3DView extends Pane {
         opponentDiscardZone.setCardHoverHandler(zoneHandler);
         playerDiscardZone.setCardHoverHandler(zoneHandler);
     }
-
+    /**
+     * Updates the value managed by setTargetSelection.
+     * @param targets the value used by the method
+     * @param handler the value used by the method
+     */
     public void setTargetSelection(List<Card> targets, Consumer<Card> handler) {
         Set<com.fiuba.paradigwent.model.card.Minion> selectable = new HashSet<>();
         if (targets != null) {
             for (Card target : targets) {
-                if (target instanceof com.fiuba.paradigwent.model.card.Minion minion) {
-                    selectable.add(minion);
-                }
+                target.asMinion().ifPresent(selectable::add);
             }
         }
         Consumer<com.fiuba.paradigwent.model.card.Minion> selectionHandler =
@@ -242,13 +257,18 @@ public class Board3DView extends Pane {
             row.setTargetSelection(selectable, selectionHandler);
         }
     }
-
+    /**
+     * Updates the collection through clearTargetSelection.
+     */
     public void clearTargetSelection() {
         for (RowView row : rows) {
             row.setTargetSelection(Set.of(), ignored -> { });
         }
     }
-
+    /**
+     * Updates the value managed by setLineSelection.
+     * @param handler the value used by the method
+     */
     public void setLineSelection(Consumer<AttackLineType> handler) {
         Consumer<AttackLineType> safeHandler =
             handler == null ? ignored -> { } : handler;
@@ -256,13 +276,17 @@ public class Board3DView extends Pane {
             rows[index].setLineSelection(safeHandler);
         }
     }
-
+    /**
+     * Updates the collection through clearLineSelection.
+     */
     public void clearLineSelection() {
         for (RowView row : rows) {
             row.clearLineSelection();
         }
     }
-
+    /**
+     * Executes the operation represented by refreshLives.
+     */
     private void refreshLives() {
         int opponentLives = Math.max(0, Math.min(2,
             board.getOpponentSide().getOwner().getLives()));
@@ -289,13 +313,19 @@ public class Board3DView extends Pane {
             }
         }
     }
-
+    /**
+     * Displays the information handled by showLatestDiscard.
+     * @param zone the value used by the method
+     * @param discard the value used by the method
+     */
     private void showLatestDiscard(BoardZoneView zone, List<Card> discard) {
         if (zone != null) {
             zone.showCard(discard.isEmpty() ? null : discard.get(discard.size() - 1));
         }
     }
-
+    /**
+     * Executes the operation represented by applyBoardEffect.
+     */
     private void applyBoardEffect() {
         double width = getPrefWidth();
         double height = getPrefHeight();
@@ -307,7 +337,14 @@ public class Board3DView extends Pane {
             * RATIOS.get("CAMERA_ZOOM")) * 0.92;
         applyCamera(boardScene, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
     }
-
+    /**
+     * Executes the operation represented by applyCamera.
+     * @param node the value used by the method
+     * @param width the value used by the method
+     * @param height the value used by the method
+     * @param zoom the value used by the method
+     * @param layoutY the value used by the method
+     */
     private void applyCamera(Node node, double width, double height, double zoom, double layoutY) {
         double topInset = width * 0.12;
         double bottomInset = width * 0.02;
@@ -334,7 +371,10 @@ public class Board3DView extends Pane {
         node.setTranslateY(0);
         node.setLayoutY(layoutY);
     }
-
+    /**
+     * Executes the operation represented by centerInViewport.
+     * @param scaledContent the value used by the method
+     */
     public void centerInViewport(Group scaledContent) {
         javafx.scene.Scene scene = getScene();
         if (scene == null) return;
@@ -351,7 +391,11 @@ public class Board3DView extends Pane {
         scaledContent.setTranslateY(
             scaledContent.getTranslateY() + scene.getHeight() / 2 - boardCenter.getY());
     }
-
+    /**
+     * Executes the operation represented by average.
+     * @param points the value used by the method
+     * @return the value produced by the method
+     */
     private Point2D average(Point2D... points) {
         double x = 0;
         double y = 0;

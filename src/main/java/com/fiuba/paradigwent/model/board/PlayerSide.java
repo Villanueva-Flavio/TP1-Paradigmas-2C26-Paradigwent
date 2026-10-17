@@ -50,7 +50,10 @@ public class PlayerSide {
         }
         owner.sendToDiscard(minions);
     }
-
+    /**
+     * Executes the operation represented by applyWeather.
+     * @param weather the value used by the method
+     */
     public void applyWeather(WeatherType weather) {
             for (AttackLineType type : AttackLineType.values()) {
                 boolean affected = switch (weather) {
@@ -81,7 +84,10 @@ public class PlayerSide {
         }
         return strongest;
     }
-
+    /**
+     * Executes the operation represented by allMinions.
+     * @return the value produced by the method
+     */
     public List<Minion> allMinions() {
         List<Minion> result = new ArrayList<>();
         for (AttackLine line : attackLines.values()) {
@@ -89,12 +95,20 @@ public class PlayerSide {
         }
         return result;
     }
-
+    /**
+     * Executes the operation represented by contains.
+     * @param minion the value used by the method
+     * @return the value produced by the method
+     */
     public boolean contains(Minion minion) {
         return attackLines.values().stream()
             .anyMatch(line -> line.getMinions().contains(minion));
     }
-
+    /**
+     * Updates the collection through removeMinion.
+     * @param minion the value used by the method
+     * @return the value produced by the method
+     */
     public boolean removeMinion(Minion minion) {
         return attackLines.values().stream().anyMatch(line -> line.removeIfPresent(minion));
     }

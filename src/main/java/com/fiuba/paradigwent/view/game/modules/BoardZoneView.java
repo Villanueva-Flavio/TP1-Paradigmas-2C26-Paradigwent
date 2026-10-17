@@ -22,6 +22,7 @@ public class BoardZoneView extends StackPane {
     private final double height;
     private BiConsumer<Card, BoardZoneView> cardHoverHandler = (card, source) -> { };
 
+    /**      * Constructs a new BoardZoneView.      */
     public BoardZoneView(String labelText, double x, double y, double width, double height, Color strokeColor) {
         setLayoutX(x);
         setLayoutY(y);
@@ -56,7 +57,10 @@ public class BoardZoneView extends StackPane {
 
         getChildren().addAll(fondo, label);
     }
-
+    /**
+     * Displays the information handled by showCard.
+     * @param card the value used by the method
+     */
     public void showCard(Card card) {
         clearContent();
         label.setVisible(card == null);
@@ -81,11 +85,18 @@ public class BoardZoneView extends StackPane {
         scale.play();
         fade.play();
     }
-
+    /**
+     * Updates the value managed by setCardHoverHandler.
+     * @param Card the value used by the method
+     * @param handler the value used by the method
+     */
     public void setCardHoverHandler(BiConsumer<Card, BoardZoneView> handler) {
         cardHoverHandler = handler == null ? (card, source) -> { } : handler;
     }
-
+    /**
+     * Displays the information handled by showDeckCount.
+     * @param count the value used by the method
+     */
     public void showDeckCount(int count) {
         clearContent();
         label.setVisible(true);
@@ -109,20 +120,32 @@ public class BoardZoneView extends StackPane {
             getChildren().add(1, back);
         }
     }
-
+    /**
+     * Updates the value managed by setDeckFaction.
+     * @param faction the value used by the method
+     */
     public void setDeckFaction(String faction) {
         setUserData(faction);
     }
-
+    /**
+     * Updates the collection through clearContent.
+     */
     private void clearContent() {
         getChildren().removeIf(node -> node != label
             && node != getChildren().get(0));
     }
-
+    /**
+     * Executes the operation represented by resource.
+     * @param path the value used by the method
+     * @return the value produced by the method
+     */
     private static String resource(String path) {
         return BoardZoneView.class.getResource(path).toExternalForm();
     }
-
+    /**
+     * Executes the operation represented by backAssetPath.
+     * @return the value produced by the method
+     */
     private String backAssetPath() {
         String faction = getUserData() == null ? "murgol" : getUserData().toString();
         String path = "/images/cards/card-back-" + faction.toLowerCase() + ".png";

@@ -53,6 +53,7 @@ public class RowView extends StackPane {
     private Set<Minion> selectableCards = Collections.emptySet();
     private Consumer<Minion> cardSelectionHandler = ignored -> { };
 
+    /**      * Constructs a new RowView.      */
     public RowView(String labelText, Color strokeColor, double rowWidth, double rowHeight, AttackLine line) {
         this.rowWidth = rowWidth;
         this.rowHeight = rowHeight;
@@ -117,7 +118,9 @@ public class RowView extends StackPane {
         getChildren().addAll(background, weatherOverlay, weatherParticles, text, slots);
         refresh();
     }
-
+    /**
+     * Executes the operation represented by refresh.
+     */
     public void refresh() {
         slots.getChildren().clear();
         updateWeatherOverlay();
@@ -128,7 +131,10 @@ public class RowView extends StackPane {
             slots.getChildren().add(slot);
         }
     }
-
+    /**
+     * Updates the value managed by setWeather.
+     * @param weather the value used by the method
+     */
     public void setWeather(WeatherType weather) {
         WeatherType nextWeather = weather == null ? WeatherType.CLEAR : weather;
         if (displayedWeather == nextWeather) {
@@ -138,7 +144,9 @@ public class RowView extends StackPane {
         displayedWeather = nextWeather;
         updateWeatherOverlay();
     }
-
+    /**
+     * Executes the operation represented by updateWeatherOverlay.
+     */
     private void updateWeatherOverlay() {
         boolean affected = line.isWeathered() && displayedWeather != WeatherType.CLEAR;
         weatherOverlay.setVisible(affected);
@@ -159,7 +167,10 @@ public class RowView extends StackPane {
             weatherAnimation.play();
         }
     }
-
+    /**
+     * Executes the operation represented by createParticles.
+     * @param weather the value used by the method
+     */
     private void createParticles(WeatherType weather) {
         stopParticles();
         int particleCount = weather == WeatherType.FOG ? 8 : 14;
@@ -183,14 +194,24 @@ public class RowView extends StackPane {
             particleAnimations.add(movement);
         }
     }
-
+    /**
+     * Executes the operation represented by particleRadius.
+     * @param weather the value used by the method
+     * @param index the value used by the method
+     * @return the value produced by the method
+     */
     private double particleRadius(WeatherType weather, int index) {
         if (weather == WeatherType.RAIN) {
             return 1.2 + (index % 3) * 0.5;
         }
         return 2.0 + (index % 3) * 0.8;
     }
-
+    /**
+     * Executes the operation represented by particleColor.
+     * @param weather the value used by the method
+     * @param index the value used by the method
+     * @return the value produced by the method
+     */
     private Color particleColor(WeatherType weather, int index) {
         return switch (weather) {
             case FOG -> Color.rgb(235, 240, 245, 0.18);
@@ -200,19 +221,30 @@ public class RowView extends StackPane {
             case CLEAR -> Color.TRANSPARENT;
         };
     }
-
+    /**
+     * Executes the operation represented by particleDuration.
+     * @param weather the value used by the method
+     * @param index the value used by the method
+     * @return the value produced by the method
+     */
     private double particleDuration(WeatherType weather, int index) {
         double base = weather == WeatherType.RAIN ? 1.15 : 2.4;
         return base + (index % 4) * 0.25;
     }
-
+    /**
+     * Executes the operation represented by stopParticles.
+     */
     private void stopParticles() {
         particleAnimations.forEach(TranslateTransition::stop);
         particleAnimations.clear();
         weatherParticles.getChildren().clear();
         weatherParticles.setVisible(false);
     }
-
+    /**
+     * Executes the operation represented by weatherGradient.
+     * @param weather the value used by the method
+     * @return the value produced by the method
+     */
     private LinearGradient weatherGradient(WeatherType weather) {
         Color primary;
         Color secondary;
@@ -250,18 +282,29 @@ public class RowView extends StackPane {
             new Stop(0.58, primary),
             new Stop(1, secondary));
     }
-
+    /**
+     * Updates the value managed by setCardHoverHandler.
+     * @param Minion the value used by the method
+     * @param handler the value used by the method
+     */
     public void setCardHoverHandler(BiConsumer<Minion, StackPane> handler) {
         cardHoverHandler = handler == null ? (card, source) -> { } : handler;
         refresh();
     }
-
+    /**
+     * Updates the value managed by setTargetSelection.
+     * @param cards the value used by the method
+     * @param handler the value used by the method
+     */
     public void setTargetSelection(Set<Minion> cards, Consumer<Minion> handler) {
         selectableCards = cards == null ? Collections.emptySet() : cards;
         cardSelectionHandler = handler == null ? ignored -> { } : handler;
         refresh();
     }
-
+    /**
+     * Updates the value managed by setLineSelection.
+     * @param handler the value used by the method
+     */
     public void setLineSelection(Consumer<AttackLineType> handler) {
         lineSelectionActive = true;
         setOnMouseEntered(event -> updateLineHighlight(true));
@@ -269,7 +312,9 @@ public class RowView extends StackPane {
         setOnMouseClicked(event -> handler.accept(line.getType()));
         refresh();
     }
-
+    /**
+     * Updates the collection through clearLineSelection.
+     */
     public void clearLineSelection() {
         lineSelectionActive = false;
         setOnMouseEntered(null);
@@ -277,7 +322,10 @@ public class RowView extends StackPane {
         setOnMouseClicked(null);
         updateLineHighlight(false);
     }
-
+    /**
+     * Executes the operation represented by updateLineHighlight.
+     * @param hovering the value used by the method
+     */
     private void updateLineHighlight(boolean hovering) {
         if (line.hasHorn()) {
             DropShadow glow = new DropShadow(42, Color.web("#ffd45a"));
@@ -291,7 +339,10 @@ public class RowView extends StackPane {
             background.setEffect(null);
         }
     }
-
+    /**
+     * Executes the operation represented by emptySlot.
+     * @return the value produced by the method
+     */
     private StackPane emptySlot() {
         double cardHeight = cardHeightForSlot();
         double cardWidth = cardHeight * BOARD_CARD_ASPECT_RATIO;
@@ -299,7 +350,11 @@ public class RowView extends StackPane {
         result.setPrefSize(cardWidth, cardHeight);
         return result;
     }
-
+    /**
+     * Executes the operation represented by cardSlot.
+     * @param minion the value used by the method
+     * @return the value produced by the method
+     */
     private StackPane cardSlot(Minion minion) {
         double cardHeight = cardHeightForSlot();
         double cardWidth = cardHeight * BOARD_CARD_ASPECT_RATIO;
@@ -359,14 +414,20 @@ public class RowView extends StackPane {
         drop.play();
         return result;
     }
-
+    /**
+     * Executes the operation represented by cardHeightForSlot.
+     * @return the value produced by the method
+     */
     private double cardHeightForSlot() {
         double gap = rowWidth * SLOT_GAP_RATIO;
         double availableWidth = rowWidth * (1 - LABEL_SPACE_RATIO);
         double maxCardWidth = (availableWidth - gap * (SLOT_COUNT - 1)) / SLOT_COUNT;
         return Math.min(rowHeight * 0.98, maxCardWidth / BOARD_CARD_ASPECT_RATIO);
     }
-
+    /**
+     * Executes the operation represented by centeredMinions.
+     * @return the value produced by the method
+     */
     private List<Minion> centeredMinions() {
         List<Minion> result = new ArrayList<>(SLOT_COUNT);
         for (int index = 0; index < SLOT_COUNT; index++) {

@@ -21,6 +21,7 @@ public class InGameConfigMenuView extends VBox {
     private String currentResolution = "1920x1080";
     private ComboBox<String> resolutionCombo;
 
+    /**      * Constructs a new InGameConfigMenuView.      */
     public InGameConfigMenuView(MainView mainView, Stage stage, List<Pair<Integer, Integer>> resolutions) {
     this.mainView = mainView;
     this.stage = stage;
@@ -61,7 +62,10 @@ public class InGameConfigMenuView extends VBox {
     getChildren().addAll(resolutionLabel, resolutionCombo, fullscreenButton,
         backButton, surrenderButton);
     }
-
+    /**
+     * Executes the operation represented by applyResolution.
+     * @param resolution the value used by the method
+     */
     private void applyResolution(String resolution) {
     if (resolution == null || resolution.equals(currentResolution)) return;
 
@@ -69,7 +73,9 @@ public class InGameConfigMenuView extends VBox {
     mainView.applyResolution(stage, Integer.parseInt(dimensions[0]), Integer.parseInt(dimensions[1]));
     currentResolution = resolution;
     }
-
+    /**
+     * Executes the operation represented by refreshResolution.
+     */
     public void refreshResolution() {
         Pair<Integer, Integer> resolution = mainView.getCurrentResolution();
         currentResolution = resolution.getKey() + "x" + resolution.getValue();

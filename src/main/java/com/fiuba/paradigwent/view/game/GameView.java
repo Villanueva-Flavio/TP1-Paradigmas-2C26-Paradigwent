@@ -31,12 +31,6 @@ import java.util.Random;
 import com.fiuba.paradigwent.view.MainView;
 import com.fiuba.paradigwent.view.AudioManager;
 import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.card.Minion;
-import com.fiuba.paradigwent.model.card.Spell;
-import com.fiuba.paradigwent.model.effect.DestroyCreatureEffect;
-import com.fiuba.paradigwent.model.effect.DuplicateLineEffect;
-import com.fiuba.paradigwent.model.effect.ModifyPowerEffect;
-import com.fiuba.paradigwent.model.effect.ReviveEffect;
 import com.fiuba.paradigwent.model.effect.Effect;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.enums.Result;
@@ -114,10 +108,12 @@ public class GameView {
     private Label turnIndicator;
     private final Random animationRandom = new Random();
 
+    /**      * Constructs a new GameView.      */
     public GameView(MainView mainView) {
         this(mainView, CardRace.HUMAN);
     }
 
+    /**      * Constructs a new GameView.      */
     public GameView(MainView mainView, CardRace selectedRace) {
         this.mainView = mainView;
         controller = new GameController(selectedRace);
@@ -126,21 +122,31 @@ public class GameView {
         buildUiControls();
         buildHands();
     }
-
+    /**
+     * Returns the value provided by getRootNode.
+     * @return the value produced by the method
+     */
     public Parent getRootNode() {
         return rootContainer;
     }
-
+    /**
+     * Returns the value provided by getCurrentWeather.
+     * @return the value produced by the method
+     */
     public WeatherType getCurrentWeather() {
         return controller.getBoard().getCurrentWeather();
     }
-
+    /**
+     * Executes the operation represented by surrender.
+     */
     public void surrender() {
         controller.surrender();
         boardView.refresh();
         showMatchResult(Result.PLAYER2_WIN, "You surrendered. The match is over.");
     }
-
+    /**
+     * Executes the operation represented by buildLayerStructure.
+     */
     private void buildLayerStructure() {
         rootContainer = new StackPane();
         rootContainer.setPrefSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
@@ -162,28 +168,42 @@ public class GameView {
         rootContainer.getChildren().addAll(backgroundLayer, scalableContent, scalableOverlay);
         addViewportListeners();
     }
-
+    /**
+     * Executes the operation represented by centerBoardInViewport.
+     */
     public void centerBoardInViewport() {
         boardView.centerInViewport(scalableContent);
     }
-
+    /**
+     * Executes the operation represented by centerContentsInViewport.
+     */
     private void centerContentsInViewport() {
         centerBoardInViewport();
     }
-
+    /**
+     * Executes the operation represented by createUiOverlay.
+     * @return the value produced by the method
+     */
     private Pane createUiOverlay() {
         Pane overlay = new Pane();
         overlay.setManaged(false);
         overlay.setPickOnBounds(false);
         return overlay;
     }
-
+    /**
+     * Executes the operation represented by createScalableGroup.
+     * @param content the value used by the method
+     * @return the value produced by the method
+     */
     private Group createScalableGroup(javafx.scene.Node content) {
         Group group = new Group(content);
         group.setManaged(false);
         return group;
     }
-
+    /**
+     * Executes the operation represented by configureScaledGroup.
+     * @param group the value used by the method
+     */
     private void configureScaledGroup(Group group) {
         javafx.scene.transform.Scale transform = new javafx.scene.transform.Scale();
         transform.setPivotX(0);
@@ -194,12 +214,16 @@ public class GameView {
         group.layoutXProperty().bind(rootContainer.widthProperty().divide(2).subtract(viewportScale.multiply(VIRTUAL_WIDTH / 2)));
         group.layoutYProperty().bind(rootContainer.heightProperty().multiply(CONTENT_OFFSET_Y_RATIO));
     }
-
+    /**
+     * Updates the collection through addViewportListeners.
+     */
     private void addViewportListeners() {
         rootContainer.widthProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(this::centerContentsInViewport));
         rootContainer.heightProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(this::centerContentsInViewport));
     }
-
+    /**
+     * Executes the operation represented by buildBackground.
+     */
     private void buildBackground() {
         Image skybox = GameTextures.load(GameTextures.SKYBOX);
         if (skybox == null) {
@@ -218,7 +242,9 @@ public class GameView {
         skyboxView.setMouseTransparent(true);
         backgroundLayer.getChildren().add(skyboxView);
     }
-
+    /**
+     * Executes the operation represented by buildUiControls.
+     */
     private void buildUiControls() {
         turnIndicator = new Label();
         turnIndicator.setTextFill(Color.WHITE);
@@ -256,20 +282,30 @@ public class GameView {
         configureBottomRightButton(passButton, 220);
         rootContainer.getChildren().addAll(optionsButton, passButton);
     }
-
+    /**
+     * Executes the operation represented by configureTopRightButton.
+     * @param button the value used by the method
+     * @param maxWidth the value used by the method
+     */
     private void configureTopRightButton(Button button, double maxWidth) {
         button.setMaxWidth(maxWidth);
         button.prefWidthProperty().bind(Bindings.min(maxWidth, rootContainer.widthProperty().multiply(0.28)));
         StackPane.setAlignment(button, Pos.TOP_RIGHT);
         StackPane.setMargin(button, new Insets(16, 16, 0, 0));
     }
-
+    /**
+     * Executes the operation represented by configureBottomRightButton.
+     * @param button the value used by the method
+     * @param maxWidth the value used by the method
+     */
     private void configureBottomRightButton(Button button, double maxWidth) {
         button.setMaxWidth(maxWidth);
         StackPane.setAlignment(button, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(button, new Insets(0, 16, 16, 0));
     }
-
+    /**
+     * Executes the operation represented by buildHands.
+     */
     private void buildHands() {
         List<Card> handCards = controller.getPlayerHand();
         playerHandView = new HandView(handCards, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
@@ -283,13 +319,18 @@ public class GameView {
         opponentHandView.toFront();
         AudioManager.playCardDraw();
     }
-
+    /**
+     * Executes the operation represented by updateOpponentHand.
+     */
     private void updateOpponentHand() {
         if (opponentHandView == null) return;
         opponentHandView.showHand(controller.getOpponentHandSize(), controller.getOpponentFaction());
         opponentHandView.setLayoutX((VIRTUAL_WIDTH - opponentHandView.getPrefWidth()) / 2);
     }
-
+    /**
+     * Executes the operation represented by playCard.
+     * @param card the value used by the method
+     */
     private void playCard(Card card) {
         if (cardAnimationRunning) return;
         if (controller.requiresLineTarget(card)) {
@@ -302,13 +343,19 @@ public class GameView {
         }
         executeCard(card, null);
     }
-
+    /**
+     * Executes the operation represented by beginLineSelection.
+     * @param card the value used by the method
+     */
     private void beginLineSelection(Card card) {
         cardWaitingForLine = card;
         showActionPrompt("Select an attack line to buff");
         boardView.setLineSelection(this::finishLineSelection);
     }
-
+    /**
+     * Executes the operation represented by finishLineSelection.
+     * @param line the value used by the method
+     */
     private void finishLineSelection(AttackLineType line) {
         Card card = cardWaitingForLine;
         cardWaitingForLine = null;
@@ -318,7 +365,10 @@ public class GameView {
             executeCard(card, null, line);
         }
     }
-
+    /**
+     * Executes the operation represented by beginTargetSelection.
+     * @param card the value used by the method
+     */
     private void beginTargetSelection(Card card) {
         List<Card> targets = controller.getTargetCards();
         if (targets.isEmpty()) {
@@ -329,7 +379,10 @@ public class GameView {
         showActionPrompt(targetPrompt(card));
         boardView.setTargetSelection(targets, this::finishTargetSelection);
     }
-
+    /**
+     * Executes the operation represented by finishTargetSelection.
+     * @param target the value used by the method
+     */
     private void finishTargetSelection(Card target) {
         Card card = cardWaitingForTarget;
         cardWaitingForTarget = null;
@@ -339,11 +392,20 @@ public class GameView {
             executeCard(card, target);
         }
     }
-
+    /**
+     * Executes the operation represented by executeCard.
+     * @param card the value used by the method
+     * @param target the value used by the method
+     */
     private void executeCard(Card card, Card target) {
         executeCard(card, target, null);
     }
-
+    /**
+     * Executes the operation represented by executeCard.
+     * @param card the value used by the method
+     * @param target the value used by the method
+     * @param line the value used by the method
+     */
     private void executeCard(Card card, Card target, AttackLineType line) {
         Point2D playerSourcePoint = playerHandView.getCardCenterInScene(card);
         if (!controller.playCard(card, target, line)) return;
@@ -358,14 +420,18 @@ public class GameView {
             scheduleOpponentTurn();
         });
     }
-
+    /**
+     * Executes the operation represented by scheduleOpponentTurn.
+     */
     private void scheduleOpponentTurn() {
         int thinkingTime = 2000 + animationRandom.nextInt(3001);
         PauseTransition delay = new PauseTransition(Duration.millis(thinkingTime));
         delay.setOnFinished(event -> playOpponentTurn());
         delay.play();
     }
-
+    /**
+     * Executes the operation represented by playOpponentTurn.
+     */
     private void playOpponentTurn() {
         Point2D sourcePoint = opponentHandView.getDrawPointInScene();
         if (!controller.playOpponentCard()) {
@@ -384,7 +450,9 @@ public class GameView {
         updateOpponentHand();
         animateCardToBoard(opponentCard, true, sourcePoint, this::finishCardAction);
     }
-
+    /**
+     * Executes the operation represented by finishCardAction.
+     */
     private void finishCardAction() {
         updateOpponentHand();
         boardView.refresh();
@@ -399,22 +467,31 @@ public class GameView {
         cardAnimationRunning = false;
         checkMatchFinished();
     }
-
+    /**
+     * Executes the operation represented by playCardSound.
+     * @param card the value used by the method
+     */
     private void playCardSound(Card card) {
         AudioManager.playCardPlay();
         for (Effect effect : effectsOf(card)) {
-            if (effect instanceof DestroyCreatureEffect) {
+            if (effect.isDestroyCreatureEffect()) {
                 AudioManager.playDestroy();
-            } else if (effect instanceof ReviveEffect) {
+            } else if (effect.isReviveEffect()) {
                 AudioManager.playRevive();
-            } else if (effect instanceof ModifyPowerEffect) {
+            } else if (effect.isModifyPowerEffect()) {
                 AudioManager.playBuff();
-            } else if (effect instanceof DuplicateLineEffect) {
+            } else if (effect.isDuplicateLineEffect()) {
                 AudioManager.playDuplicateLine();
             }
         }
     }
-
+    /**
+     * Executes the operation represented by animateCardToBoard.
+     * @param card the value used by the method
+     * @param opponent the value used by the method
+     * @param sourcePoint the value used by the method
+     * @param onFinished the value used by the method
+     */
     private void animateCardToBoard(Card card, boolean opponent, Point2D sourcePoint, Runnable onFinished) {
         CardVisual animatedCard = new CardVisual(card, CardVisual.widthForHeight(170), 170, "collection-card-image");
         configureAnimatedCard(animatedCard, card);
@@ -436,7 +513,11 @@ public class GameView {
         });
         animation.play();
     }
-
+    /**
+     * Executes the operation represented by configureAnimatedCard.
+     * @param visual the value used by the method
+     * @param card the value used by the method
+     */
     private void configureAnimatedCard(CardVisual visual, Card card) {
         visual.addMetadata(card);
         visual.setMouseTransparent(true);
@@ -445,12 +526,24 @@ public class GameView {
         visual.setScaleY(0.72);
         visual.setOpacity(0.95);
     }
-
+    /**
+     * Executes the operation represented by resolveAnimationSource.
+     * @param sourcePoint the value used by the method
+     * @param opponent the value used by the method
+     * @return the value produced by the method
+     */
     private Point2D resolveAnimationSource(Point2D sourcePoint, boolean opponent) {
         if (sourcePoint != null) return rootContainer.sceneToLocal(sourcePoint);
         return new Point2D(rootContainer.getWidth() / 2, opponent ? 80 : rootContainer.getHeight() - 80);
     }
-
+    /**
+     * Executes the operation represented by createCardLaunch.
+     * @param visual the value used by the method
+     * @param moveX the value used by the method
+     * @param moveY the value used by the method
+     * @param opponent the value used by the method
+     * @return the value produced by the method
+     */
     private ParallelTransition createCardLaunch(CardVisual visual, double moveX, double moveY, boolean opponent) {
         TranslateTransition move = new TranslateTransition(Duration.millis(650), visual);
         move.setToX(moveX);
@@ -469,40 +562,48 @@ public class GameView {
 
         return new ParallelTransition(move, scale, rotate);
     }
-
+    /**
+     * Executes the operation represented by targetPrompt.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     private String targetPrompt(Card card) {
         for (Effect effect : effectsOf(card)) {
-            if (effect instanceof DestroyCreatureEffect destroyEffect) {
-                return destroyEffect.isScorch()
-                    ? "Select a minion to scorch"
-                    : "Select a minion to destroy";
+            String prompt = effect.getTargetPrompt();
+            if (!prompt.isBlank()) {
+                return prompt;
             }
         }
         return "Select a minion to buff";
     }
-
+    /**
+     * Executes the operation represented by effectsOf.
+     * @param card the value used by the method
+     * @return the value produced by the method
+     */
     private List<Effect> effectsOf(Card card) {
-        if (card instanceof Minion minion) {
-            return minion.getEffects();
-        }
-        if (card instanceof Spell spell) {
-            return spell.getEffects();
-        }
-        return List.of();
+        return card.getEffects();
     }
-
+    /**
+     * Displays the information handled by showActionPrompt.
+     * @param message the value used by the method
+     */
     private void showActionPrompt(String message) {
         actionPrompt.setText(message);
         actionPrompt.setVisible(true);
         actionPrompt.setManaged(true);
         actionPrompt.toFront();
     }
-
+    /**
+     * Executes the operation represented by hideActionPrompt.
+     */
     private void hideActionPrompt() {
         actionPrompt.setVisible(false);
         actionPrompt.setManaged(false);
     }
-
+    /**
+     * Executes the operation represented by passTurn.
+     */
     private void passTurn() {
         if (cardAnimationRunning) return;
         cardWaitingForLine = null;
@@ -521,7 +622,9 @@ public class GameView {
             checkMatchFinished();
         }
     }
-
+    /**
+     * Executes the operation represented by updateTurnIndicator.
+     */
     private void updateTurnIndicator() {
         if (turnIndicator == null) return;
         boolean playerTurn = controller.isPlayerTurn();
@@ -536,7 +639,9 @@ public class GameView {
                 + "-fx-font-size: 16px;"
                 + "-fx-font-weight: bold;");
     }
-
+    /**
+     * Executes the operation represented by checkMatchFinished.
+     */
     private void checkMatchFinished() {
         if (controller.gameFinished()) {
             showMatchResult(
@@ -545,10 +650,11 @@ public class GameView {
             );
         }
     }
-
-
-
-
+    /**
+     * Displays the information handled by showMatchResult.
+     * @param result the value used by the method
+     * @param detail the value used by the method
+     */
     public void showMatchResult(Result result, String detail) {
         if (resultOverlay != null) return;
         resultOverlay = new StackPane();
@@ -558,7 +664,12 @@ public class GameView {
         resultOverlay.getChildren().add(createResultPanel(result, detail));
         uiOverlay.getChildren().add(resultOverlay);
     }
-
+    /**
+     * Executes the operation represented by createResultPanel.
+     * @param result the value used by the method
+     * @param detail the value used by the method
+     * @return the value produced by the method
+     */
     private StackPane createResultPanel(Result result, String detail) {
         StackPane panel = new StackPane();
         panel.setPrefSize(420, 260);
@@ -571,7 +682,10 @@ public class GameView {
         StackPane.setAlignment(panel, Pos.CENTER);
         return panel;
     }
-
+    /**
+     * Executes the operation represented by createResultImagePlaceholder.
+     * @return the value produced by the method
+     */
     private Label createResultImagePlaceholder() {
         Label image = new Label("IMAGE / GIF");
         image.setPrefSize(180, 90);
@@ -582,7 +696,11 @@ public class GameView {
         StackPane.setMargin(image, new Insets(20, 0, 0, 0));
         return image;
     }
-
+    /**
+     * Executes the operation represented by createResultTitle.
+     * @param result the value used by the method
+     * @return the value produced by the method
+     */
     private Label createResultTitle(Result result) {
         Label title = new Label(getResultTitle(result));
         title.setStyle("-fx-text-fill: #f4d58d; -fx-font-size: 34px; -fx-font-weight: bold;");
@@ -590,7 +708,11 @@ public class GameView {
         StackPane.setMargin(title, new Insets(88, 0, 0, 0));
         return title;
     }
-
+    /**
+     * Executes the operation represented by createResultMessage.
+     * @param detail the value used by the method
+     * @return the value produced by the method
+     */
     private Label createResultMessage(String detail) {
         Label message = new Label(detail);
         message.setStyle("-fx-text-fill: #e7eaf2; -fx-font-size: 16px;");
@@ -598,7 +720,10 @@ public class GameView {
         StackPane.setMargin(message, new Insets(142, 0, 0, 0));
         return message;
     }
-
+    /**
+     * Executes the operation represented by createMainMenuButton.
+     * @return the value produced by the method
+     */
     private Button createMainMenuButton() {
         Button button = new Button("BACK TO MENU");
         button.setOnAction(event -> mainView.showMainMenu());
@@ -607,7 +732,11 @@ public class GameView {
         StackPane.setMargin(button, new Insets(0, 0, 20, 0));
         return button;
     }
-
+    /**
+     * Returns the value provided by getResultTitle.
+     * @param result the value used by the method
+     * @return the value produced by the method
+     */
     private String getResultTitle(Result result) {
         return switch (result) {
             case PLAYER1_WIN -> "¡VICTORY!";
@@ -615,11 +744,16 @@ public class GameView {
             case DRAW -> "DRAW";
         };
     }
-
+    /**
+     * Displays the information handled by showHandPreview.
+     * @param card the value used by the method
+     */
     private void showHandPreview(Card card) {
         hidePreview();
         handPreview = new StackPane();
         handPreview.setManaged(false);
+        handPreview.prefWidthProperty().bind(rootContainer.widthProperty());
+        handPreview.prefHeightProperty().bind(rootContainer.heightProperty());
         handPreview.getStyleClass().add("collection-preview-overlay");
         handPreview.setPickOnBounds(false);
         Region backdrop = new Region();
@@ -634,7 +768,11 @@ public class GameView {
         StackPane.setMargin(preview, new Insets(0, 70, 0, 0));
         rootContainer.getChildren().add(handPreview);
     }
-
+    /**
+     * Displays the information handled by showBoardPreview.
+     * @param card the value used by the method
+     * @param source the value used by the method
+     */
     private void showBoardPreview(Card card, javafx.scene.Node source) {
         if (card == null) {
             hidePreview();
@@ -642,7 +780,11 @@ public class GameView {
         }
         showBoardPreviewAt(card, source);
     }
-
+    /**
+     * Displays the information handled by showBoardPreviewAt.
+     * @param card the value used by the method
+     * @param source the value used by the method
+     */
     private void showBoardPreviewAt(Card card, javafx.scene.Node source) {
         hidePreview();
         handPreview = new StackPane();
@@ -655,8 +797,8 @@ public class GameView {
         backdrop.getStyleClass().add("collection-preview-backdrop");
         CardVisual preview = new CardVisual(card, CardVisual.widthForHeight(460), 460, "collection-card-image");
         Object displayedPower = source.getUserData();
-        if (displayedPower instanceof Number power && card instanceof com.fiuba.paradigwent.model.card.Minion) {
-            preview.addMetadata(card, false, power.intValue());
+        if (Number.class.isInstance(displayedPower) && card.asMinion().isPresent()) {
+            preview.addMetadata(card, false, ((Number) displayedPower).intValue());
         } else {
             preview.addMetadata(card);
         }
@@ -671,7 +813,9 @@ public class GameView {
         preview.setManaged(false);
         preview.relocate(x, y);
     }
-
+    /**
+     * Executes the operation represented by hidePreview.
+     */
     private void hidePreview() {
         if (handPreview != null) {
             rootContainer.getChildren().remove(handPreview);

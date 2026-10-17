@@ -20,30 +20,45 @@ public class Spell extends Card {
     public Spell(String id, String name, int stackLimite, AttackLineType attackLineType, String description) {
         super(id, name, stackLimite, attackLineType, description);
     }
-
+    /**
+     * Executes the operation represented by play.
+     * @param context the value used by the method
+     */
     @Override
     public void play(GameContext context) {
         for (Effect effect : effects) {
             effect.apply(context);
         }
     }
-
+    /**
+     * Returns the value provided by getEffects.
+     * @return the value produced by the method
+     */
     public List<Effect> getEffects() {
         return new ArrayList<>(effects);
     }
-
+    /**
+     * Executes the operation represented by requiresTarget.
+     * @return the value produced by the method
+     */
     @Override
     public boolean requiresTarget() {
         return effects.stream().anyMatch(Effect::requiresTarget);
     }
-
+    /**
+     * Returns the value provided by getEffectDescription.
+     * @return the value produced by the method
+     */
     @Override
     public String getEffectDescription() {
         return effects.stream()
             .map(Effect::getDescription)
             .collect(Collectors.joining(", "));
     }
-
+    /**
+     * Returns the value provided by getTargetDescription.
+     * @return the value produced by the method
+     */
     @Override
     public String getTargetDescription() {
         return effects.stream()

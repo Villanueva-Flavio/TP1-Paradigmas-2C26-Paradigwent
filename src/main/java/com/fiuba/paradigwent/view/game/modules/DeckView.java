@@ -10,6 +10,7 @@ import javafx.scene.layout.StackPane;
 import com.fiuba.paradigwent.view.game.GameView;
 
 public class DeckView extends StackPane {
+    /**      * Constructs a new DeckView.      */
     public DeckView(CardRace race, double x, double y, double width, double height) {
         setLayoutX(x);
         setLayoutY(y);

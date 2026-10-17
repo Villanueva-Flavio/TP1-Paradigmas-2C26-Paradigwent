@@ -2,7 +2,6 @@ package com.fiuba.paradigwent.view.game.modules;
 
 import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.card.CardAssetResolver;
-import com.fiuba.paradigwent.model.card.Minion;
 
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -45,10 +44,12 @@ public class CardVisual extends StackPane {
     private boolean compactMetadata;
     private final Card card;
 
+    /**      * Constructs a new CardVisual.      */
     public CardVisual(Card card, double width, double height, String imageStyleClass) {
         this(card, width, height, imageStyleClass, CARD_ASPECT_RATIO);
     }
 
+    /**      * Constructs a new CardVisual.      */
     public CardVisual(Card card, double width, double height, String imageStyleClass,
         double aspectRatio) {
         this.aspectRatio = aspectRatio;
@@ -68,7 +69,11 @@ public class CardVisual extends StackPane {
         getChildren().addAll(artwork, frame);
         updateSize(width, height);
     }
-
+    /**
+     * Executes the operation represented by updateSize.
+     * @param width the value used by the method
+     * @param height the value used by the method
+     */
     public void updateSize(double width, double height) {
         double cardWidth = Math.min(width, height * aspectRatio);
         double cardHeight = cardWidth / aspectRatio;
@@ -121,7 +126,14 @@ public class CardVisual extends StackPane {
         }
         placedNodes.forEach((node, bounds) -> applyPlacement(node, bounds));
     }
-
+    /**
+     * Executes the operation represented by place.
+     * @param node the value used by the method
+     * @param x the value used by the method
+     * @param y the value used by the method
+     * @param width the value used by the method
+     * @param height the value used by the method
+     */
     public void place(Node node, double x, double y, double width, double height) {
         node.setManaged(false);
         placedNodes.put(node, new double[] {x, y, width, height});
@@ -130,18 +142,32 @@ public class CardVisual extends StackPane {
             getChildren().add(node);
         }
     }
-
+    /**
+     * Executes the operation represented by applyPlacement.
+     * @param node the value used by the method
+     * @param bounds the value used by the method
+     */
     private void applyPlacement(Node node, double[] bounds) {
         node.setScaleX(1);
         node.setScaleY(1);
         node.resize(bounds[2] * scale, bounds[3] * scale);
         node.relocate(bounds[0] * scale, bounds[1] * scale);
     }
-
+    /**
+     * Executes the operation represented by widthForHeight.
+     * @param height the value used by the method
+     * @return the value produced by the method
+     */
     public static double widthForHeight(double height) {
         return height * CARD_ASPECT_RATIO;
     }
-
+    /**
+     * Executes the operation represented by fitNameFont.
+     * @param text the value used by the method
+     * @param availableWidth the value used by the method
+     * @param preferredSize the value used by the method
+     * @return the value produced by the method
+     */
     private double fitNameFont(String text, double availableWidth, double preferredSize) {
         double size = preferredSize;
         while (size > 8 && textWidth(text, size) > availableWidth) {
@@ -149,13 +175,22 @@ public class CardVisual extends StackPane {
         }
         return Math.max(8, size);
     }
-
+    /**
+     * Executes the operation represented by textWidth.
+     * @param text the value used by the method
+     * @param size the value used by the method
+     * @return the value produced by the method
+     */
     private double textWidth(String text, double size) {
         Text measured = new Text(text == null ? "" : text);
         measured.setFont(Font.font("System", FontWeight.BOLD, size));
         return measured.getLayoutBounds().getWidth();
     }
-
+    /**
+     * Executes the operation represented by cardTypeIcon.
+     * @param cardType the value used by the method
+     * @return the value produced by the method
+     */
     private ImageView cardTypeIcon(String cardType) {
         String fileName = switch (cardType) {
             case "MINION" -> "minion.png";
@@ -171,17 +206,28 @@ public class CardVisual extends StackPane {
         icon.setMouseTransparent(true);
         return icon;
     }
-
+    /**
+     * Updates the collection through addMetadata.
+     * @param card the value used by the method
+     */
     public void addMetadata(Card card) {
         addMetadata(card, false);
     }
-
+    /**
+     * Updates the collection through addMetadata.
+     * @param card the value used by the method
+     * @param compact the value used by the method
+     */
     public void addMetadata(Card card, boolean compact) {
-        int displayedPower = card instanceof Minion minion
-            ? minion.getCurrentPower() : card.getBasePower();
+        int displayedPower = card.getDisplayedPower();
         addMetadata(card, compact, displayedPower);
     }
-
+    /**
+     * Updates the collection through addMetadata.
+     * @param card the value used by the method
+     * @param compact the value used by the method
+     * @param displayedPower the value used by the method
+     */
     public void addMetadata(Card card, boolean compact, int displayedPower) {
         compactMetadata = compact;
         nameLabel = metadataLabel(card.getName(), 38);
@@ -227,18 +273,31 @@ public class CardVisual extends StackPane {
         place(metadata, 135, 653, 365, 225);
         updateSize(getPrefWidth(), getPrefHeight());
     }
-
+    /**
+     * Executes the operation represented by metadataLabel.
+     * @param text the value used by the method
+     * @param size the value used by the method
+     * @return the value produced by the method
+     */
     private Label metadataLabel(String text, int size) {
         Label label = new Label(text == null ? "" : text);
         label.setTextFill(Color.rgb(45, 25, 15));
         label.setStyle(fontStyle(size));
         return label;
     }
-
+    /**
+     * Executes the operation represented by fontStyle.
+     * @param size the value used by the method
+     * @return the value produced by the method
+     */
     private String fontStyle(double size) {
         return "-fx-font-size: " + Math.max(7, size) + "px; -fx-font-weight: bold;";
     }
-
+    /**
+     * Executes the operation represented by resource.
+     * @param path the value used by the method
+     * @return the value produced by the method
+     */
     private static String resource(String path) {
         return CardVisual.class.getResource(path).toExternalForm();
     }
