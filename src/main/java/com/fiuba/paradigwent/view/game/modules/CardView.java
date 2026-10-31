@@ -1,10 +1,16 @@
 package com.fiuba.paradigwent.view.game.modules;
 
 import com.fiuba.paradigwent.model.card.Card;
-import javafx.scene.layout.StackPane;
+
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.StackPane;
+
 import java.util.function.Consumer;
 
+/**
+ * A card of the human's hand, with a hit area larger than the drawn card.
+ */
 public class CardView extends StackPane {
     public static final double HEIGHT = 126;
     public static final double WIDTH = HEIGHT / 1.46;
@@ -12,12 +18,14 @@ public class CardView extends StackPane {
     public static final double HIT_AREA_HEIGHT = 150;
 
     private final Card card;
-    private final CardVisual visual;
+    private Consumer<Card> onCardClicked = ignored -> { };
 
-    /**      * Constructs a new CardView.      */
+    /**
+     * @param card card shown by this view
+     */
     public CardView(Card card) {
         this.card = card;
-        visual = new CardVisual(card, WIDTH, HEIGHT, "hand-card");
+        CardVisual visual = new CardVisual(card, WIDTH, HEIGHT, "hand-card");
 
         setPrefSize(HIT_AREA_WIDTH, HIT_AREA_HEIGHT);
         setMinSize(HIT_AREA_WIDTH, HIT_AREA_HEIGHT);
@@ -26,28 +34,33 @@ public class CardView extends StackPane {
         visual.addMetadata(card, true);
         visual.setMouseTransparent(true);
         getChildren().add(visual);
-        addEventFilter(MouseEvent.MOUSE_CLICKED, event -> {
-            if (event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
+        addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
                 onCardClicked.accept(card);
                 event.consume();
             }
         });
     }
 
-    private Consumer<Card> onCardClicked = ignored -> { };
     /**
-     * Updates the value managed by setOnCardClicked.
-     * @param callback the value used by the method
+     * @param callback receives the card when it is pressed
      */
     public void setOnCardClicked(Consumer<Card> callback) {
         onCardClicked = callback == null ? ignored -> { } : callback;
     }
+
     /**
-     * Returns the value provided by getCard.
-     * @return the value produced by the method
+     * @param other a card
+     * @return {@code true} if this view shows that card
+     */
+    public boolean shows(Card other) {
+        return card == other;
+    }
+
+    /**
+     * @return the card shown by this view
      */
     public Card getCard() {
         return card;
     }
-
 }

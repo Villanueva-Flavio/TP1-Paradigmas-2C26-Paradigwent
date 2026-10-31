@@ -2,28 +2,33 @@ package com.fiuba.paradigwent.view.game.modules;
 
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.effect.PerspectiveTransform;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
-import com.fiuba.paradigwent.view.game.GameView;
-import com.fiuba.paradigwent.model.board.Board;
-import com.fiuba.paradigwent.model.board.PlayerSide;
-import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.enums.AttackLineType;
-
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.Set;
-import java.util.HashSet;
+import java.util.function.Consumer;
 
+import com.fiuba.paradigwent.controller.GameController;
+import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.player.Player;
+
+/**
+ * Board drawn in perspective: six attack lines, the side zones (decks,
+ * discard piles and weather) and the life gems of both players.
+ */
 public class Board3DView extends Pane {
 
     private static final Map<String, Double> RATIOS = Map.ofEntries(
@@ -45,10 +50,9 @@ public class Board3DView extends Pane {
         Map.entry("PLAYER_DECK_Y", 0.98),
         Map.entry("WEATHER_Y", 0.50),
         Map.entry("GEM_X", 0.015),
-        Map.entry("OPPONENT_GEM_Y", 0.10),
-        Map.entry("OPPONENT_SECOND_GEM_Y", 0.18),
-        Map.entry("PLAYER_GEM_Y", 0.84),
-        Map.entry("PLAYER_SECOND_GEM_Y", 0.92),
+        Map.entry("OPPONENT_FIRST_GEM_Y", 0.02),
+        Map.entry("PLAYER_FIRST_GEM_Y", 0.84),
+        Map.entry("GEM_SPACING_Y", 0.08),
         Map.entry("CAMERA_LAYOUT_Y", 0.2333333333),
         Map.entry("CAMERA_CONTENT_HEIGHT", 1.12),
         Map.entry("CAMERA_CONTENT_WIDTH", 0.94),
@@ -57,28 +61,26 @@ public class Board3DView extends Pane {
     );
 
     private final Group boardScene;
-    private final Board board;
+    private final GameController controller;
     private final RowView[] rows = new RowView[6];
+    private final List<GemView> opponentGems = new ArrayList<>();
+    private final List<GemView> playerGems = new ArrayList<>();
     private BoardZoneView weatherZone;
     private BoardZoneView opponentDiscardZone;
     private BoardZoneView playerDiscardZone;
     private BoardZoneView opponentDeckZone;
     private BoardZoneView playerDeckZone;
-    private GemView opponentFirstGem;
-    private GemView opponentSecondGem;
-    private GemView playerFirstGem;
-    private GemView playerSecondGem;
-    private int displayedOpponentLives = 2;
-    private int displayedPlayerLives = 2;
+    private int displayedOpponentLives = Player.INITIAL_LIVES;
+    private int displayedPlayerLives = Player.INITIAL_LIVES;
 
-    /**      * Constructs a new Board3DView.      */
-    public Board3DView(double width, double height) {
-        this(width, height, null);
-    }
-
-    /**      * Constructs a new Board3DView.      */
-    public Board3DView(double width, double height, Board board) {
-        this.board = board;
+    /**
+     * @param width      virtual width of the board
+     * @param height     virtual height of the board
+     * @param controller source of the state of the match
+     * @param textures   texture cache of the game view
+     */
+    public Board3DView(double width, double height, GameController controller, GameTextures textures) {
+        this.controller = controller;
         setPrefSize(width, height);
 
         double boardWidth = width * RATIOS.get("BOARD_WIDTH");
@@ -97,11 +99,6 @@ public class Board3DView extends Pane {
         double zoneWidth = width * RATIOS.get("ZONE_WIDTH");
         double zoneHeight = height * RATIOS.get("ZONE_HEIGHT");
         double weatherY = height * RATIOS.get("WEATHER_Y") - zoneHeight / 2 + boardY;
-        double gemX = width * RATIOS.get("GEM_X");
-        double opponentGemY = height * RATIOS.get("OPPONENT_GEM_Y");
-        double opponentSecondGemY = height * RATIOS.get("OPPONENT_SECOND_GEM_Y");
-        double playerGemY = height * RATIOS.get("PLAYER_GEM_Y");
-        double playerSecondGemY = height * RATIOS.get("PLAYER_SECOND_GEM_Y");
         double cameraContentWidth = zoneX + zoneWidth;
         double cameraContentHeight = playerDeckY + zoneHeight;
         double boardLayoutY = height * RATIOS.get("CAMERA_LAYOUT_Y");
@@ -110,37 +107,35 @@ public class Board3DView extends Pane {
             (height - boardLayoutY - contentOffsetY) / cameraContentHeight
                 * RATIOS.get("CAMERA_ZOOM");
 
-        // Marco central del tablero
+        // Central frame of the board
         Rectangle boardFrame = new Rectangle(
             boardWidth,
             boardHeight,
-            GameTextures.pattern(GameTextures.BOARD_WOOD, GameView.COLOR.get("Board")));
-        boardFrame.setStroke(GameView.COLOR.get("BoardBorder"));
+            textures.pattern(GameTextures.BOARD_WOOD, GameColor.BOARD.color()));
+        boardFrame.setStroke(GameColor.BOARD_BORDER.color());
         boardFrame.setStrokeWidth(width * 0.002);
         boardFrame.setArcWidth(width * 0.012);
         boardFrame.setArcHeight(width * 0.012);
 
-        // Contenedor de las 6 filas
+        // Container of the six attack lines
         VBox boardRows = new VBox(boardLineGap);
         boardRows.setLayoutX(boardRowX);
         boardRows.setLayoutY(boardRowY);
         double rowWidth = width * RATIOS.get("ROW_WIDTH");
         double rowHeight = height * RATIOS.get("ROW_HEIGHT");
 
-        PlayerSide opponent = board == null ? null : board.getOpponentSide();
-        PlayerSide player = board == null ? null : board.getPlayerSide();
-        rows[0] = new RowView("Siege", GameView.COLOR.get("SiegeLine"), rowWidth, rowHeight,
-            line(opponent, AttackLineType.SIEGE));
-        rows[1] = new RowView("Ranged", GameView.COLOR.get("RangedLine"), rowWidth, rowHeight,
-            line(opponent, AttackLineType.RANGED));
-        rows[2] = new RowView("Melee", GameView.COLOR.get("MeleeLine"), rowWidth, rowHeight,
-            line(opponent, AttackLineType.MELEE));
-        rows[3] = new RowView("Melee", GameView.COLOR.get("MeleeLine"), rowWidth, rowHeight,
-            line(player, AttackLineType.MELEE));
-        rows[4] = new RowView("Ranged", GameView.COLOR.get("RangedLine"), rowWidth, rowHeight,
-            line(player, AttackLineType.RANGED));
-        rows[5] = new RowView("Siege", GameView.COLOR.get("SiegeLine"), rowWidth, rowHeight,
-            line(player, AttackLineType.SIEGE));
+        rows[0] = new RowView("Siege", rowWidth, rowHeight,
+            controller.getOpponentLine(AttackLineType.SIEGE), textures);
+        rows[1] = new RowView("Ranged", rowWidth, rowHeight,
+            controller.getOpponentLine(AttackLineType.RANGED), textures);
+        rows[2] = new RowView("Melee", rowWidth, rowHeight,
+            controller.getOpponentLine(AttackLineType.MELEE), textures);
+        rows[3] = new RowView("Melee", rowWidth, rowHeight,
+            controller.getPlayerLine(AttackLineType.MELEE), textures);
+        rows[4] = new RowView("Ranged", rowWidth, rowHeight,
+            controller.getPlayerLine(AttackLineType.RANGED), textures);
+        rows[5] = new RowView("Siege", rowWidth, rowHeight,
+            controller.getPlayerLine(AttackLineType.SIEGE), textures);
         boardRows.getChildren().addAll(rows);
 
         Group boardSurface = new Group(boardFrame, boardRows);
@@ -148,34 +143,35 @@ public class Board3DView extends Pane {
         boardSurface.setLayoutY(boardY);
 
         Group sideZones = new Group(
-            opponentDeckZone = new BoardZoneView("DECK", zoneX, opponentDeckY, zoneWidth, zoneHeight, GameView.COLOR.get("Deck")),
-            opponentDiscardZone = new BoardZoneView("DISCARD", zoneX, opponentDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
-            weatherZone = new BoardZoneView("Weather", zoneX, weatherY, zoneWidth, zoneHeight, GameView.COLOR.get("Weather")),
-            playerDiscardZone = new BoardZoneView("DISCARD", zoneX, playerDiscardY, zoneWidth, zoneHeight, GameView.COLOR.get("Discard")),
-            playerDeckZone = new BoardZoneView("DECK", zoneX, playerDeckY, zoneWidth, zoneHeight, GameView.COLOR.get("Deck"))
+            opponentDeckZone = new BoardZoneView("DECK", zoneX, opponentDeckY, zoneWidth, zoneHeight, GameColor.DECK.color()),
+            opponentDiscardZone = new BoardZoneView("DISCARD", zoneX, opponentDiscardY, zoneWidth, zoneHeight, GameColor.DISCARD.color()),
+            weatherZone = new BoardZoneView("Weather", zoneX, weatherY, zoneWidth, zoneHeight, GameColor.WEATHER.color()),
+            playerDiscardZone = new BoardZoneView("DISCARD", zoneX, playerDiscardY, zoneWidth, zoneHeight, GameColor.DISCARD.color()),
+            playerDeckZone = new BoardZoneView("DECK", zoneX, playerDeckY, zoneWidth, zoneHeight, GameColor.DECK.color())
         );
 
-
-        // Gemas de vida en el tablero
+        // Life gems, one per life
+        Group gemsGroup = new Group();
         double gemSize = width * (24.0 / 1000.0);
-        opponentSecondGem = new GemView(gemX, opponentSecondGemY, gemSize);
-        playerFirstGem = new GemView(gemX, playerGemY, gemSize);
-        opponentFirstGem = new GemView(gemX, opponentGemY, gemSize);
-        playerSecondGem = new GemView(gemX, playerSecondGemY, gemSize);
-        
-        Group gemsGroup = new Group(
-            opponentSecondGem, playerFirstGem, opponentFirstGem, playerSecondGem);
+        double gemX = width * RATIOS.get("GEM_X");
+        double gemSpacing = height * RATIOS.get("GEM_SPACING_Y");
+        for (int life = 0; life < Player.INITIAL_LIVES; life++) {
+            GemView opponentGem = new GemView(gemX, height * RATIOS.get("OPPONENT_FIRST_GEM_Y") + life * gemSpacing, gemSize);
+            GemView playerGem = new GemView(gemX, height * RATIOS.get("PLAYER_FIRST_GEM_Y") + life * gemSpacing, gemSize);
+            opponentGems.add(opponentGem);
+            playerGems.add(playerGem);
+            gemsGroup.getChildren().addAll(opponentGem, playerGem);
+        }
 
         boardScene = new Group(boardSurface, sideZones);
 
-        // Camara
-
+        // Camera
         applyBoardEffect();
 
         Rectangle cameraBounds = new Rectangle(
             cameraContentWidth,
             cameraContentHeight,
-            javafx.scene.paint.Color.TRANSPARENT
+            Color.TRANSPARENT
         );
         Group gemsCameraLayer = new Group(cameraBounds, gemsGroup);
         gemsCameraLayer.setManaged(false);
@@ -184,148 +180,97 @@ public class Board3DView extends Pane {
         getChildren().addAll(boardScene, gemsCameraLayer);
         refresh();
     }
+
     /**
-     * Executes the operation represented by line.
-     * @param side the value used by the method
-     * @param type the value used by the method
-     * @return the value produced by the method
-     */
-    private com.fiuba.paradigwent.model.board.AttackLine line(PlayerSide side, AttackLineType type) {
-        return side == null ? new com.fiuba.paradigwent.model.board.AttackLine(type)
-            : side.getAttackLine(type);
-    }
-    /**
-     * Executes the operation represented by refresh.
+     * Redraws the board from the current state of the match.
      */
     public void refresh() {
-        com.fiuba.paradigwent.model.enums.WeatherType weather =
-            board == null ? com.fiuba.paradigwent.model.enums.WeatherType.CLEAR
-                : board.getCurrentWeather();
         for (RowView row : rows) {
-            if (row != null) {
-                row.setWeather(weather);
-                row.refresh();
-            }
+            row.setWeather(controller.getCurrentWeather());
+            row.refresh();
         }
-        if (weatherZone != null && board != null) {
-            weatherZone.showCard(board.getCurrentWeatherCard());
-        }
-        if (board != null) {
-            opponentDeckZone.setDeckFaction(
-                board.getOpponentSide().getOwner().getFaction());
-            playerDeckZone.setDeckFaction(
-                board.getPlayerSide().getOwner().getFaction());
-            refreshLives();
-            showLatestDiscard(opponentDiscardZone, board.getOpponentSide().getOwner().getDiscard());
-            showLatestDiscard(playerDiscardZone, board.getPlayerSide().getOwner().getDiscard());
-            opponentDeckZone.showDeckCount(board.getOpponentSide().getOwner().getDeckSize());
-            playerDeckZone.showDeckCount(board.getPlayerSide().getOwner().getDeckSize());
-        }
+        weatherZone.showCard(controller.getCurrentWeatherCard());
+        opponentDeckZone.setDeckFaction(controller.getOpponentFaction());
+        playerDeckZone.setDeckFaction(controller.getPlayerFaction());
+        refreshLives();
+        opponentDiscardZone.showCard(controller.getOpponentLastDiscarded());
+        playerDiscardZone.showCard(controller.getPlayerLastDiscarded());
+        opponentDeckZone.showDeckCount(controller.getOpponentDeckSize());
+        playerDeckZone.showDeckCount(controller.getPlayerDeckSize());
     }
+
     /**
-     * Updates the value managed by setCardHoverHandler.
-     * @param Card the value used by the method
-     * @param handler the value used by the method
+     * @param handler receiver of the hover events of every card on the board
      */
-    public void setCardHoverHandler(BiConsumer<Card, javafx.scene.Node> handler) {
-        BiConsumer<Card, javafx.scene.Node> safeHandler =
-            handler == null ? (card, source) -> { } : handler;
+    public void setCardHoverHandler(CardHoverHandler handler) {
         for (RowView row : rows) {
-            row.setCardHoverHandler((card, source) -> safeHandler.accept(card, source));
+            row.setCardHoverHandler(handler);
         }
-        BiConsumer<Card, BoardZoneView> zoneHandler =
-            (card, source) -> safeHandler.accept(card, source);
-        weatherZone.setCardHoverHandler(zoneHandler);
-        opponentDiscardZone.setCardHoverHandler(zoneHandler);
-        playerDiscardZone.setCardHoverHandler(zoneHandler);
+        weatherZone.setCardHoverHandler(handler);
+        opponentDiscardZone.setCardHoverHandler(handler);
+        playerDiscardZone.setCardHoverHandler(handler);
     }
+
     /**
-     * Updates the value managed by setTargetSelection.
-     * @param targets the value used by the method
-     * @param handler the value used by the method
+     * Highlights the minions that can be chosen.
+     *
+     * @param targets minions that can be chosen
+     * @param handler receives the chosen minion
      */
-    public void setTargetSelection(List<Card> targets, Consumer<Card> handler) {
-        Set<com.fiuba.paradigwent.model.card.Minion> selectable = new HashSet<>();
-        if (targets != null) {
-            for (Card target : targets) {
-                target.asMinion().ifPresent(selectable::add);
-            }
-        }
-        Consumer<com.fiuba.paradigwent.model.card.Minion> selectionHandler =
-            minion -> handler.accept(minion);
+    public void setTargetSelection(List<Minion> targets, Consumer<Minion> handler) {
+        Set<Minion> selectable = new HashSet<>(targets);
         for (RowView row : rows) {
-            row.setTargetSelection(selectable, selectionHandler);
+            row.setTargetSelection(selectable, handler);
         }
     }
+
     /**
-     * Updates the collection through clearTargetSelection.
+     * Stops highlighting minions.
      */
     public void clearTargetSelection() {
         for (RowView row : rows) {
             row.setTargetSelection(Set.of(), ignored -> { });
         }
     }
+
     /**
-     * Updates the value managed by setLineSelection.
-     * @param handler the value used by the method
+     * Lets the human click one of its own lines.
+     *
+     * @param handler receives the chosen line
      */
     public void setLineSelection(Consumer<AttackLineType> handler) {
-        Consumer<AttackLineType> safeHandler =
-            handler == null ? ignored -> { } : handler;
         for (int index = 3; index < rows.length; index++) {
-            rows[index].setLineSelection(safeHandler);
+            rows[index].setLineSelection(handler);
         }
     }
+
     /**
-     * Updates the collection through clearLineSelection.
+     * Stops the line selection.
      */
     public void clearLineSelection() {
         for (RowView row : rows) {
             row.clearLineSelection();
         }
     }
-    /**
-     * Executes the operation represented by refreshLives.
-     */
+
     private void refreshLives() {
-        int opponentLives = Math.max(0, Math.min(2,
-            board.getOpponentSide().getOwner().getLives()));
-        int playerLives = Math.max(0, Math.min(2,
-            board.getPlayerSide().getOwner().getLives()));
-
-        destroyMissingGems(opponentLives, displayedOpponentLives,
-            opponentFirstGem, opponentSecondGem);
-        destroyMissingGems(playerLives, displayedPlayerLives,
-            playerFirstGem, playerSecondGem);
-
+        int opponentLives = Math.max(0, controller.getOpponentLives());
+        int playerLives = Math.max(0, controller.getPlayerLives());
+        destroyMissingGems(opponentGems, opponentLives, displayedOpponentLives);
+        destroyMissingGems(playerGems, playerLives, displayedPlayerLives);
         displayedOpponentLives = opponentLives;
         displayedPlayerLives = playerLives;
     }
 
-    private void destroyMissingGems(int currentLives, int previousLives,
-            GemView firstGem, GemView secondGem) {
-        if (currentLives < previousLives) {
-            if (currentLives < 1 && previousLives >= 1) {
-                firstGem.destroyGem();
-            }
-            if (currentLives < 2 && previousLives >= 2) {
-                secondGem.destroyGem();
-            }
+    /**
+     * Breaks the gems of the lives lost since the last refresh.
+     */
+    private void destroyMissingGems(List<GemView> gems, int currentLives, int previousLives) {
+        for (int life = currentLives; life < previousLives && life < gems.size(); life++) {
+            gems.get(life).destroyGem();
         }
     }
-    /**
-     * Displays the information handled by showLatestDiscard.
-     * @param zone the value used by the method
-     * @param discard the value used by the method
-     */
-    private void showLatestDiscard(BoardZoneView zone, List<Card> discard) {
-        if (zone != null) {
-            zone.showCard(discard.isEmpty() ? null : discard.get(discard.size() - 1));
-        }
-    }
-    /**
-     * Executes the operation represented by applyBoardEffect.
-     */
+
     private void applyBoardEffect() {
         double width = getPrefWidth();
         double height = getPrefHeight();
@@ -337,14 +282,7 @@ public class Board3DView extends Pane {
             * RATIOS.get("CAMERA_ZOOM")) * 0.92;
         applyCamera(boardScene, cameraContentWidth, cameraContentHeight, cameraZoom, boardLayoutY);
     }
-    /**
-     * Executes the operation represented by applyCamera.
-     * @param node the value used by the method
-     * @param width the value used by the method
-     * @param height the value used by the method
-     * @param zoom the value used by the method
-     * @param layoutY the value used by the method
-     */
+
     private void applyCamera(Node node, double width, double height, double zoom, double layoutY) {
         double topInset = width * 0.12;
         double bottomInset = width * 0.02;
@@ -360,23 +298,19 @@ public class Board3DView extends Pane {
         perspective.setLry(height);
         node.setEffect(perspective);
 
-        Scale cameraScale = new Scale(
-            zoom,
-            zoom,
-            0,
-            0
-        );
-        node.getTransforms().add(cameraScale);
+        node.getTransforms().add(new Scale(zoom, zoom, 0, 0));
         node.setTranslateX(0);
         node.setTranslateY(0);
         node.setLayoutY(layoutY);
     }
+
     /**
-     * Executes the operation represented by centerInViewport.
-     * @param scaledContent the value used by the method
+     * Moves the scaled content so the board is centered in the window.
+     *
+     * @param scaledContent group that contains the board
      */
     public void centerInViewport(Group scaledContent) {
-        javafx.scene.Scene scene = getScene();
+        Scene scene = getScene();
         if (scene == null) return;
 
         Bounds localBounds = boardScene.getBoundsInLocal();
@@ -391,11 +325,7 @@ public class Board3DView extends Pane {
         scaledContent.setTranslateY(
             scaledContent.getTranslateY() + scene.getHeight() / 2 - boardCenter.getY());
     }
-    /**
-     * Executes the operation represented by average.
-     * @param points the value used by the method
-     * @return the value produced by the method
-     */
+
     private Point2D average(Point2D... points) {
         double x = 0;
         double y = 0;

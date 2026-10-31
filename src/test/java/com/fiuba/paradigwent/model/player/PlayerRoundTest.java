@@ -54,11 +54,11 @@ class PlayerRoundTest {
         GameContext context = new GameContext(player, opponent, board, card);
 
         player.passRound();
-        assertThrows(IllegalStateException.class, () -> player.play(context));
+        assertThrows(IllegalStateException.class, () -> player.play(card, context));
         assertTrue(player.getHand().contains(card));
 
         player.startRound();
-        player.play(context);
+        player.play(card, context);
         assertEquals(4, board.getPlayerSide().getAttackLine(AttackLineType.MELEE).calculateTotalPower());
     }
 

@@ -10,7 +10,6 @@ import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 import java.util.List;
 
-import com.fiuba.paradigwent.view.game.GameView;
 
 import java.util.ArrayList;
 
@@ -62,9 +61,9 @@ public class GemView extends Group {
         setLayoutX(x);
         setLayoutY(y);
 
-        gemParts.add(new Rectangle(size, size, GameView.COLOR.get("Gem")));
-        gemParts.add(new Rectangle(size, size, GameView.COLOR.get("Gem")));
-        gemParts.add(new Rectangle(size, size, GameView.COLOR.get("Gem")));
+        gemParts.add(new Rectangle(size, size, GameColor.GEM.color()));
+        gemParts.add(new Rectangle(size, size, GameColor.GEM.color()));
+        gemParts.add(new Rectangle(size, size, GameColor.GEM.color()));
 
         setGemSpecifications(gemParts.get(0), 45, 0, 8, size);
         setGemSpecifications(gemParts.get(1), 48, -10, -2, size);

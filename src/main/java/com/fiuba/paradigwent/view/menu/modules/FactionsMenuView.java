@@ -1,7 +1,7 @@
 package com.fiuba.paradigwent.view.menu.modules;
 
 import com.fiuba.paradigwent.view.MainView;
-import com.fiuba.paradigwent.view.game.modules.CardRace;
+import com.fiuba.paradigwent.model.enums.Faction;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -26,7 +26,7 @@ public class FactionsMenuView extends VBox {
         lblTitle.setFont(Font.font(mainView.getFontFamilyName(), 20));
 
         getChildren().add(lblTitle);
-        for (CardRace race : CardRace.values()) {
+        for (Faction race : Faction.values()) {
             Button button = mainView.createMenuButton(race.name());
             button.setOnAction(event -> mainView.selectRace(race));
             getChildren().add(button);

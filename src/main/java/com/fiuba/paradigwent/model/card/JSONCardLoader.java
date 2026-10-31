@@ -41,14 +41,14 @@ public class JSONCardLoader {
 
         try (InputStream inputStream = JSONCardLoader.class.getResourceAsStream(CARD_JSON_PATH)) {
             if (inputStream == null) {
-                throw new IllegalStateException("No se encontró el recurso: " + CARD_JSON_PATH);
+                throw new IllegalStateException("Resource not found: " + CARD_JSON_PATH);
             }
             try (Reader reader = new InputStreamReader(inputStream)) {
                 Card[] cards = gson.fromJson(reader, Card[].class);
                 return cards != null ? new ArrayList<>(Arrays.asList(cards)) : new ArrayList<>();
             }
         } catch (java.io.IOException | JsonParseException e) {
-            throw new IllegalStateException("No se pudieron cargar las cartas desde "
+            throw new IllegalStateException("Could not load the cards from "
                 + CARD_JSON_PATH, e);
         }
     }
@@ -74,7 +74,7 @@ public class JSONCardLoader {
                 case "WEATHER":
                     return context.deserialize(jsonObject, Weather.class);
                 default:
-                    throw new JsonParseException("Tipo de carta desconocido: " + type);
+                    throw new JsonParseException("Unknown card type: " + type);
             }
         }
     }

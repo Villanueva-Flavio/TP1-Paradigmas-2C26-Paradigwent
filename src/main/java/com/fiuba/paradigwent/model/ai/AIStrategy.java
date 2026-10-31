@@ -1,15 +1,23 @@
 package com.fiuba.paradigwent.model.ai;
 
+import java.util.List;
+
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.player.Hand;
+import com.fiuba.paradigwent.model.game.Move;
 
+/**
+ * Algorithm an {@link AI} uses to decide its whole turn.
+ */
 public interface AIStrategy {
+
     /**
-     * Executes the operation represented by selectCard.
-     * @param hand the value used by the method
-     * @param gameContext the value used by the method
-     * @return the value produced by the method
+     * Decides the complete move of the turn: which card to play and on which
+     * target, or whether to pass.
+     *
+     * @param hand    cards the AI can play
+     * @param context information about the board from the AI's point of view
+     * @return the move to make
      */
-    public Card selectCard(Hand hand,GameContext gameContext);
+    Move decideMove(List<Card> hand, GameContext context);
 }

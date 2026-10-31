@@ -1,50 +1,38 @@
 package com.fiuba.paradigwent.model.effect;
 
 import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.targeting.NoTarget;
+import com.fiuba.paradigwent.model.targeting.Targeting;
 
 /**
- * Interface representing an effect that can be applied in the game context.
-**/
+ * Effect that a card applies when it is played. Cards compose effects and
+ * apply them without knowing which concrete effect they hold.
+ */
 public interface Effect {
-    void apply(GameContext context);    
 
-    default boolean requiresTarget() {
-        return false;
-    }
+    /**
+     * Applies the effect.
+     *
+     * @param context operations available for the current play
+     */
+    void apply(GameContext context);
 
-    default String getDescription() {
-        return getClass().getSimpleName().replace("Effect", "");
-    }
+    /**
+     * @return a short text that explains what the effect does
+     */
+    String getDescription();
 
+    /**
+     * @return a short text that explains what the effect acts on
+     */
     default String getTargetDescription() {
         return "";
     }
 
-    default boolean isLineTargetEffect() {
-        return false;
-    }
-
-    default boolean isOptionalTargetEffect() {
-        return false;
-    }
-
-    default boolean isDestroyCreatureEffect() {
-        return false;
-    }
-
-    default boolean isReviveEffect() {
-        return false;
-    }
-
-    default boolean isModifyPowerEffect() {
-        return false;
-    }
-
-    default boolean isDuplicateLineEffect() {
-        return false;
-    }
-
-    default String getTargetPrompt() {
-        return "";
+    /**
+     * @return what must be chosen before the effect is applied
+     */
+    default Targeting targeting() {
+        return new NoTarget();
     }
 }

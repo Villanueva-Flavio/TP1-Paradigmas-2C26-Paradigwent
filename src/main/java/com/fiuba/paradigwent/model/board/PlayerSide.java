@@ -10,68 +10,86 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Half of the board that belongs to one player. It owns one
+ * {@link AttackLine} per {@link AttackLineType}.
+ */
 public class PlayerSide {
 
     private final Player owner;
     private final Map<AttackLineType, AttackLine> attackLines = new EnumMap<>(AttackLineType.class);
 
     /**
-     * Constructor for the PlayerSide class.
-     * @param owner The Player object representing the owner of this side of the board.
-    **/
+     * @param owner player that owns this side
+     */
     public PlayerSide(Player owner) {
         this.owner = owner;
         for (AttackLineType type : AttackLineType.values()) attackLines.put(type, new AttackLine(type));
     }
 
     /**
-     * Returns the AttackLine object corresponding to the specified AttackLineType.
-     * @param type
-     * @return The AttackLine object for the specified type.
-    **/
-    public AttackLine getAttackLine(AttackLineType type){return attackLines.get(type);}
+     * @param type an attack line type
+     * @return the line of that type
+     */
+    public AttackLine getAttackLine(AttackLineType type) {
+        return attackLines.get(type);
+    }
 
     /**
-     * Calculates the total power of all attack lines on this side of the board.
-     * @return The total power of all attack lines.
-    **/
+     * Places a minion on the line it belongs to.
+     *
+     * @param minion minion to deploy
+     * @throws IllegalArgumentException if the minion has no playable line
+     */
+    public void deploy(Minion minion) {
+        if (minion.getAttackLineType() == null || minion.getAttackLineType() == AttackLineType.NONE) {
+            throw new IllegalArgumentException("A minion must belong to a playable line: " + minion);
+        }
+        getAttackLine(minion.getAttackLineType()).addMinion(minion);
+    }
+
+    /**
+     * @return the sum of the power of every line
+     */
     public int totalPower() {
         return attackLines.values().stream().mapToInt(AttackLine::calculateTotalPower).sum();
     }
 
     /**
-     * Discards all minions from the attack lines and sends them to the owner's discard pile. Also deactivates any horn effects on the attack lines.
-    **/
+     * Sends every minion to the owner's discard pile and removes the horns.
+     */
     public void discard() {
         List<Minion> minions = new ArrayList<>();
         for (AttackLine line : attackLines.values()) {
             minions.addAll(line.takeMinions());
             line.deActivateHorn();
         }
+        minions.forEach(Minion::resetPower);
         owner.sendToDiscard(minions);
-    }
-    /**
-     * Executes the operation represented by applyWeather.
-     * @param weather the value used by the method
-     */
-    public void applyWeather(WeatherType weather) {
-            for (AttackLineType type : AttackLineType.values()) {
-                boolean affected = switch (weather) {
-                    case FROST -> type == AttackLineType.MELEE;
-                    case FOG -> type == AttackLineType.RANGED;
-                    case RAIN -> type == AttackLineType.SIEGE;
-                    case THUNDER -> type == AttackLineType.MELEE || type == AttackLineType.SIEGE;
-                    case SNOW -> type == AttackLineType.MELEE || type == AttackLineType.RANGED;
-                    case CLEAR -> false;
-                };
-                attackLines.get(type).setWeathered(affected);
-            }
     }
 
     /**
-     * Returns the strongest minion on this side of the board based on its current power.
-     * @return The strongest minion on this side, or null if there are no minions.
-    **/
+     * Marks the lines affected by the weather.
+     *
+     * @param weather the weather of the board
+     */
+    public void applyWeather(WeatherType weather) {
+        for (AttackLineType type : AttackLineType.values()) {
+            boolean affected = switch (weather) {
+                case FROST -> type == AttackLineType.MELEE;
+                case FOG -> type == AttackLineType.RANGED;
+                case RAIN -> type == AttackLineType.SIEGE;
+                case THUNDER -> type == AttackLineType.MELEE || type == AttackLineType.SIEGE;
+                case SNOW -> type == AttackLineType.MELEE || type == AttackLineType.RANGED;
+                case CLEAR -> false;
+            };
+            attackLines.get(type).setWeathered(affected);
+        }
+    }
+
+    /**
+     * @return the strongest minion of this side, or {@code null}
+     */
     public Minion getStrongestMinion() {
         Minion strongest = null;
         for (AttackLine line : attackLines.values()) {
@@ -84,9 +102,9 @@ public class PlayerSide {
         }
         return strongest;
     }
+
     /**
-     * Executes the operation represented by allMinions.
-     * @return the value produced by the method
+     * @return every minion of this side
      */
     public List<Minion> allMinions() {
         List<Minion> result = new ArrayList<>();
@@ -95,26 +113,51 @@ public class PlayerSide {
         }
         return result;
     }
+
     /**
-     * Executes the operation represented by contains.
-     * @param minion the value used by the method
-     * @return the value produced by the method
+     * @param minion a minion
+     * @return {@code true} if the minion is on this side
      */
     public boolean contains(Minion minion) {
         return attackLines.values().stream()
             .anyMatch(line -> line.getMinions().contains(minion));
     }
+
     /**
-     * Updates the collection through removeMinion.
-     * @param minion the value used by the method
-     * @return the value produced by the method
+     * @param minion minion to remove
+     * @return {@code true} if the minion was on this side
      */
     public boolean removeMinion(Minion minion) {
         return attackLines.values().stream().anyMatch(line -> line.removeIfPresent(minion));
     }
 
     /**
-     * @return The Player object representing the owner of this side of the board.
-    **/
-    public Player getOwner() { return owner; }
+     * Removes a minion and sends it to the owner's discard pile.
+     *
+     * @param minion minion to destroy
+     * @return {@code true} if the minion was on this side
+     */
+    public boolean destroy(Minion minion) {
+        if (!removeMinion(minion)) {
+            return false;
+        }
+        minion.resetPower();
+        owner.sendToDiscard(List.of(minion));
+        return true;
+    }
+
+    /**
+     * @param player a player
+     * @return {@code true} if the player owns this side
+     */
+    public boolean isOwnedBy(Player player) {
+        return owner == player;
+    }
+
+    /**
+     * @return the player that owns this side
+     */
+    public Player getOwner() {
+        return owner;
+    }
 }

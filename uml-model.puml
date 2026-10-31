@@ -1,0 +1,214 @@
+@startuml
+!pragma layout smetana
+
+title Paradigwent - Model
+
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam nodesep 40
+skinparam ranksep 50
+
+package "game" {
+    class Game {
+        +startMatch()
+        +play(Player, Card, Minion, AttackLineType) : boolean
+        +pass(Player) : boolean
+        +surrender(Player)
+        +addListener(GameListener)
+    }
+    interface TurnActions {
+        +play(Player, Card, Minion, AttackLineType) : boolean
+        +pass(Player) : boolean
+        +contextFor(Player) : GameContext
+    }
+    interface TurnScheduler {
+        +schedule(Runnable)
+    }
+    class ImmediateTurnScheduler
+    interface Move {
+        +performBy(Player, TurnActions) : boolean
+    }
+    class PlayCardMove
+    class PassMove
+}
+
+package "round" {
+    class Round {
+        +playCard(Card, Minion, AttackLineType)
+        +passTurn()
+        +getRoundResult() : Result
+    }
+}
+
+class GameContext {
+    +deploy(Minion)
+    +discard(Card)
+    +changeWeather(Weather)
+    +destroy(Minion)
+    +modifyPower(Minion, int)
+    +duplicateLine(AttackLineType)
+    +reviveMinions(int)
+    +stealCards(int)
+    +chosenTarget() : Optional<Minion>
+    +chosenLine() : Optional<AttackLineType>
+    +ownPower() : int
+    +enemyPower() : int
+}
+
+package "event" {
+    interface EffectListener
+    interface MatchListener
+    interface GameListener
+    class GameListeners
+}
+
+package "board" {
+    class Board
+    class PlayerSide
+    class AttackLine
+}
+
+package "player" {
+    class Player {
+        +takeTurn(TurnActions)
+    }
+    class Deck
+    class Hand
+    class Discard
+    class DeckBuilder {
+        +buildFor(Faction) : Deck
+    }
+}
+
+package "ai" {
+    class AI {
+        +takeTurn(TurnActions)
+    }
+    interface AIStrategy {
+        +decideMove(List<Card>, GameContext) : Move
+    }
+    class RandomAIStrategy
+    class RandomTargetChooser
+}
+
+package "card" {
+    abstract class Card {
+        +{abstract} play(GameContext)
+        +{abstract} copy() : Card
+        +{abstract} classifyInto(CardPools)
+        +reviveOnto(PlayerSide, EffectListener) : boolean
+        +targeting() : Targeting
+    }
+    class Minion
+    class Spell
+    class Weather
+    class CardPools
+    class JSONCardLoader
+    class CardAssetResolver
+}
+
+package "effect" {
+    interface Effect {
+        +apply(GameContext)
+        +getDescription() : String
+        +getTargetDescription() : String
+        +targeting() : Targeting
+    }
+    class EffectFactory
+    class DestroyCreatureEffect
+    class DuplicateLineEffect
+    class ModifyPowerEffect
+    class ReviveEffect
+    class StealCardEffect
+    class WeatherEffect
+}
+
+package "targeting" {
+    interface Targeting {
+        +request(TargetSelector)
+        +isSatisfiedBy(Minion, AttackLineType, List<Minion>) : boolean
+        +orElse(Targeting) : Targeting
+    }
+    interface TargetSelector {
+        +selectNothing()
+        +selectMinion(String, boolean, TargetSide)
+        +selectLine(String)
+    }
+    class NoTarget
+    class MinionTarget
+    class LineTarget
+}
+
+package "enums" {
+    enum AttackLineType
+    enum Faction
+    enum Result
+    enum WeatherType
+    enum TargetSide
+}
+
+' --- game flow
+TurnActions <|.. Game
+Game *-- Board
+Game o-- "2" Player
+Game *-- Round
+Game o-- TurnScheduler
+Game *-- GameListeners
+TurnScheduler <|.. ImmediateTurnScheduler
+Move <|.. PlayCardMove
+Move <|.. PassMove
+Round ..> GameContext : creates
+GameContext --> Board
+GameContext --> Player
+GameContext --> EffectListener
+
+' --- events
+EffectListener <|-- GameListener
+MatchListener <|-- GameListener
+GameListener <|.. GameListeners
+
+' --- board
+Board *-- "2" PlayerSide
+PlayerSide *-- "4" AttackLine
+AttackLine o-- Minion
+
+' --- players
+Player *-- Deck
+Player *-- Hand
+Player *-- Discard
+Player ..> TurnActions
+Player <|-- AI
+AI --> AIStrategy
+AIStrategy <|.. RandomAIStrategy
+RandomAIStrategy ..> Move : creates
+RandomAIStrategy ..> RandomTargetChooser
+TargetSelector <|.. RandomTargetChooser
+DeckBuilder ..> CardPools
+DeckBuilder ..> Deck : creates
+
+' --- cards and effects
+Card <|-- Minion
+Card <|-- Spell
+Card <|-- Weather
+Card o-- Effect
+Card ..> CardPools : classifies into
+JSONCardLoader ..> Card : creates
+JSONCardLoader ..> EffectFactory
+EffectFactory ..> Effect : creates
+Effect <|.. DestroyCreatureEffect
+Effect <|.. DuplicateLineEffect
+Effect <|.. ModifyPowerEffect
+Effect <|.. ReviveEffect
+Effect <|.. StealCardEffect
+Effect <|.. WeatherEffect
+Effect ..> GameContext : uses
+Effect ..> Targeting : provides
+
+' --- targeting
+Targeting <|.. NoTarget
+Targeting <|.. MinionTarget
+Targeting <|.. LineTarget
+Targeting ..> TargetSelector : requests
+
+@enduml

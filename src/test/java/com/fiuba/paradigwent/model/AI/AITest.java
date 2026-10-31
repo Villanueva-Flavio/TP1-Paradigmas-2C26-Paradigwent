@@ -5,6 +5,7 @@ import com.fiuba.paradigwent.model.ai.RandomAIStrategy;
 import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.player.Deck;
+import com.fiuba.paradigwent.model.player.Player;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ class AITest {
      * Tests the construction of an {@link AI} instance.
      * Verifies that the AI is created with the given name and deck,
      * that it draws the initial 10 cards from the deck into its hand,
-     * that it starts with 2 lives, and that it has not passed the round.
+     * that it starts with 3 lives, and that it has not passed the round.
      */
     @Test
     void testAIConstruction() {
@@ -34,14 +35,14 @@ class AITest {
 
         assertEquals("AI Player", ai.getName());
         assertEquals(10, ai.getHand().size());
-        assertEquals(2, ai.getLives());
+        assertEquals(Player.INITIAL_LIVES, ai.getLives());
         assertFalse(ai.hasPassedRound());
         assertTrue(ai.canPlayThisRound());
     }
 
     /**
      * Tests that constructing an {@link AI} with an empty deck results in an empty hand.
-     * The AI should still be initialized with 2 lives and not having passed the round.
+     * The AI should still be initialized with 3 lives and not having passed the round.
      */
     @Test
     void testAIConstructionWithEmptyDeck() {
@@ -50,7 +51,7 @@ class AITest {
 
         assertEquals("Empty AI", ai.getName());
         assertEquals(0, ai.getHand().size());
-        assertEquals(2, ai.getLives());
+        assertEquals(Player.INITIAL_LIVES, ai.getLives());
         assertFalse(ai.hasPassedRound());
         assertTrue(ai.canPlayThisRound());
     }

@@ -27,7 +27,7 @@ class CardBehaviorTest {
         Player opponent = ModelTestFixtures.emptyPlayer("opponent");
         Board board = new Board(player, opponent);
 
-        player.play(new GameContext(player, opponent, board, minion));
+        player.play(minion, new GameContext(player, opponent, board, minion));
 
         assertEquals(7, board.getPlayerSide().getAttackLine(AttackLineType.RANGED).calculateTotalPower());
         assertTrue(player.getHand().isEmpty());

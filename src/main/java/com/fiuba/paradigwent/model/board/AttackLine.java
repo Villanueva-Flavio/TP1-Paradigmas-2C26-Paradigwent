@@ -32,12 +32,20 @@ public class AttackLine {
         return activateHorn ? 2 * total : total;
     }
     /**
-     * Returns the value provided by getEffectivePower.
-     * @param minion the value used by the method
-     * @return the value produced by the method
+     * @param minion a minion of this line
+     * @return the power of the minion after applying the weather
      */
     public int getEffectivePower(Minion minion) {
         return weathered ? 1 : minion.getCurrentPower();
+    }
+
+    /**
+     * @param minion a minion of this line
+     * @return the power the minion contributes, including weather and horn
+     */
+    public int displayedPowerOf(Minion minion) {
+        int power = getEffectivePower(minion);
+        return activateHorn ? 2 * power : power;
     }
 
     /**

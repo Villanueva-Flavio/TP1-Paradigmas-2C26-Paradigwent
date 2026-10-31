@@ -1,6 +1,7 @@
 package com.fiuba.paradigwent.model.round;
 
 import com.fiuba.paradigwent.model.board.Board;
+import com.fiuba.paradigwent.model.card.Card;
 import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.enums.Result;
@@ -38,7 +39,7 @@ class RoundIntegrationTest {
 
         Round round = new Round(p1, p2, board);
 
-        Minion cardP1 = (Minion) p1.getHand().get(0);
+        Card cardP1 = p1.getHand().get(0);
         round.playCard(cardP1);
 
         assertFalse(p1.getHand().contains(cardP1));
@@ -46,7 +47,7 @@ class RoundIntegrationTest {
         assertEquals(0, board.getOpponentSide().totalPower());
 
         assertEquals(p2, round.getCurrentPlayer());
-        Minion cardP2 = (Minion) p2.getHand().get(0);
+        Card cardP2 = p2.getHand().get(0);
         round.playCard(cardP2);
 
         assertEquals(5, board.getPlayerSide().totalPower());
@@ -80,11 +81,11 @@ class RoundIntegrationTest {
         Board board = new Board(p1, p2);
         Round round = new Round(p1, p2, board);
 
-        Minion cardP1 = (Minion) p1.getHand().get(0);
+        Card cardP1 = p1.getHand().get(0);
         round.playCard(cardP1);
 
         assertEquals(p2, round.getCurrentPlayer());
-        Minion cardP2 = (Minion) p2.getHand().get(0);
+        Card cardP2 = p2.getHand().get(0);
         round.playCard(cardP2);
 
         round.passTurn();
@@ -110,11 +111,11 @@ class RoundIntegrationTest {
         Board board = new Board(p1, p2);
         Round round = new Round(p1, p2, board);
 
-        Minion cardP1 = (Minion) p1.getHand().get(0);
+        Card cardP1 = p1.getHand().get(0);
         round.playCard(cardP1);
 
         assertEquals(p2, round.getCurrentPlayer());
-        Minion cardP2 = (Minion) p2.getHand().get(0);
+        Card cardP2 = p2.getHand().get(0);
         round.playCard(cardP2);
 
         round.passTurn();
@@ -139,7 +140,7 @@ class RoundIntegrationTest {
         Board board = new Board(p1, p2);
         Round round = new Round(p1, p2, board);
 
-        Minion cardP1 = (Minion) p1.getHand().get(0);
+        Card cardP1 = p1.getHand().get(0);
         round.playCard(cardP1);
         round.passTurn();
 
@@ -147,7 +148,7 @@ class RoundIntegrationTest {
 
         assertTrue(round.isFinished());
 
-        Minion extra = (Minion) p1.getHand().get(0);
+        Card extra = p1.getHand().get(0);
         round.playCard(extra);
         assertEquals(5, board.getPlayerSide().totalPower());
         assertTrue(p1.getHand().contains(extra));

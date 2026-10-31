@@ -228,12 +228,10 @@ Los recursos multimedia están organizados de la siguiente manera:
 
 ## Diagramas UML
 
-El proyecto incluye diagramas PlantUML separados para facilitar su lectura:
+El diagrama de clases del modelo se genera con PlantUML:
 
-- [UML general](uml.puml)
-- [UML del modelo](uml-model.puml)
-- [UML de controladores](uml-controller.puml)
-- [UML de la vista](uml-view.puml)
+- Fuente: [uml-model.puml](uml-model.puml)
+- Imagen: [ParadigwentUML.png](ParadigwentUML.png)
 
 ## Agradecimientos y créditos de assets
 

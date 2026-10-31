@@ -1,114 +1,131 @@
 package com.fiuba.paradigwent.model.card;
 
 import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.board.AttackLine;
 import com.fiuba.paradigwent.model.board.PlayerSide;
-import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.effect.Effect;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.event.EffectListener;
 
-public class Minion extends Card{
+import java.util.List;
+
+/**
+ * Creature card: it stays on its attack line adding its power and may carry
+ * an ability (effects applied when it is deployed).
+ */
+public class Minion extends Card {
 
     private int powerModifier;
-    private List<Effect> effects = new ArrayList<>();
 
     /**
-     * Constructor for the Minion class, which represents a minion card in the game. It initializes the minion with its unique identifier, name, stack limit, base power, and attack line type.
-     * @param id
-     * @param name
-     * @param stackLimite
-     * @param basePower
-     * @param attackLineType
-     * @param description
-    **/
-    public Minion(String id, String name,int stackLimite, int basePower, AttackLineType attackLineType, String description){
-        super(id, name,stackLimite, attackLineType, description);
+     * Creates a minion without abilities.
+     *
+     * @param id             unique identifier
+     * @param name           display name
+     * @param stackLimit     maximum copies allowed in a deck
+     * @param basePower      printed power
+     * @param attackLineType line where the minion is deployed
+     * @param description    flavour text
+     */
+    public Minion(String id, String name, int stackLimit, int basePower,
+                  AttackLineType attackLineType, String description) {
+        this(id, name, stackLimit, basePower, attackLineType, description, List.of());
+    }
+
+    /**
+     * Creates a minion with abilities.
+     *
+     * @param id             unique identifier
+     * @param name           display name
+     * @param stackLimit     maximum copies allowed in a deck
+     * @param basePower      printed power
+     * @param attackLineType line where the minion is deployed
+     * @param description    flavour text
+     * @param effects        abilities applied when the minion is deployed
+     */
+    public Minion(String id, String name, int stackLimit, int basePower,
+                  AttackLineType attackLineType, String description, List<Effect> effects) {
+        super(id, name, stackLimit, attackLineType, description, effects);
         this.basePower = basePower;
         this.powerModifier = 0;
     }
 
+    private Minion(Minion other) {
+        super(other);
+        this.powerModifier = 0;
+    }
+
     /**
-     * @return The current power of the minion, which is the sum of its base power and any modifiers that have been applied to it.
-    **/
+     * @return the base power plus every modifier applied to the minion
+     */
     public int getCurrentPower() {
         return basePower + powerModifier;
     }
-    /**
-     * Returns the value provided by getDisplayedPower.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
     public int getDisplayedPower() {
         return getCurrentPower();
     }
-    /**
-     * Executes the operation represented by asMinion.
-     * @return the value produced by the method
-     */
-    @Override
-    public Optional<Minion> asMinion() {
-        return Optional.of(this);
-    }
 
     /**
-     * Modifies the power of the minion by a specified amount. This method adjusts the power modifier, which affects the minion's current power.
-     * @param modifier The amount to modify the minion's power by (can be positive or negative).
-    **/
+     * Adds a modifier to the power of the minion.
+     *
+     * @param modifier amount to add (negative values weaken the minion)
+     */
     public void modifyPower(int modifier) {
         this.powerModifier += modifier;
     }
+
     /**
-     * Executes the operation represented by play.
-     * @param context the value used by the method
+     * Removes every modifier. Called when the minion leaves the board, so a
+     * destroyed or discarded minion comes back with its printed power.
+     */
+    public void resetPower() {
+        this.powerModifier = 0;
+    }
+
+    /**
+     * Deploys the minion on its line and then triggers its abilities.
+     *
+     * @param context operations available for the current play
      */
     @Override
     public void play(GameContext context) {
-        PlayerSide side = context.getBoard().getSideFor(context.getCurrentPlayer());
-        AttackLine line = side.getAttackLine(this.getAttackLineType());
-        line.addMinion(this);
-        for (Effect effect : effects) {
-            effect.apply(context);
-        }
+        context.deploy(this);
+        applyEffects(context);
+    }
 
+    /** {@inheritDoc} */
+    @Override
+    public Card copy() {
+        return new Minion(this);
     }
+
     /**
-     * Returns the value provided by getEffects.
-     * @return the value produced by the method
-     */
-    public List<Effect> getEffects() {
-        return new ArrayList<>(effects);
-    }
-    /**
-     * Executes the operation represented by requiresTarget.
-     * @return the value produced by the method
+     * Minions with abilities and common minions go to different pools.
      */
     @Override
-    public boolean requiresTarget() {
-        return effects.stream()
-            .anyMatch(effect -> !effect.isLineTargetEffect()
-                && effect.requiresTarget());
+    public void classifyInto(CardPools pools) {
+        if (hasEffects()) {
+            pools.addAbilityMinion(this);
+        } else {
+            pools.addCommonMinion(this);
+        }
     }
+
     /**
-     * Returns the value provided by getTargetDescription.
-     * @return the value produced by the method
+     * A revived minion goes straight back to its attack line.
      */
     @Override
-    public String getTargetDescription() {
-        return effects.stream()
-            .map(Effect::getTargetDescription)
-            .filter(description -> !description.isBlank())
-            .distinct()
-            .reduce((left, right) -> left + " | " + right)
-            .orElse("");
+    public boolean reviveOnto(PlayerSide side, EffectListener listener) {
+        side.deploy(this);
+        listener.minionRevived(this);
+        return true;
     }
-    /**
-     * Reports the state represented by hasOptionalTarget.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
-    public boolean hasOptionalTarget() {
-        return effects.stream().anyMatch(Effect::isOptionalTargetEffect);
+    public String getCardType() {
+        return "MINION";
     }
 }

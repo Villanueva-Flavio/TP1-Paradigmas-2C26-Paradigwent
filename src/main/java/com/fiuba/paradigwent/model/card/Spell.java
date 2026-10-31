@@ -1,70 +1,74 @@
 package com.fiuba.paradigwent.model.card;
 
 import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.effect.Effect;
-import java.util.ArrayList;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
+
 import java.util.List;
-import java.util.stream.Collectors;
 
+/**
+ * Effect card: it applies its effects and goes to the discard pile.
+ */
 public class Spell extends Card {
-    private List<Effect> effects = new ArrayList<>();
 
     /**
-     * Creates a new Spell card with the specified parameters.
-     * @param id
-     * @param name
-     * @param stackLimite
-     * @param attackLineType
-    **/
-    public Spell(String id, String name, int stackLimite, AttackLineType attackLineType, String description) {
-        super(id, name, stackLimite, attackLineType, description);
+     * Creates a spell without effects.
+     *
+     * @param id             unique identifier
+     * @param name           display name
+     * @param stackLimit     maximum copies allowed in a deck
+     * @param attackLineType line used by effects that depend on the played card
+     * @param description    flavour text
+     */
+    public Spell(String id, String name, int stackLimit, AttackLineType attackLineType, String description) {
+        this(id, name, stackLimit, attackLineType, description, List.of());
     }
+
     /**
-     * Executes the operation represented by play.
-     * @param context the value used by the method
+     * Creates a spell with effects.
+     *
+     * @param id             unique identifier
+     * @param name           display name
+     * @param stackLimit     maximum copies allowed in a deck
+     * @param attackLineType line used by effects that depend on the played card
+     * @param description    flavour text
+     * @param effects        effects applied when the spell is played
+     */
+    public Spell(String id, String name, int stackLimit, AttackLineType attackLineType,
+                 String description, List<Effect> effects) {
+        super(id, name, stackLimit, attackLineType, description, effects);
+    }
+
+    private Spell(Spell other) {
+        super(other);
+    }
+
+    /**
+     * Applies the effects of the spell and discards it.
+     *
+     * @param context operations available for the current play
      */
     @Override
     public void play(GameContext context) {
-        for (Effect effect : effects) {
-            effect.apply(context);
-        }
+        applyEffects(context);
+        context.discard(this);
     }
-    /**
-     * Returns the value provided by getEffects.
-     * @return the value produced by the method
-     */
-    public List<Effect> getEffects() {
-        return new ArrayList<>(effects);
-    }
-    /**
-     * Executes the operation represented by requiresTarget.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
-    public boolean requiresTarget() {
-        return effects.stream().anyMatch(Effect::requiresTarget);
+    public Card copy() {
+        return new Spell(this);
     }
-    /**
-     * Returns the value provided by getEffectDescription.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
-    public String getEffectDescription() {
-        return effects.stream()
-            .map(Effect::getDescription)
-            .collect(Collectors.joining(", "));
+    public void classifyInto(CardPools pools) {
+        pools.addSpell(this);
     }
-    /**
-     * Returns the value provided by getTargetDescription.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
-    public String getTargetDescription() {
-        return effects.stream()
-            .map(Effect::getTargetDescription)
-            .filter(description -> !description.isBlank())
-            .distinct()
-            .collect(Collectors.joining(" | "));
+    public String getCardType() {
+        return "SPELL";
     }
 }

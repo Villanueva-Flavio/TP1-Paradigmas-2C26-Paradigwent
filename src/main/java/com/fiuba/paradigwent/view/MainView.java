@@ -3,6 +3,8 @@ package com.fiuba.paradigwent.view;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 
@@ -37,7 +39,7 @@ import com.fiuba.paradigwent.view.menu.modules.CollectionMenuView;
 import com.fiuba.paradigwent.view.menu.modules.ConfigMenuView;
 import com.fiuba.paradigwent.view.menu.modules.FactionsMenuView;
 import com.fiuba.paradigwent.view.menu.modules.InGameConfigMenuView;
-import com.fiuba.paradigwent.view.game.modules.CardRace;
+import com.fiuba.paradigwent.model.enums.Faction;
 import com.fiuba.paradigwent.view.game.GameView;
 
 /**
@@ -51,6 +53,7 @@ public class MainView extends Application {
         "TITLE_IMAGE", "/images/title.png",
         "BACKGROUND_VIDEO", "/videos/main_menu_background.mp4"
     );
+    private static final double MIN_MENU_COMPONENT_WIDTH = 140;
     private static final Map<String, Double> UI_DIMENSIONS = Map.of(
         "TEXT_SIZE", 15.0,
         "TITLE_PADDING_TOP", 40.0,
@@ -78,9 +81,11 @@ public class MainView extends Application {
     private CollectionMenuView collectionMenuView;
     private InGameConfigMenuView inGameConfigMenuView;
     private GameView gameView;
-    private CardRace selectedRace = CardRace.HUMAN;
+    private Faction selectedRace = Faction.HUMAN;
     private boolean selectingRaceForMatch;
     private Pair<Integer, Integer> currentResolution = SUPPORTED_RESOLUTIONS.get(0);
+    private AudioManager audioManager;
+    private final DoubleProperty menuComponentWidth = new SimpleDoubleProperty(MIN_MENU_COMPONENT_WIDTH);
 
     /**
      * @brief Initializes the views, scene, stylesheet, and primary stage.
@@ -88,6 +93,7 @@ public class MainView extends Application {
      */
     @Override
     public void start(Stage primaryStage) {
+        this.audioManager = new AudioManager();
         setup(primaryStage);
         URL cssResource = getClass().getResource(ASSETS.get("CSS"));
 
@@ -150,13 +156,21 @@ public class MainView extends Application {
         if (gameView == null) {
             gameView = new GameView(this, selectedRace);
         }
-        AudioManager.playGameMusic();
-        AudioManager.updateWeatherMusic(gameView.getCurrentWeather());
+        audioManager.playGameMusic();
+        audioManager.updateWeatherMusic(gameView.getCurrentWeather());
         root.getChildren().remove(inGameConfigMenuView);
         uiOverlay.setLeft(null);
         uiOverlay.setRight(null);
         uiOverlay.setCenter(gameView.getRootNode());
     }
+
+    public AudioManager getCurrentAudioManager() {
+        if (audioManager == null) {
+            audioManager = new AudioManager();
+        }
+        return audioManager;
+    }
+
     /**
      * Executes the operation represented by surrenderGame.
      */
@@ -175,7 +189,9 @@ public class MainView extends Application {
     public void showMainMenu()       {
         selectingRaceForMatch = false;
         gameView = null;
-        AudioManager.playMenuMusic();
+        if (audioManager != null) {
+            audioManager.playMenuMusic();
+        }
         setContent(mainMenuView);
     }
     /** @brief Shows the configuration menu. */
@@ -197,7 +213,7 @@ public class MainView extends Application {
      * Executes the operation represented by selectRace.
      * @param race the value used by the method
      */
-    public void selectRace(CardRace race) {
+    public void selectRace(Faction race) {
         if (race != null) {
             selectedRace = race;
             gameView = null;
@@ -274,7 +290,33 @@ public class MainView extends Application {
     public Button createMenuButton(String text) {
         Button btn = new Button(text);
         btn.getStyleClass().add("menu-button");
+        btn.setMinWidth(MIN_MENU_COMPONENT_WIDTH);
+        btn.prefWidthProperty().bind(menuComponentWidth);
         return btn;
+    }
+
+    /**
+     * Creates a button for dialogs: it keeps its natural width instead of
+     * following the width of the menu.
+     * @param text Text displayed by the button.
+     * @return New button with the dialog style.
+     */
+    public Button createDialogButton(String text) {
+        Button btn = new Button(text);
+        btn.getStyleClass().addAll("menu-button", "menu-button-dialog");
+        return btn;
+    }
+
+    /**
+     * Creates a combo box styled for the application menus.
+     * @return New combo box that follows the width of the menu.
+     */
+    public ComboBox<String> createMenuComboBox() {
+        ComboBox<String> comboBox = new ComboBox<>();
+        comboBox.getStyleClass().add("menu-combo-box");
+        comboBox.setMinWidth(MIN_MENU_COMPONENT_WIDTH);
+        comboBox.prefWidthProperty().bind(menuComponentWidth);
+        return comboBox;
     }
 
     /** 
@@ -354,29 +396,7 @@ public class MainView extends Application {
         double width = uiOverlay.getWidth();
         if (width <= 0) return;
 
-        double componentWidth = Math.min(360, Math.max(180, width * 0.22));
-        adaptComponentWidths(uiOverlay, componentWidth);
-    }
-    /**
-     * Executes the operation represented by adaptComponentWidths.
-     * @param node the value used by the method
-     * @param width the value used by the method
-     */
-    private void adaptComponentWidths(Node node, double width) {
-        node.lookupAll(".menu-button").stream()
-            .filter(control -> !control.getStyleClass().contains("menu-button-dialog"))
-            .map(Button.class::cast)
-            .forEach(button -> {
-                button.setMinWidth(140);
-                button.setPrefWidth(width);
-            });
-
-        node.lookupAll(".menu-combo-box").stream()
-            .map(ComboBox.class::cast)
-            .forEach(comboBox -> {
-                comboBox.setMinWidth(140);
-                comboBox.setPrefWidth(width);
-            });
+        menuComponentWidth.set(Math.min(360, Math.max(180, width * 0.22)));
     }
 
     /**

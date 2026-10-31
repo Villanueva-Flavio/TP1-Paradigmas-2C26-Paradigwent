@@ -11,9 +11,6 @@ import javafx.animation.KeyValue;
 import javafx.animation.PauseTransition;
 import javafx.animation.Timeline;
 import javafx.scene.layout.Pane;
-import javafx.scene.Node;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.transform.Rotate;
 import javafx.geometry.Point2D;
 import javafx.util.Duration;
@@ -26,7 +23,8 @@ public class HandView extends Pane {
     private static final double HAND_SCALE = 0.80;
 
     private final List<Card> cards;
-    private final PauseTransition previewDelay = new PauseTransition(Duration.millis(500));
+    private final List<CardView> cardViews = new ArrayList<>();
+    private final PauseTransition previewDelay = new PauseTransition(Duration.millis(300));
     private Consumer<Card> onPreviewRequested = ignored -> { };
     private Runnable onPreviewCleared = () -> { };
     private Consumer<Card> onCardSelected = ignored -> { };
@@ -38,8 +36,7 @@ public class HandView extends Pane {
         setScaleX(HAND_SCALE);
         setScaleY(HAND_SCALE);
         setPickOnBounds(false);
-        addEventFilter(MouseEvent.MOUSE_PRESSED, this::handleCardPressed);
-        construirCartas(virtualWidth, virtualHeight);
+        buildCards(virtualWidth, virtualHeight);
     }
     /**
      * Updates the value managed by setOnPreviewRequested.
@@ -69,7 +66,7 @@ public class HandView extends Pane {
     public void removeCard(Card card) {
         if (cards.remove(card)) {
             getChildren().clear();
-            construirCartas(getPrefWidth(), getPrefHeight());
+            buildCards(getPrefWidth(), getPrefHeight());
         }
     }
     /**
@@ -80,7 +77,7 @@ public class HandView extends Pane {
         cards.clear();
         cards.addAll(updatedCards);
         getChildren().clear();
-        construirCartas(getPrefWidth(), getPrefHeight());
+        buildCards(getPrefWidth(), getPrefHeight());
     }
     /**
      * Returns the value provided by getCardCenterInScene.
@@ -88,44 +85,11 @@ public class HandView extends Pane {
      * @return the value produced by the method
      */
     public Point2D getCardCenterInScene(Card card) {
-        for (Node child : getChildren()) {
-            if (child.getClass() == CardView.class && ((CardView) child).getCard() == card) {
-                CardView cardView = (CardView) child;
+        for (CardView cardView : cardViews) {
+            if (cardView.shows(card)) {
                 javafx.geometry.Bounds bounds = cardView.localToScene(cardView.getBoundsInLocal());
                 return new Point2D(bounds.getCenterX(), bounds.getCenterY());
             }
-        }
-        return null;
-    }
-    /**
-     * Executes the operation represented by handleCardPressed.
-     * @param event the value used by the method
-     */
-    private void handleCardPressed(MouseEvent event) {
-        if (event.getButton() != MouseButton.PRIMARY) {
-            return;
-        }
-
-        CardView selectedCardView = findCardView(event.getTarget());
-        if (selectedCardView == null) {
-            return;
-        }
-
-        onCardSelected.accept(selectedCardView.getCard());
-        event.consume();
-    }
-    /**
-     * Executes the operation represented by findCardView.
-     * @param target the value used by the method
-     * @return the value produced by the method
-     */
-    private CardView findCardView(Object target) {
-        Node node = (Node) target;
-        while (node != null && node != this) {
-            if (node.getClass() == CardView.class) {
-                return (CardView) node;
-            }
-            node = node.getParent();
         }
         return null;
     }
@@ -134,7 +98,8 @@ public class HandView extends Pane {
      * @param virtualWidth the value used by the method
      * @param virtualHeight the value used by the method
      */
-    private void construirCartas(double virtualWidth, double virtualHeight) {
+    private void buildCards(double virtualWidth, double virtualHeight) {
+        cardViews.clear();
         if (cards.isEmpty()) {
             return;
         }
@@ -159,6 +124,7 @@ public class HandView extends Pane {
             card.setLayoutY(baseY + Math.abs(offset) * 2);
 
             configureHover(card, rotation, baseAngle);
+            cardViews.add(card);
             getChildren().add(card);
         }
     }

@@ -29,6 +29,7 @@ import javafx.scene.text.Font;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -40,6 +41,7 @@ public class CollectionMenuView extends VBox {
     );
     private List<Card> allCards = JSONCardLoader.loadCards();
     private final GridPane cardGrid = new GridPane();
+    private final List<CardSlot> cardSlots = new ArrayList<>();
     private final ScrollPane cardScroll = new ScrollPane(cardGrid);
     private final MainView mainView;
     private Button previousPageButton;
@@ -256,6 +258,7 @@ public class CollectionMenuView extends VBox {
      */
     private void renderCards(boolean animate, int direction) {
         cardGrid.getChildren().clear();
+        cardSlots.clear();
         cardGrid.setAlignment(Pos.CENTER);
         cardGrid.setHgap(0);
         cardGrid.setVgap(0);
@@ -299,7 +302,7 @@ public class CollectionMenuView extends VBox {
      * Executes the operation represented by resizeCards.
      */
     private void resizeCards() {
-        if (!cardGrid.getChildren().isEmpty()) resizeCardImages();
+        if (!cardSlots.isEmpty()) resizeCardImages();
     }
     /**
      * Executes the operation represented by resizeCardImages.
@@ -307,15 +310,7 @@ public class CollectionMenuView extends VBox {
     private void resizeCardImages() {
         double cardWidth = calculateCardWidth();
         double cardHeight = cardWidth * 1.46;
-        cardGrid.lookupAll(".collection-card-slot").stream()
-            .map(StackPane.class::cast)
-            .forEach(slot -> {
-                slot.setMinSize(cardWidth + 12, cardHeight + 12);
-                slot.setPrefSize(cardWidth + 12, cardHeight + 12);
-                slot.lookupAll(".collection-card-visual").stream()
-                    .map(CardVisual.class::cast)
-                    .forEach(card -> card.updateSize(cardWidth, cardHeight));
-            });
+        cardSlots.forEach(cardSlot -> cardSlot.resize(cardWidth, cardHeight));
         cardGrid.requestLayout();
     }
     /**
@@ -376,7 +371,7 @@ public class CollectionMenuView extends VBox {
      * @return the value produced by the method
      */
     private String typeName(Card card) {
-        return card.getClass().getSimpleName().toUpperCase();
+        return card.getCardType();
     }
     /**
      * Executes the operation represented by createCardImage.
@@ -403,7 +398,19 @@ public class CollectionMenuView extends VBox {
         slot.setMinSize(width + 12, height + 12);
         slot.setPrefSize(width + 12, height + 12);
         configureCardHover(slot, card);
+        cardSlots.add(new CardSlot(slot, image));
         return slot;
+    }
+
+    /**
+     * A slot of the grid together with the card drawn inside it.
+     */
+    private record CardSlot(StackPane slot, CardVisual visual) {
+        void resize(double cardWidth, double cardHeight) {
+            slot.setMinSize(cardWidth + 12, cardHeight + 12);
+            slot.setPrefSize(cardWidth + 12, cardHeight + 12);
+            visual.updateSize(cardWidth, cardHeight);
+        }
     }
 
     private CardVisual createCardImage(Card card, double width, double height,

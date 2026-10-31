@@ -1,93 +1,62 @@
 package com.fiuba.paradigwent.view.game;
 
-import javafx.geometry.Point2D;
-import javafx.geometry.Bounds;
+import java.util.Random;
+
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
 import javafx.geometry.Insets;
+import javafx.geometry.Point2D;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.Region;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.paint.Color;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.animation.ParallelTransition;
-import javafx.animation.PauseTransition;
-import javafx.animation.ScaleTransition;
-import javafx.animation.RotateTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.TranslateTransition;
-import javafx.util.Duration;
-import javafx.animation.Interpolator;
-import java.util.Map;
-import java.util.List;
-import java.util.Random;
-
-import com.fiuba.paradigwent.view.MainView;
-import com.fiuba.paradigwent.view.AudioManager;
-import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.effect.Effect;
-import com.fiuba.paradigwent.model.enums.AttackLineType;
-import com.fiuba.paradigwent.model.enums.Result;
-import com.fiuba.paradigwent.model.enums.WeatherType;
-import com.fiuba.paradigwent.controller.GameController;
-import com.fiuba.paradigwent.view.game.modules.Board3DView;
-import com.fiuba.paradigwent.view.game.modules.CardRace;
-import com.fiuba.paradigwent.view.game.modules.HandView;
-import com.fiuba.paradigwent.view.game.modules.OpponentHandView;
-import com.fiuba.paradigwent.view.game.modules.CardVisual;
-import com.fiuba.paradigwent.view.game.modules.GameTextures;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.transform.Scale;
 
-import java.util.HashMap;
+import com.fiuba.paradigwent.controller.GameController;
+import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.enums.Faction;
+import com.fiuba.paradigwent.model.enums.Result;
+import com.fiuba.paradigwent.model.enums.WeatherType;
+import com.fiuba.paradigwent.model.event.GameListener;
+import com.fiuba.paradigwent.model.player.Player;
+import com.fiuba.paradigwent.view.AudioManager;
+import com.fiuba.paradigwent.view.MainView;
+import com.fiuba.paradigwent.view.game.modules.Board3DView;
+import com.fiuba.paradigwent.view.game.modules.GameTextures;
+import com.fiuba.paradigwent.view.game.modules.HandView;
+import com.fiuba.paradigwent.view.game.modules.OpponentHandView;
 
-public class GameView {
+/**
+ * Screen of a match. It builds the layers of the board, forwards the human's
+ * actions to the controller and observes the match to animate what happens.
+ * It never drives the match: turns and AI moves are decided by the model.
+ */
+public class GameView implements GameListener {
 
     public static final double VIRTUAL_WIDTH = 1000;
     public static final double VIRTUAL_HEIGHT = 600;
-    public static final double CONTENT_SCALE = 1.0;
-    public static final double MIN_VIEW_WIDTH = 640;
-    public static final double MIN_VIEW_HEIGHT = 400;
-    public static final double UI_OPPONENT_X = 465;
-    public static final double UI_OPPONENT_Y = 75;
-    public static final double UI_PLAYER_X = 465;
-    public static final double UI_PLAYER_Y = 565;
-    public static final double UI_FONT_SIZE = 15;
-    public static final double BOARD_HEIGHT = 800;
-    public static final double BOARD_Y = 20;
-    public static final double ZONE_X = 890;
-    public static final double ZONE_WIDTH = 60;
-    public static final double ZONE_HEIGHT = 100;
-    
+    private static final double CONTENT_SCALE = 1.0;
+    private static final double MIN_VIEW_WIDTH = 640;
+    private static final double MIN_VIEW_HEIGHT = 400;
     private static final double CONTENT_OFFSET_Y_RATIO = 0.0740740741;
     private static final double REFERENCE_WIDTH = 1920;
     private static final double REFERENCE_HEIGHT = 1080;
     private static final double REFERENCE_CONTENT_SCALE = REFERENCE_HEIGHT / VIRTUAL_HEIGHT;
 
-    public static final Map<String, Color> COLOR = new HashMap<String, Color>() {{
-        put("SiegeLine", Color.web("#d23737"));
-        put("RangedLine", Color.web("#00ff00"));
-        put("MeleeLine", Color.web("#5337d2"));
-        put("Weather", Color.web("#e1a037"));
-        put("Deck", Color.web("#a51f7d"));
-        put("Discard", Color.web("#6d0e0e"));
-        put("Board", Color.web("#3a4b68"));
-        put("BoardBorder", Color.rgb(12, 15, 22, 0.88));
-        put("BoardBackground", Color.rgb(18, 22, 32, 0.9));
-        put("Gem", Color.web("#800f2f"));
-        put("Row", Color.rgb(20, 26, 38, 0.85));
-        put("DummyCard", Color.rgb(255, 255, 255, 0.15));
-        put("DummyCardStroke", Color.web("#78a6ff"));
-        put("DummyCardShadow", Color.BLACK);
-        put("RowText", Color.web("#d0d6e0"));
-    }};
-
+    private final MainView mainView;
+    private final AudioManager audioManager;
+    private final GameTextures textures = new GameTextures();
+    private final GameController controller;
     private StackPane rootContainer;
     private Pane backgroundLayer;
     private Board3DView boardView;
@@ -96,116 +65,101 @@ public class GameView {
     private Group scalableOverlay;
     private HandView playerHandView;
     private OpponentHandView opponentHandView;
-    private StackPane handPreview;
-    private final GameController controller;
-    private final MainView mainView;
     private NumberBinding viewportScale;
-    private StackPane resultOverlay;
+    private CardPreviewOverlay preview;
+    private CardFlightAnimation cardFlight;
+    private ActionPrompt actionPrompt;
+    private MatchStatusPanel statusPanel;
+    private boolean resultShown;
     private boolean cardAnimationRunning;
-    private Card cardWaitingForTarget;
-    private Card cardWaitingForLine;
-    private Label actionPrompt;
-    private Label turnIndicator;
-    private final Random animationRandom = new Random();
 
-    /**      * Constructs a new GameView.      */
-    public GameView(MainView mainView) {
-        this(mainView, CardRace.HUMAN);
-    }
-
-    /**      * Constructs a new GameView.      */
-    public GameView(MainView mainView, CardRace selectedRace) {
+    /**
+     * Creates the screen and starts a new match.
+     *
+     * @param mainView        application window
+     * @param selectedFaction faction chosen by the human
+     */
+    public GameView(MainView mainView, Faction selectedFaction) {
         this.mainView = mainView;
-        controller = new GameController(selectedRace);
+        this.audioManager = mainView.getCurrentAudioManager();
+        this.controller = new GameController(selectedFaction, new DelayedTurnScheduler(new Random()));
         buildLayerStructure();
         buildBackground();
         buildUiControls();
         buildHands();
+        controller.addListener(new GameSoundEffects(audioManager));
+        controller.addListener(this);
+        controller.startMatch();
     }
+
     /**
-     * Returns the value provided by getRootNode.
-     * @return the value produced by the method
+     * @return the root node of the screen
      */
     public Parent getRootNode() {
         return rootContainer;
     }
+
     /**
-     * Returns the value provided by getCurrentWeather.
-     * @return the value produced by the method
+     * @return the weather of the board, used to resume the weather music
      */
     public WeatherType getCurrentWeather() {
-        return controller.getBoard().getCurrentWeather();
+        return controller.getCurrentWeather();
     }
+
     /**
-     * Executes the operation represented by surrender.
+     * Surrenders the match and shows the defeat.
      */
     public void surrender() {
-        controller.surrender();
-        boardView.refresh();
         showMatchResult(Result.PLAYER2_WIN, "You surrendered. The match is over.");
+        controller.surrender();
+        refreshAll();
     }
+
     /**
-     * Executes the operation represented by buildLayerStructure.
+     * Moves the board to the center of the window.
      */
+    public void centerBoardInViewport() {
+        boardView.centerInViewport(scalableContent);
+    }
+
+    // ---------------------------------------------------------------- layout
+
     private void buildLayerStructure() {
         rootContainer = new StackPane();
         rootContainer.setPrefSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         rootContainer.setMinSize(MIN_VIEW_WIDTH, MIN_VIEW_HEIGHT);
 
         backgroundLayer = new Pane();
-        boardView = new Board3DView(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, controller.getBoard());
-        boardView.setCardHoverHandler(this::showBoardPreview);
-        uiOverlay = createUiOverlay();
+        boardView = new Board3DView(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, controller, textures);
+        preview = new CardPreviewOverlay(rootContainer);
+        cardFlight = new CardFlightAnimation(rootContainer);
+        boardView.setCardHoverHandler(preview);
+        uiOverlay = new Pane();
+        uiOverlay.setManaged(false);
+        uiOverlay.setPickOnBounds(false);
 
         scalableContent = createScalableGroup(boardView);
         scalableOverlay = createScalableGroup(uiOverlay);
 
-        viewportScale = Bindings.min(rootContainer.widthProperty().divide(REFERENCE_WIDTH),rootContainer.heightProperty().divide(REFERENCE_HEIGHT))
-                                .multiply(REFERENCE_CONTENT_SCALE * CONTENT_SCALE);
+        viewportScale = Bindings.min(rootContainer.widthProperty().divide(REFERENCE_WIDTH),
+                rootContainer.heightProperty().divide(REFERENCE_HEIGHT))
+            .multiply(REFERENCE_CONTENT_SCALE * CONTENT_SCALE);
 
         configureScaledGroup(scalableContent);
         configureScaledGroup(scalableOverlay);
         rootContainer.getChildren().addAll(backgroundLayer, scalableContent, scalableOverlay);
-        addViewportListeners();
+        rootContainer.widthProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(this::centerBoardInViewport));
+        rootContainer.heightProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(this::centerBoardInViewport));
     }
-    /**
-     * Executes the operation represented by centerBoardInViewport.
-     */
-    public void centerBoardInViewport() {
-        boardView.centerInViewport(scalableContent);
-    }
-    /**
-     * Executes the operation represented by centerContentsInViewport.
-     */
-    private void centerContentsInViewport() {
-        centerBoardInViewport();
-    }
-    /**
-     * Executes the operation represented by createUiOverlay.
-     * @return the value produced by the method
-     */
-    private Pane createUiOverlay() {
-        Pane overlay = new Pane();
-        overlay.setManaged(false);
-        overlay.setPickOnBounds(false);
-        return overlay;
-    }
-    /**
-     * Executes the operation represented by createScalableGroup.
-     * @param content the value used by the method
-     * @return the value produced by the method
-     */
-    private Group createScalableGroup(javafx.scene.Node content) {
+
+    private Group createScalableGroup(Node content) {
         Group group = new Group(content);
         group.setManaged(false);
         return group;
     }
-    /**
-     * Executes the operation represented by configureScaledGroup.
-     * @param group the value used by the method
-     */
+
     private void configureScaledGroup(Group group) {
-        javafx.scene.transform.Scale transform = new javafx.scene.transform.Scale();
+        Scale transform = new Scale();
         transform.setPivotX(0);
         transform.setPivotY(0);
         transform.xProperty().bind(viewportScale);
@@ -214,21 +168,11 @@ public class GameView {
         group.layoutXProperty().bind(rootContainer.widthProperty().divide(2).subtract(viewportScale.multiply(VIRTUAL_WIDTH / 2)));
         group.layoutYProperty().bind(rootContainer.heightProperty().multiply(CONTENT_OFFSET_Y_RATIO));
     }
-    /**
-     * Updates the collection through addViewportListeners.
-     */
-    private void addViewportListeners() {
-        rootContainer.widthProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(this::centerContentsInViewport));
-        rootContainer.heightProperty().addListener((observable, oldValue, newValue) -> Platform.runLater(this::centerContentsInViewport));
-    }
-    /**
-     * Executes the operation represented by buildBackground.
-     */
+
     private void buildBackground() {
-        Image skybox = GameTextures.load(GameTextures.SKYBOX);
+        Image skybox = textures.load(GameTextures.SKYBOX);
         if (skybox == null) {
-            Rectangle fallback = new Rectangle(VIRTUAL_WIDTH, VIRTUAL_HEIGHT,
-                Color.web("#10131c"));
+            Rectangle fallback = new Rectangle(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, Color.web("#10131c"));
             fallback.widthProperty().bind(rootContainer.widthProperty());
             fallback.heightProperty().bind(rootContainer.heightProperty());
             backgroundLayer.getChildren().add(fallback);
@@ -242,584 +186,154 @@ public class GameView {
         skyboxView.setMouseTransparent(true);
         backgroundLayer.getChildren().add(skyboxView);
     }
-    /**
-     * Executes the operation represented by buildUiControls.
-     */
-    private void buildUiControls() {
-        turnIndicator = new Label();
-        turnIndicator.setTextFill(Color.WHITE);
-        turnIndicator.setAlignment(Pos.CENTER);
-        turnIndicator.setPrefWidth(190);
-        turnIndicator.setLayoutX(16);
-        turnIndicator.setLayoutY((VIRTUAL_HEIGHT - 52) / 2);
-        updateTurnIndicator();
-        uiOverlay.getChildren().add(turnIndicator);
 
-        actionPrompt = new Label();
-        actionPrompt.setVisible(false);
-        actionPrompt.setManaged(false);
-        actionPrompt.setTextFill(Color.WHITE);
-        actionPrompt.setStyle(
-            "-fx-background-color: rgba(12, 15, 22, 0.9);"
-                + "-fx-border-color: #ffd45a;"
-                + "-fx-border-width: 2;"
-                + "-fx-background-radius: 8;"
-                + "-fx-border-radius: 8;"
-                + "-fx-padding: 8 18;"
-                + "-fx-font-size: 16px;"
-                + "-fx-font-weight: bold;");
-        actionPrompt.setLayoutX((VIRTUAL_WIDTH - 420) / 2);
-        actionPrompt.setLayoutY(18);
-        actionPrompt.setPrefWidth(420);
-        actionPrompt.setAlignment(Pos.CENTER);
-        uiOverlay.getChildren().add(actionPrompt);
+    private void buildUiControls() {
+        statusPanel = new MatchStatusPanel(16, (VIRTUAL_HEIGHT - 190) / 2);
+        actionPrompt = new ActionPrompt(VIRTUAL_WIDTH);
+        uiOverlay.getChildren().addAll(statusPanel, actionPrompt);
 
         Button optionsButton = mainView.createMenuButton("Options");
         Button passButton = mainView.createMenuButton("PASS TURN");
         optionsButton.setOnAction(event -> mainView.showInGameConfigMenu());
         passButton.setOnAction(event -> passTurn());
-        configureTopRightButton(optionsButton, 360);
-        configureBottomRightButton(passButton, 220);
+        optionsButton.setMaxWidth(360);
+        optionsButton.prefWidthProperty().bind(Bindings.min(360, rootContainer.widthProperty().multiply(0.28)));
+        StackPane.setAlignment(optionsButton, Pos.TOP_RIGHT);
+        StackPane.setMargin(optionsButton, new Insets(16, 16, 0, 0));
+        passButton.setMaxWidth(220);
+        StackPane.setAlignment(passButton, Pos.BOTTOM_RIGHT);
+        StackPane.setMargin(passButton, new Insets(0, 16, 16, 0));
         rootContainer.getChildren().addAll(optionsButton, passButton);
+        refreshStatus();
+        statusPanel.updateScores(controller);
     }
-    /**
-     * Executes the operation represented by configureTopRightButton.
-     * @param button the value used by the method
-     * @param maxWidth the value used by the method
-     */
-    private void configureTopRightButton(Button button, double maxWidth) {
-        button.setMaxWidth(maxWidth);
-        button.prefWidthProperty().bind(Bindings.min(maxWidth, rootContainer.widthProperty().multiply(0.28)));
-        StackPane.setAlignment(button, Pos.TOP_RIGHT);
-        StackPane.setMargin(button, new Insets(16, 16, 0, 0));
-    }
-    /**
-     * Executes the operation represented by configureBottomRightButton.
-     * @param button the value used by the method
-     * @param maxWidth the value used by the method
-     */
-    private void configureBottomRightButton(Button button, double maxWidth) {
-        button.setMaxWidth(maxWidth);
-        StackPane.setAlignment(button, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(button, new Insets(0, 16, 16, 0));
-    }
-    /**
-     * Executes the operation represented by buildHands.
-     */
+
     private void buildHands() {
-        List<Card> handCards = controller.getPlayerHand();
-        playerHandView = new HandView(handCards, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        playerHandView = new HandView(controller.getPlayerHand(), VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
         playerHandView.setTranslateY(28);
-        playerHandView.setOnPreviewRequested(this::showHandPreview);
-        playerHandView.setOnPreviewCleared(this::hidePreview);
-        playerHandView.setOnCardSelected(this::playCard);
+        playerHandView.setOnPreviewRequested(preview::showHandCard);
+        playerHandView.setOnPreviewCleared(preview::hide);
+        playerHandView.setOnCardSelected(this::selectCard);
         opponentHandView = new OpponentHandView(0, 12);
         updateOpponentHand();
         uiOverlay.getChildren().addAll(playerHandView, opponentHandView);
         opponentHandView.toFront();
-        AudioManager.playCardDraw();
+        audioManager.playCardDraw();
     }
+
+    // ---------------------------------------------------------- human actions
+
     /**
-     * Executes the operation represented by updateOpponentHand.
+     * The human picked a card: the card itself tells what has to be chosen.
      */
-    private void updateOpponentHand() {
-        if (opponentHandView == null) return;
-        opponentHandView.showHand(controller.getOpponentHandSize(), controller.getOpponentFaction());
-        opponentHandView.setLayoutX((VIRTUAL_WIDTH - opponentHandView.getPrefWidth()) / 2);
+    private void selectCard(Card card) {
+        if (cardAnimationRunning || !controller.isPlayerTurn()) return;
+        cancelSelection();
+        card.targeting().request(new HumanTargetSelector(
+            card, controller.getTargetCandidates(), boardView, actionPrompt, this::playCard));
     }
-    /**
-     * Executes the operation represented by playCard.
-     * @param card the value used by the method
-     */
-    private void playCard(Card card) {
-        if (cardAnimationRunning) return;
-        if (controller.requiresLineTarget(card)) {
-            beginLineSelection(card);
-            return;
-        }
-        if (controller.requiresTarget(card)) {
-            beginTargetSelection(card);
-            return;
-        }
-        executeCard(card, null);
-    }
-    /**
-     * Executes the operation represented by beginLineSelection.
-     * @param card the value used by the method
-     */
-    private void beginLineSelection(Card card) {
-        cardWaitingForLine = card;
-        showActionPrompt("Select an attack line to buff");
-        boardView.setLineSelection(this::finishLineSelection);
-    }
-    /**
-     * Executes the operation represented by finishLineSelection.
-     * @param line the value used by the method
-     */
-    private void finishLineSelection(AttackLineType line) {
-        Card card = cardWaitingForLine;
-        cardWaitingForLine = null;
-        hideActionPrompt();
-        boardView.clearLineSelection();
-        if (card != null) {
-            executeCard(card, null, line);
-        }
-    }
-    /**
-     * Executes the operation represented by beginTargetSelection.
-     * @param card the value used by the method
-     */
-    private void beginTargetSelection(Card card) {
-        List<Card> targets = controller.getTargetCards();
-        if (targets.isEmpty()) {
-            executeCard(card, null);
-            return;
-        }
-        cardWaitingForTarget = card;
-        showActionPrompt(targetPrompt(card));
-        boardView.setTargetSelection(targets, this::finishTargetSelection);
-    }
-    /**
-     * Executes the operation represented by finishTargetSelection.
-     * @param target the value used by the method
-     */
-    private void finishTargetSelection(Card target) {
-        Card card = cardWaitingForTarget;
-        cardWaitingForTarget = null;
-        hideActionPrompt();
-        boardView.clearTargetSelection();
-        if (card != null) {
-            executeCard(card, target);
-        }
-    }
-    /**
-     * Executes the operation represented by executeCard.
-     * @param card the value used by the method
-     * @param target the value used by the method
-     */
-    private void executeCard(Card card, Card target) {
-        executeCard(card, target, null);
-    }
-    /**
-     * Executes the operation represented by executeCard.
-     * @param card the value used by the method
-     * @param target the value used by the method
-     * @param line the value used by the method
-     */
-    private void executeCard(Card card, Card target, AttackLineType line) {
-        Point2D playerSourcePoint = playerHandView.getCardCenterInScene(card);
+
+    private void playCard(Card card, Minion target, AttackLineType line) {
+        Point2D source = playerHandView.getCardCenterInScene(card);
         if (!controller.playCard(card, target, line)) return;
-        playCardSound(card);
-        updateTurnIndicator();
         cardAnimationRunning = true;
-        playerHandView.removeCard(card);
         playerHandView.refresh(controller.getPlayerHand());
-        animateCardToBoard(card, false, playerSourcePoint, () -> {
-            boardView.refresh();
-            AudioManager.updateWeatherMusic(controller.getBoard().getCurrentWeather());
-            scheduleOpponentTurn();
+        refreshStatus();
+        cardFlight.play(card, false, source, () -> {
+            cardAnimationRunning = false;
+            refreshBoard();
         });
     }
-    /**
-     * Executes the operation represented by scheduleOpponentTurn.
-     */
-    private void scheduleOpponentTurn() {
-        int thinkingTime = 2000 + animationRandom.nextInt(3001);
-        PauseTransition delay = new PauseTransition(Duration.millis(thinkingTime));
-        delay.setOnFinished(event -> playOpponentTurn());
-        delay.play();
-    }
-    /**
-     * Executes the operation represented by playOpponentTurn.
-     */
-    private void playOpponentTurn() {
-        Point2D sourcePoint = opponentHandView.getDrawPointInScene();
-        if (!controller.playOpponentCard()) {
-            finishCardAction();
-            return;
-        }
 
-        Card opponentCard = controller.getLastOpponentCard();
-        if (opponentCard == null) {
-            finishCardAction();
-            return;
-        }
-
-        playCardSound(opponentCard);
-        playerHandView.refresh(controller.getPlayerHand());
-        updateOpponentHand();
-        animateCardToBoard(opponentCard, true, sourcePoint, this::finishCardAction);
-    }
-    /**
-     * Executes the operation represented by finishCardAction.
-     */
-    private void finishCardAction() {
-        updateOpponentHand();
-        boardView.refresh();
-        AudioManager.updateWeatherMusic(controller.getBoard().getCurrentWeather());
-        updateTurnIndicator();
-
-        if (controller.isOpponentTurn()) {
-            scheduleOpponentTurn();
-            return;
-        }
-
-        cardAnimationRunning = false;
-        checkMatchFinished();
-    }
-    /**
-     * Executes the operation represented by playCardSound.
-     * @param card the value used by the method
-     */
-    private void playCardSound(Card card) {
-        AudioManager.playCardPlay();
-        for (Effect effect : effectsOf(card)) {
-            if (effect.isDestroyCreatureEffect()) {
-                AudioManager.playDestroy();
-            } else if (effect.isReviveEffect()) {
-                AudioManager.playRevive();
-            } else if (effect.isModifyPowerEffect()) {
-                AudioManager.playBuff();
-            } else if (effect.isDuplicateLineEffect()) {
-                AudioManager.playDuplicateLine();
-            }
-        }
-    }
-    /**
-     * Executes the operation represented by animateCardToBoard.
-     * @param card the value used by the method
-     * @param opponent the value used by the method
-     * @param sourcePoint the value used by the method
-     * @param onFinished the value used by the method
-     */
-    private void animateCardToBoard(Card card, boolean opponent, Point2D sourcePoint, Runnable onFinished) {
-        CardVisual animatedCard = new CardVisual(card, CardVisual.widthForHeight(170), 170, "collection-card-image");
-        configureAnimatedCard(animatedCard, card);
-        rootContainer.getChildren().add(animatedCard);
-        animatedCard.toFront();
-        double cardWidth = animatedCard.getPrefWidth();
-        double cardHeight = animatedCard.getPrefHeight();
-        Point2D localSource = resolveAnimationSource(sourcePoint, opponent);
-        double startX = localSource.getX() - cardWidth / 2;
-        double startY = localSource.getY() - cardHeight / 2;
-        double endY = rootContainer.getHeight() / 2 - animatedCard.getPrefHeight() / 2;
-        animatedCard.relocate(startX, startY);
-        double endX = rootContainer.getWidth() / 2 - cardWidth / 2;
-        ParallelTransition launch = createCardLaunch(animatedCard, endX - startX, endY - startY, opponent);
-        SequentialTransition animation = new SequentialTransition(new PauseTransition(Duration.millis(100)), launch, new PauseTransition(Duration.millis(250)));
-        animation.setOnFinished(event -> {
-            rootContainer.getChildren().remove(animatedCard);
-            onFinished.run();
-        });
-        animation.play();
-    }
-    /**
-     * Executes the operation represented by configureAnimatedCard.
-     * @param visual the value used by the method
-     * @param card the value used by the method
-     */
-    private void configureAnimatedCard(CardVisual visual, Card card) {
-        visual.addMetadata(card);
-        visual.setMouseTransparent(true);
-        visual.setManaged(false);
-        visual.setScaleX(0.72);
-        visual.setScaleY(0.72);
-        visual.setOpacity(0.95);
-    }
-    /**
-     * Executes the operation represented by resolveAnimationSource.
-     * @param sourcePoint the value used by the method
-     * @param opponent the value used by the method
-     * @return the value produced by the method
-     */
-    private Point2D resolveAnimationSource(Point2D sourcePoint, boolean opponent) {
-        if (sourcePoint != null) return rootContainer.sceneToLocal(sourcePoint);
-        return new Point2D(rootContainer.getWidth() / 2, opponent ? 80 : rootContainer.getHeight() - 80);
-    }
-    /**
-     * Executes the operation represented by createCardLaunch.
-     * @param visual the value used by the method
-     * @param moveX the value used by the method
-     * @param moveY the value used by the method
-     * @param opponent the value used by the method
-     * @return the value produced by the method
-     */
-    private ParallelTransition createCardLaunch(CardVisual visual, double moveX, double moveY, boolean opponent) {
-        TranslateTransition move = new TranslateTransition(Duration.millis(650), visual);
-        move.setToX(moveX);
-        move.setToY(moveY);
-        move.setInterpolator(Interpolator.EASE_OUT);
-
-        ScaleTransition scale = new ScaleTransition(Duration.millis(650), visual);
-        scale.setToX(1);
-        scale.setToY(1);
-        scale.setInterpolator(Interpolator.EASE_OUT);
-
-        RotateTransition rotate = new RotateTransition(Duration.millis(650), visual);
-        rotate.setFromAngle(opponent ? -12 : 12);
-        rotate.setToAngle(opponent ? -4 : 4);
-        rotate.setInterpolator(Interpolator.EASE_OUT);
-
-        return new ParallelTransition(move, scale, rotate);
-    }
-    /**
-     * Executes the operation represented by targetPrompt.
-     * @param card the value used by the method
-     * @return the value produced by the method
-     */
-    private String targetPrompt(Card card) {
-        for (Effect effect : effectsOf(card)) {
-            String prompt = effect.getTargetPrompt();
-            if (!prompt.isBlank()) {
-                return prompt;
-            }
-        }
-        return "Select a minion to buff";
-    }
-    /**
-     * Executes the operation represented by effectsOf.
-     * @param card the value used by the method
-     * @return the value produced by the method
-     */
-    private List<Effect> effectsOf(Card card) {
-        return card.getEffects();
-    }
-    /**
-     * Displays the information handled by showActionPrompt.
-     * @param message the value used by the method
-     */
-    private void showActionPrompt(String message) {
-        actionPrompt.setText(message);
-        actionPrompt.setVisible(true);
-        actionPrompt.setManaged(true);
-        actionPrompt.toFront();
-    }
-    /**
-     * Executes the operation represented by hideActionPrompt.
-     */
-    private void hideActionPrompt() {
-        actionPrompt.setVisible(false);
-        actionPrompt.setManaged(false);
-    }
-    /**
-     * Executes the operation represented by passTurn.
-     */
     private void passTurn() {
         if (cardAnimationRunning) return;
-        cardWaitingForLine = null;
-        cardWaitingForTarget = null;
-        hideActionPrompt();
+        cancelSelection();
+        controller.passTurn();
+        refreshAll();
+    }
+
+    private void cancelSelection() {
+        actionPrompt.hide();
+        boardView.clearTargetSelection();
         boardView.clearLineSelection();
-        boolean passed = controller.passTurn();
+    }
+
+    // ---------------------------------------------------------- match events
+
+    @Override
+    public void roundStarted(Player startingPlayer) {
+        refreshAll();
+        statusPanel.showNotice(startingPlayer.getName() + " starts the round");
+    }
+
+    @Override
+    public void cardPlayed(Player player, Card card) {
+        if (!controller.isOpponent(player)) return;
+        cardFlight.play(card, true, opponentHandView.getDrawPointInScene(), this::refreshBoard);
+    }
+
+    @Override
+    public void turnPassed(Player player) {
+        refreshStatus();
+        statusPanel.showNotice(player.getName() + " passed");
+    }
+
+    @Override
+    public void cardsStolen(int amount) {
         playerHandView.refresh(controller.getPlayerHand());
         updateOpponentHand();
+    }
+
+    @Override
+    public void roundFinished(Result result) {
+        refreshAll();
+        statusPanel.showNotice(switch (result) {
+            case PLAYER1_WIN -> "You won the round";
+            case PLAYER2_WIN -> "You lost the round";
+            case DRAW -> "The round is a draw";
+        });
+    }
+
+    @Override
+    public void matchFinished(Result result) {
+        refreshAll();
+        showMatchResult(result, "The match is over.");
+    }
+
+    // --------------------------------------------------------------- refresh
+
+    private void refreshAll() {
+        playerHandView.refresh(controller.getPlayerHand());
+        refreshBoard();
+    }
+
+    /**
+     * Redraws the table and the scores together, so the score never shows a
+     * card that is still flying or a card that already left the board.
+     */
+    private void refreshBoard() {
+        preview.hide();
         boardView.refresh();
-        updateTurnIndicator();
-        if (passed && controller.isOpponentTurn()) {
-            cardAnimationRunning = true;
-            scheduleOpponentTurn();
-        } else {
-            checkMatchFinished();
-        }
+        updateOpponentHand();
+        statusPanel.updateScores(controller);
+        refreshStatus();
     }
-    /**
-     * Executes the operation represented by updateTurnIndicator.
-     */
-    private void updateTurnIndicator() {
-        if (turnIndicator == null) return;
-        boolean playerTurn = controller.isPlayerTurn();
-        turnIndicator.setText("Turn: " + controller.getCurrentPlayerName());
-        turnIndicator.setStyle(
-            "-fx-background-color: rgba(12, 15, 22, 0.92);"
-                + "-fx-border-color: " + (playerTurn ? "#78a6ff" : "#ff8a65") + ";"
-                + "-fx-border-width: 2;"
-                + "-fx-background-radius: 8;"
-                + "-fx-border-radius: 8;"
-                + "-fx-padding: 8 12;"
-                + "-fx-font-size: 16px;"
-                + "-fx-font-weight: bold;");
-    }
-    /**
-     * Executes the operation represented by checkMatchFinished.
-     */
-    private void checkMatchFinished() {
-        if (controller.gameFinished()) {
-            showMatchResult(
-                    controller.getMatchResult(),
-                    "The match is over."
-            );
-        }
-    }
-    /**
-     * Displays the information handled by showMatchResult.
-     * @param result the value used by the method
-     * @param detail the value used by the method
-     */
-    public void showMatchResult(Result result, String detail) {
-        if (resultOverlay != null) return;
-        resultOverlay = new StackPane();
-        resultOverlay.setPrefSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-        resultOverlay.setPickOnBounds(true);
-        resultOverlay.setStyle("-fx-background-color: rgba(5, 8, 16, 0.78);");
-        resultOverlay.getChildren().add(createResultPanel(result, detail));
-        uiOverlay.getChildren().add(resultOverlay);
-    }
-    /**
-     * Executes the operation represented by createResultPanel.
-     * @param result the value used by the method
-     * @param detail the value used by the method
-     * @return the value produced by the method
-     */
-    private StackPane createResultPanel(Result result, String detail) {
-        StackPane panel = new StackPane();
-        panel.setPrefSize(420, 260);
-        panel.setMaxSize(420, 260);
-        panel.setStyle("-fx-background-color: rgba(25, 32, 50, 0.98);"
-                    +  "-fx-border-color: #d8aa55; -fx-border-width: 3;"
-                    +  "-fx-background-radius: 14; -fx-border-radius: 14;");
 
-        panel.getChildren().addAll(createResultImagePlaceholder(), createResultTitle(result), createResultMessage(detail), createMainMenuButton());
-        StackPane.setAlignment(panel, Pos.CENTER);
-        return panel;
+    private void refreshStatus() {
+        statusPanel.updateTurn(controller);
     }
-    /**
-     * Executes the operation represented by createResultImagePlaceholder.
-     * @return the value produced by the method
-     */
-    private Label createResultImagePlaceholder() {
-        Label image = new Label("IMAGE / GIF");
-        image.setPrefSize(180, 90);
-        image.setAlignment(Pos.CENTER);
-        image.setStyle("-fx-border-color: #71809f; -fx-border-width: 2;"
-            + "-fx-text-fill: #9eacc8; -fx-font-size: 16px;");
-        StackPane.setAlignment(image, Pos.TOP_CENTER);
-        StackPane.setMargin(image, new Insets(20, 0, 0, 0));
-        return image;
-    }
-    /**
-     * Executes the operation represented by createResultTitle.
-     * @param result the value used by the method
-     * @return the value produced by the method
-     */
-    private Label createResultTitle(Result result) {
-        Label title = new Label(getResultTitle(result));
-        title.setStyle("-fx-text-fill: #f4d58d; -fx-font-size: 34px; -fx-font-weight: bold;");
-        StackPane.setAlignment(title, Pos.CENTER);
-        StackPane.setMargin(title, new Insets(88, 0, 0, 0));
-        return title;
-    }
-    /**
-     * Executes the operation represented by createResultMessage.
-     * @param detail the value used by the method
-     * @return the value produced by the method
-     */
-    private Label createResultMessage(String detail) {
-        Label message = new Label(detail);
-        message.setStyle("-fx-text-fill: #e7eaf2; -fx-font-size: 16px;");
-        StackPane.setAlignment(message, Pos.CENTER);
-        StackPane.setMargin(message, new Insets(142, 0, 0, 0));
-        return message;
-    }
-    /**
-     * Executes the operation represented by createMainMenuButton.
-     * @return the value produced by the method
-     */
-    private Button createMainMenuButton() {
-        Button button = new Button("BACK TO MENU");
-        button.setOnAction(event -> mainView.showMainMenu());
-        button.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        StackPane.setAlignment(button, Pos.BOTTOM_CENTER);
-        StackPane.setMargin(button, new Insets(0, 0, 20, 0));
-        return button;
-    }
-    /**
-     * Returns the value provided by getResultTitle.
-     * @param result the value used by the method
-     * @return the value produced by the method
-     */
-    private String getResultTitle(Result result) {
-        return switch (result) {
-            case PLAYER1_WIN -> "¡VICTORY!";
-            case PLAYER2_WIN -> "DEFEAT";
-            case DRAW -> "DRAW";
-        };
-    }
-    /**
-     * Displays the information handled by showHandPreview.
-     * @param card the value used by the method
-     */
-    private void showHandPreview(Card card) {
-        hidePreview();
-        handPreview = new StackPane();
-        handPreview.setManaged(false);
-        handPreview.prefWidthProperty().bind(rootContainer.widthProperty());
-        handPreview.prefHeightProperty().bind(rootContainer.heightProperty());
-        handPreview.getStyleClass().add("collection-preview-overlay");
-        handPreview.setPickOnBounds(false);
-        Region backdrop = new Region();
-        backdrop.setMouseTransparent(true);
-        backdrop.setOpacity(0);
-        backdrop.getStyleClass().add("collection-preview-backdrop");
-        CardVisual preview = new CardVisual(card, CardVisual.widthForHeight(460), 460, "collection-card-image");
-        preview.addMetadata(card);
-        preview.setMouseTransparent(true);
-        handPreview.getChildren().addAll(backdrop, preview);
-        StackPane.setAlignment(preview, Pos.CENTER_RIGHT);
-        StackPane.setMargin(preview, new Insets(0, 70, 0, 0));
-        rootContainer.getChildren().add(handPreview);
-    }
-    /**
-     * Displays the information handled by showBoardPreview.
-     * @param card the value used by the method
-     * @param source the value used by the method
-     */
-    private void showBoardPreview(Card card, javafx.scene.Node source) {
-        if (card == null) {
-            hidePreview();
-            return;
-        }
-        showBoardPreviewAt(card, source);
-    }
-    /**
-     * Displays the information handled by showBoardPreviewAt.
-     * @param card the value used by the method
-     * @param source the value used by the method
-     */
-    private void showBoardPreviewAt(Card card, javafx.scene.Node source) {
-        hidePreview();
-        handPreview = new StackPane();
-        handPreview.setManaged(false);
-        handPreview.getStyleClass().add("collection-preview-overlay");
-        handPreview.setPickOnBounds(false);
-        Region backdrop = new Region();
-        backdrop.setMouseTransparent(true);
-        backdrop.setOpacity(0);
-        backdrop.getStyleClass().add("collection-preview-backdrop");
-        CardVisual preview = new CardVisual(card, CardVisual.widthForHeight(460), 460, "collection-card-image");
-        Object displayedPower = source.getUserData();
-        if (Number.class.isInstance(displayedPower) && card.asMinion().isPresent()) {
-            preview.addMetadata(card, false, ((Number) displayedPower).intValue());
-        } else {
-            preview.addMetadata(card);
-        }
-        preview.setMouseTransparent(true);
-        handPreview.getChildren().addAll(backdrop, preview);
-        rootContainer.getChildren().add(handPreview);
 
-        Bounds bounds = source.localToScene(source.getBoundsInLocal());
-        Point2D point = rootContainer.sceneToLocal(bounds.getMinX() - preview.getPrefWidth() - 14, bounds.getMinY() - 10);
-        double x = Math.max(8, Math.min(point.getX(), rootContainer.getWidth() - preview.getPrefWidth() - 8));
-        double y = Math.max(8, Math.min(point.getY(), rootContainer.getHeight() - preview.getPrefHeight() - 8));
-        preview.setManaged(false);
-        preview.relocate(x, y);
+    private void updateOpponentHand() {
+        if (opponentHandView == null) return;
+        opponentHandView.showHand(controller.getOpponentHandSize(), controller.getOpponentFaction().name());
+        opponentHandView.setLayoutX((VIRTUAL_WIDTH - opponentHandView.getPrefWidth()) / 2);
     }
-    /**
-     * Executes the operation represented by hidePreview.
-     */
-    private void hidePreview() {
-        if (handPreview != null) {
-            rootContainer.getChildren().remove(handPreview);
-            handPreview = null;
-        }
+
+    private void showMatchResult(Result result, String detail) {
+        if (resultShown) return;
+        resultShown = true;
+        cancelSelection();
+        uiOverlay.getChildren().add(new MatchResultOverlay(
+            result, detail, VIRTUAL_WIDTH, VIRTUAL_HEIGHT, mainView::showMainMenu));
     }
 }
