@@ -1,66 +1,47 @@
 package com.fiuba.paradigwent.model.effect;
 
 import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.targeting.MinionTarget;
+import com.fiuba.paradigwent.model.targeting.TargetSide;
+import com.fiuba.paradigwent.model.targeting.Targeting;
 
+/**
+ * Adds a modifier to the power of the chosen minion.
+ */
 public class ModifyPowerEffect implements Effect {
+    private final int amount;
+
     /**
-     * Executes the operation represented by requiresTarget.
-     * @return the value produced by the method
+     * @param amount modifier added to the chosen minion (negative values weaken it)
+     */
+    public ModifyPowerEffect(int amount) {
+        this.amount = amount;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void apply(GameContext context) {
+        context.chosenTarget().ifPresent(target -> context.modifyPower(target, amount));
+    }
+
+    /**
+     * Buffs are meant for allies and debuffs for enemies; the target is optional.
      */
     @Override
-    public boolean requiresTarget() {
-        return true;
+    public Targeting targeting() {
+        String prompt = amount >= 0 ? "Select a minion to buff" : "Select a minion to weaken";
+        return new MinionTarget(prompt, true, amount >= 0 ? TargetSide.ALLY : TargetSide.ENEMY);
     }
-    /**
-     * Reports the state represented by isOptionalTargetEffect.
-     * @return the value produced by the method
-     */
-    @Override
-    public boolean isOptionalTargetEffect() {
-        return true;
-    }
-    /**
-     * Reports the state represented by isModifyPowerEffect.
-     * @return the value produced by the method
-     */
-    @Override
-    public boolean isModifyPowerEffect() {
-        return true;
-    }
-    /**
-     * Returns the value provided by getDescription.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
     public String getDescription() {
         return "Modify the power of a minion";
     }
-    /**
-     * Returns the value provided by getTargetDescription.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
     public String getTargetDescription() {
         return "Objective: A minion from any line";
-    }
-    private final int amount;
-
-    /**
-     * Constructs a ModifyPowerEffect with the specified amount to modify the power of a target minion.
-     * @param amount
-    **/
-    public ModifyPowerEffect(int amount) {
-        this.amount = amount;
-    }
-    /**
-     * Executes the operation represented by apply.
-     * @param context the value used by the method
-     */
-    @Override
-    public void apply(GameContext context){
-        if (context.getTargetCard() != null) {
-            context.getTargetCard().asMinion().ifPresent(target -> target.modifyPower(amount));
-        }
     }
 }

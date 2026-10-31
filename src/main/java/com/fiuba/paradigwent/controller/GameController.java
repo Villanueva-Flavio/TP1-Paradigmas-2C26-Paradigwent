@@ -1,363 +1,246 @@
 package com.fiuba.paradigwent.controller;
 
 import com.fiuba.paradigwent.model.ai.AI;
-import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.board.AttackLine;
 import com.fiuba.paradigwent.model.board.Board;
 import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.enums.Result;
-import com.fiuba.paradigwent.model.game.Game;
-import com.fiuba.paradigwent.model.player.Player;
-import com.fiuba.paradigwent.model.round.Round;
+import com.fiuba.paradigwent.model.card.Minion;
+import com.fiuba.paradigwent.model.card.Weather;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
-import com.fiuba.paradigwent.view.game.modules.CardRace;
+import com.fiuba.paradigwent.model.enums.Faction;
+import com.fiuba.paradigwent.model.enums.Result;
+import com.fiuba.paradigwent.model.enums.WeatherType;
+import com.fiuba.paradigwent.model.event.GameListener;
+import com.fiuba.paradigwent.model.game.Game;
+import com.fiuba.paradigwent.model.game.TurnScheduler;
+import com.fiuba.paradigwent.model.player.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Coordinates the human player's actions, the AI's decisions and the view.
+ * Translates the actions of the human into model operations and offers the
+ * view the queries it needs. It does not contain game rules: turns, AI moves
+ * and round resolution live in {@link Game}.
  */
 public final class GameController {
 
     private final Game game;
-    private final BoardController boardController;
+    private final Board board;
     private final Player player;
     private final AI opponent;
-    private final CardRace opponentRace;
 
-    private Round round;
-    private Card lastOpponentCard;
-
-    /**      * Constructs a new GameController.      */
-    public GameController(CardRace selectedRace) {
-        GameSessionFactory.Session session = new GameSessionFactory().create(selectedRace);
+    /**
+     * Creates a new match for the chosen faction.
+     *
+     * @param selectedFaction faction chosen by the human
+     * @param scheduler       decides when each turn is taken
+     */
+    public GameController(Faction selectedFaction, TurnScheduler scheduler) {
+        GameSessionFactory.Session session = new GameSessionFactory().create(selectedFaction, scheduler);
         game = session.game();
+        board = session.board();
         player = session.player();
         opponent = session.opponent();
-        opponentRace = session.opponentRace();
-        round = session.round();
-        boardController = new BoardController(game.getBoard());
+        game.addListener(new ConsoleGameLogger(player, opponent, board));
+    }
 
-        GameStatePrinter.printInitialSituation(game.getBoard());
-        printCurrentTurn();
-    }
     /**
-     * Returns the value provided by getBoard.
-     * @return the value produced by the method
+     * Registers an observer of the match.
+     *
+     * @param listener observer to notify
      */
-    public Board getBoard() {
-        return boardController.getBoard();
+    public void addListener(GameListener listener) {
+        game.addListener(listener);
     }
+
     /**
-     * Returns the value provided by getPlayerHand.
-     * @return the value produced by the method
+     * Starts the match. Call it once every observer is registered.
+     */
+    public void startMatch() {
+        game.startMatch();
+    }
+
+    /**
+     * Plays a card of the human's hand.
+     *
+     * @param card   card to play
+     * @param target chosen minion, may be {@code null}
+     * @param line   chosen line, may be {@code null}
+     * @return {@code true} if the play was accepted
+     */
+    public boolean playCard(Card card, Minion target, AttackLineType line) {
+        return game.play(player, card, target, line);
+    }
+
+    /**
+     * Passes the round on behalf of the human.
+     *
+     * @return {@code true} if the pass was accepted
+     */
+    public boolean passTurn() {
+        return game.pass(player);
+    }
+
+    /**
+     * Surrenders the match on behalf of the human.
+     */
+    public void surrender() {
+        game.surrender(player);
+    }
+
+    /**
+     * @return {@code true} if the human can act now
+     */
+    public boolean isPlayerTurn() {
+        return game.isTurnOf(player);
+    }
+
+    /**
+     * @param somePlayer a player of the match
+     * @return {@code true} if it is the AI
+     */
+    public boolean isOpponent(Player somePlayer) {
+        return somePlayer == opponent;
+    }
+
+    /**
+     * @return the name of the player whose turn it is
+     */
+    public String getCurrentPlayerName() {
+        Player current = game.getCurrentPlayer();
+        return current == null ? "" : current.getName();
+    }
+
+    /**
+     * @return the cards in the human's hand
      */
     public List<Card> getPlayerHand() {
         return player.getHand();
     }
+
     /**
-     * Returns the value provided by getOpponentHandSize.
-     * @return the value produced by the method
+     * @return number of cards in the AI's hand
      */
     public int getOpponentHandSize() {
         return opponent.handSize();
     }
+
     /**
-     * Returns the value provided by getOpponentFaction.
-     * @return the value produced by the method
+     * @return minions that can be chosen as target
      */
-    public String getOpponentFaction() {
+    public List<Minion> getTargetCandidates() {
+        return board.allMinions();
+    }
+
+    /**
+     * @return faction of the human
+     */
+    public Faction getPlayerFaction() {
+        return player.getFaction();
+    }
+
+    /**
+     * @return faction of the AI
+     */
+    public Faction getOpponentFaction() {
         return opponent.getFaction();
     }
-    /**
-     * Returns the value provided by getCurrentPlayerName.
-     * @return the value produced by the method
-     */
-    public String getCurrentPlayerName() {
-        return round.getCurrentPlayer().getName();
-    }
-    /**
-     * Reports the state represented by isPlayerTurn.
-     * @return the value produced by the method
-     */
-    public boolean isPlayerTurn() {
-        return round.getCurrentPlayer() == player;
-    }
-    /**
-     * Executes the operation represented by requiresTarget.
-     * @param card the value used by the method
-     * @return the value produced by the method
-     */
-    public boolean requiresTarget(Card card) {
-        return card != null && card.requiresTarget() && !getTargetCards().isEmpty();
-    }
-    /**
-     * Executes the operation represented by playCard.
-     * @param card the value used by the method
-     * @return the value produced by the method
-     */
-    public boolean playCard(Card card) {
-        return playCard(card, null);
-    }
-    /**
-     * Executes the operation represented by playCard.
-     * @param card the value used by the method
-     * @param targetCard the value used by the method
-     * @return the value produced by the method
-     */
-    public boolean playCard(Card card, Card targetCard) {
-        return playCard(card, targetCard, null);
-    }
-    /**
-     * Executes the operation represented by playCard.
-     * @param card the value used by the method
-     * @param targetCard the value used by the method
-     * @param targetLine the value used by the method
-     * @return the value produced by the method
-     */
-    public boolean playCard(Card card, Card targetCard, AttackLineType targetLine) {
-        String rejection = validatePlayerPlay(card, targetCard, targetLine);
-        if (rejection != null) {
-            GameStatePrinter.printRejected(rejection);
-            return false;
-        }
 
-        round.playCard(card, targetCard, targetLine);
-        boardController.printSituation(player.getName(), card.getName());
-        finishRoundIfNeeded();
-        printCurrentTurn();
-        return true;
-    }
     /**
-     * Executes the operation represented by validatePlayerPlay.
-     * @param card the value used by the method
-     * @param targetCard the value used by the method
-     * @param targetLine the value used by the method
-     * @return the value produced by the method
+     * @return power of the human in the current round
      */
-    private String validatePlayerPlay(Card card, Card targetCard, AttackLineType targetLine) {
-        if (card == null) {
-            return "la carta es nula";
-        }
-        if (game.isFinished() || round.isFinished()) {
-            return "la partida o la ronda ya terminó";
-        }
-        if (round.getCurrentPlayer() != player) {
-            return "no es el turno del jugador";
-        }
-        if (!player.hasCard(card)) {
-            return "la carta no está en la mano";
-        }
-        if (card.requiresTarget()) {
-            boolean noTargetsAvailable = getTargetCards().isEmpty();
-            if (targetCard == null && !isTargetOptional(card) && !noTargetsAvailable) {
-                return "el hechizo requiere una carta objetivo";
-            }
-            if (targetCard != null && !getTargetCards().contains(targetCard)) {
-                return "la carta objetivo no está en el tablero";
-            }
-        }
-        if (requiresLineTarget(card)
-                && (targetLine == null || targetLine == AttackLineType.NONE)) {
-            return "la carta requiere una línea objetivo";
-        }
-        return null;
-    }
-    /**
-     * Executes the operation represented by requiresLineTarget.
-     * @param card the value used by the method
-     * @return the value produced by the method
-     */
-    public boolean requiresLineTarget(Card card) {
-        return card.getEffects().stream()
-            .anyMatch(effect -> effect.isLineTargetEffect() && effect.requiresTarget());
-    }
-    /**
-     * Reports the state represented by isTargetOptional.
-     * @param card the value used by the method
-     * @return the value produced by the method
-     */
-    public boolean isTargetOptional(Card card) {
-        return card.hasOptionalTarget();
-    }
-    /**
-     * Returns the value provided by getTargetCards.
-     * @return the value produced by the method
-     */
-    public List<Card> getTargetCards() {
-        return new ArrayList<>(getBoard().allMinions());
+    public int getPlayerPower() {
+        return board.calculateTotalPower(player);
     }
 
     /**
-     * Executes one AI turn. The AI chooses its card through AIStrategy;
-     * RandomAIStrategy can return null to indicate that it wants to pass.
+     * @return power of the AI in the current round
      */
-    public boolean playOpponentCard() {
-        lastOpponentCard = null;
-
-        if (game.isFinished()
-                || round.isFinished()
-                || round.getCurrentPlayer() != opponent) {
-            return false;
-        }
-
-        // Give the strategy the current board and both players, not a null context.
-        GameContext decisionContext = new GameContext(
-                opponent, player, getBoard(), null, null
-        );
-        Card card = opponent.selectCard(decisionContext);
-
-        if (card == null || !opponent.hasCard(card)) {
-            round.passTurn();
-            finishRoundIfNeeded();
-            printCurrentTurn();
-            return false;
-        }
-
-        Card target = card.requiresTarget() ? chooseOpponentTarget() : null;
-        if (card.requiresTarget() && target == null && !getTargetCards().isEmpty()) {
-
-            round.passTurn();
-            finishRoundIfNeeded();
-            printCurrentTurn();
-            return false;
-        }
-
-        round.playCard(card, target);
-        lastOpponentCard = card;
-        boardController.printSituation(opponent.getName(), card.getName());
-        finishRoundIfNeeded();
-        printCurrentTurn();
-        return true;
-    }
-    /**
-     * Executes the operation represented by chooseOpponentTarget.
-     * @return the value produced by the method
-     */
-    private Card chooseOpponentTarget() {
-        // Basic targeting policy: choose the first minion currently on the board.
-        // This can later be replaced by a card-aware target-selection strategy.
-        return getTargetCards().stream().findFirst().orElse(null);
-    }
-    /**
-     * Returns the value provided by getLastOpponentCard.
-     * @return the value produced by the method
-     */
-    public Card getLastOpponentCard() {
-        return lastOpponentCard;
+    public int getOpponentPower() {
+        return board.calculateTotalPower(opponent);
     }
 
     /**
-     * Passes the human player's turn and immediately lets the AI take its turn
-     * when the round is still active. Returns true when the pass was accepted,
-     * not only when it happened to finish the round.
+     * @return remaining lives of the human
      */
-
-    public boolean passTurn() {
-        if (game.isFinished() || round.isFinished()) {
-            GameStatePrinter.printRejected(
-                    "la partida o la ronda ya terminó"
-            );
-            return false;
-        }
-
-        if (round.getCurrentPlayer() != player) {
-            GameStatePrinter.printRejected(
-                    "no es el turno del jugador"
-            );
-            return false;
-        }
-
-        round.passTurn();
-        finishRoundIfNeeded();
-        printCurrentTurn();
-
-        return true;
+    public int getPlayerLives() {
+        return player.getLives();
     }
+
     /**
-     * Executes the operation represented by playOpponentTurn.
-     * @return the value produced by the method
+     * @return remaining lives of the AI
      */
-    public boolean playOpponentTurn() {
-        if (!isOpponentTurn()) {
-            return false;
-        }
-
-        playOpponentCard();
-        return true;
+    public int getOpponentLives() {
+        return opponent.getLives();
     }
+
     /**
-     * Reports the state represented by isOpponentTurn.
-     * @return the value produced by the method
+     * @return cards left in the human's deck
      */
-    public boolean isOpponentTurn() {
-        return !game.isFinished()
-                && !round.isFinished()
-                && round.getCurrentPlayer() == opponent;
+    public int getPlayerDeckSize() {
+        return player.getDeckSize();
     }
+
     /**
-     * Executes the operation represented by finishRoundIfNeeded.
-     * @return the value produced by the method
+     * @return cards left in the AI's deck
      */
-    private boolean finishRoundIfNeeded() {
-        if (!round.isFinished()) {
-            return false;
-        }
-
-        Result result = round.getRoundResult();
-        if (!game.resolveRound(round)) {
-            return false;
-        }
-
-        System.out.printf("[GAME] Ronda finalizada: %s%n", result);
-        System.out.printf(
-                "[GAME] Vidas - %s: %d | %s (%s): %d%n",
-                player.getName(), player.getLives(),
-                opponent.getName(), opponentRace, opponent.getLives()
-        );
-
-        if (!game.isFinished()) {
-            System.out.printf(
-                    "[GAME] Nueva ronda: %s (mano=%d, mazo=%d); "
-                            + "%s (mano=%d, mazo=%d)%n",
-                    player.getName(), player.handSize(), player.getDeckSize(),
-                    opponent.getName(), opponent.handSize(), opponent.getDeckSize()
-            );
-
-            // Round resets hasPassedRound for both players.
-            round = new Round(player, opponent, game.getBoard());
-        }
-
-        return true;
+    public int getOpponentDeckSize() {
+        return opponent.getDeckSize();
     }
+
     /**
-     * Displays the information handled by printCurrentTurn.
+     * @return the last card discarded by the human, or {@code null}
      */
-    private void printCurrentTurn() {
-        if (!game.isFinished() && !round.isFinished()) {
-            GameStatePrinter.printTurn(round.getCurrentPlayer().getName());
-        }
+    public Card getPlayerLastDiscarded() {
+        return player.lastDiscarded();
     }
+
     /**
-     * Executes the operation represented by surrender.
+     * @return the last card discarded by the AI, or {@code null}
      */
-    public void surrender() {
-        if (game.isFinished()) {
-            return;
-        }
-        game.surrender(player);
-        GameStatePrinter.printSurrender(player.getName());
+    public Card getOpponentLastDiscarded() {
+        return opponent.lastDiscarded();
     }
+
     /**
-     * Executes the operation represented by gameFinished.
-     * @return the value produced by the method
+     * @param type an attack line type
+     * @return that line of the human's side
+     */
+    public AttackLine getPlayerLine(AttackLineType type) {
+        return board.getSideFor(player).getAttackLine(type);
+    }
+
+    /**
+     * @param type an attack line type
+     * @return that line of the AI's side
+     */
+    public AttackLine getOpponentLine(AttackLineType type) {
+        return board.getSideFor(opponent).getAttackLine(type);
+    }
+
+    /**
+     * @return the weather of the board
+     */
+    public WeatherType getCurrentWeather() {
+        return board.getCurrentWeather();
+    }
+
+    /**
+     * @return the weather card on the board, or {@code null}
+     */
+    public Weather getCurrentWeatherCard() {
+        return board.getCurrentWeatherCard();
+    }
+
+    /**
+     * @return {@code true} once the match is over
      */
     public boolean gameFinished() {
         return game.isFinished();
     }
+
     /**
-     * Returns the value provided by getMatchResult.
-     * @return the value produced by the method
+     * @return the result of the match from the human's point of view (player 1)
      */
     public Result getMatchResult() {
         return game.getMatchResult();

@@ -84,9 +84,9 @@ class PlayerStorageTest {
         Player player = new Player("player", new Deck(cards));
 
         assertEquals(10, player.getHand().size());
-        assertEquals(2, player.getLives());
+        assertEquals(Player.INITIAL_LIVES, player.getLives());
         player.loseLife();
-        assertEquals(1, player.getLives());
+        assertEquals(Player.INITIAL_LIVES - 1, player.getLives());
     }
 
     /**

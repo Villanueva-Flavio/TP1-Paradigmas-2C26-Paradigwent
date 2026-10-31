@@ -1,48 +1,39 @@
 package com.fiuba.paradigwent.model.ai;
 
-import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.game.Move;
+import com.fiuba.paradigwent.model.game.TurnActions;
 import com.fiuba.paradigwent.model.player.Deck;
 import com.fiuba.paradigwent.model.player.Player;
 
-
+/**
+ * Player controlled by the computer. It does not know which strategy it
+ * uses; it only asks it for a move every time it is its turn.
+ */
 public class AI extends Player {
 
     private final AIStrategy strategy;
 
-    /**      * Constructs a new AI.      */
+    /**
+     * @param name     display name
+     * @param deck     deck of the AI
+     * @param strategy algorithm used to decide every move
+     */
     public AI(String name, Deck deck, AIStrategy strategy) {
         super(name, deck);
         this.strategy = strategy;
     }
+
     /**
-     * Executes the operation represented by selectCard.
-     * @param context the value used by the method
-     * @return the value produced by the method
-     */
-    public Card selectCard(GameContext context) {
-        return strategy.selectCard(hand, context);
-    }
-    /**
-     * Executes the operation represented by play.
-     * @param context the value used by the method
+     * Decides and makes its move. If the move is rejected, the AI passes so
+     * the match never gets stuck.
+     *
+     * @param actions the actions available during the turn
      */
     @Override
-    public void play(GameContext context) {
-        if (hasPassedRound) {
-            throw new IllegalStateException(
-                    "A player who passed cannot play during this round");
+    public void takeTurn(TurnActions actions) {
+        Move move = strategy.decideMove(hand.view(), actions.contextFor(this));
+        if (!move.performBy(this, actions)) {
+            actions.pass(this);
         }
-
-        Card chosen = context.getPlayedCard();
-        if (chosen == null || !hand.contains(chosen)) {
-            chosen = strategy.selectCard(hand, context);
-        }
-
-        if (chosen == null) {
-            passRound();
-            return;
-        }
-        play(chosen, context);
     }
 }

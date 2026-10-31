@@ -73,10 +73,9 @@ public class ConfigMenuView extends VBox {
      * @return A ComboBox instance for selecting the resolution.
     **/
     private ComboBox<String> createResolutionComboBox(List<Pair<Integer, Integer>> resolutions) {
-        ComboBox<String> comboResolution = new ComboBox<>();
+        ComboBox<String> comboResolution = mainView.createMenuComboBox();
         comboResolution.getItems().addAll(resolutions.stream().map(res -> res.getKey() + "x" + res.getValue()).toList());
         comboResolution.setValue(currentResolution);
-        comboResolution.getStyleClass().add("menu-combo-box");
         comboResolution.setOnAction(e -> handleResolutionChange(comboResolution));
         return comboResolution;
     }
@@ -183,16 +182,14 @@ public class ConfigMenuView extends VBox {
      * @return An HBox containing the confirm and revert buttons.
     **/
     private HBox createOverlayButtons(StackPane overlay, ComboBox<String> combo, String previousRes, String newRes) {
-        Button btnConfirm = mainView.createMenuButton("CONFIRM");
-        btnConfirm.getStyleClass().add("menu-button-dialog");
+        Button btnConfirm = mainView.createDialogButton("CONFIRM");
         btnConfirm.setOnAction(e -> {
             if (confirmationTimeline != null) confirmationTimeline.stop();
             currentResolution = newRes;
             mainView.getRoot().getChildren().remove(overlay);
         });
 
-        Button btnRevert = mainView.createMenuButton("REVERT");
-        btnRevert.getStyleClass().add("menu-button-dialog");
+        Button btnRevert = mainView.createDialogButton("REVERT");
         btnRevert.setOnAction(e -> revertResolution(overlay, combo, previousRes));
 
         HBox container = new HBox(15, btnConfirm, btnRevert);

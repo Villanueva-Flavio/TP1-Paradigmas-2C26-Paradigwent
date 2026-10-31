@@ -3,28 +3,52 @@ package com.fiuba.paradigwent.model.round;
 import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.board.Board;
 import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.enums.Result;
-import com.fiuba.paradigwent.model.player.Player;
+import com.fiuba.paradigwent.model.card.Minion;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.enums.Result;
+import com.fiuba.paradigwent.model.event.EffectListener;
+import com.fiuba.paradigwent.model.player.Player;
 
 /**
- * Represents and manages a round of the game between two players on a board.
- * It controls the current turn, allows playing cards or passing the round,
- * and determines when the round is finished and its result.
+ * A round between two players. It controls whose turn it is, lets the
+ * current player play a card or pass, and knows when the round is over and
+ * who won it.
  */
 public class Round {
 
     private final Player player1;
     private final Player player2;
     private final Board board;
+    private final EffectListener listener;
     private Player currentPlayer;
     private boolean finished;
-    /**      * Constructs a new Round.      */
+
+    /**
+     * Creates a round opened by the first player and without observers.
+     *
+     * @param player1 first player
+     * @param player2 second player
+     * @param board   board of the match
+     */
     public Round(Player player1, Player player2, Board board) {
+        this(player1, player2, board, player1, new EffectListener() { });
+    }
+
+    /**
+     * Creates a round and resets the round state of both players.
+     *
+     * @param player1        first player
+     * @param player2        second player
+     * @param board          board of the match
+     * @param startingPlayer player that takes the first turn
+     * @param listener       observer of the effects resolved during the round
+     */
+    public Round(Player player1, Player player2, Board board, Player startingPlayer, EffectListener listener) {
         this.player1 = player1;
         this.player2 = player2;
         this.board = board;
-        this.currentPlayer = player1;
+        this.listener = listener;
+        this.currentPlayer = startingPlayer;
         this.finished = false;
 
         this.player1.startRound();
@@ -32,49 +56,47 @@ public class Round {
     }
 
     /**
-     * Plays a card on behalf of the current player.
-     * If the round is already finished or the current player has passed, no action is taken.
-     * It creates the game context and delegates the card execution to the current player.
-     * Then it advances the turn.
+     * Plays a card without target on behalf of the current player.
      *
      * @param card the card to be played
      */
     public void playCard(Card card) {
-        playCard(card, null);
+        playCard(card, null, null);
     }
+
     /**
-     * Executes the operation represented by playCard.
-     * @param card the value used by the method
-     * @param targetCard the value used by the method
+     * Plays a card on a minion on behalf of the current player.
+     *
+     * @param card   the card to be played
+     * @param target chosen minion, may be {@code null}
      */
-    public void playCard(Card card, Card targetCard) {
-        playCard(card, targetCard, null);
+    public void playCard(Card card, Minion target) {
+        playCard(card, target, null);
     }
+
     /**
-     * Executes the operation represented by playCard.
-     * @param card the value used by the method
-     * @param targetCard the value used by the method
-     * @param targetLine the value used by the method
+     * Plays a card on behalf of the current player and advances the turn.
+     * Nothing happens if the round is over or the current player passed.
+     *
+     * @param card       the card to be played
+     * @param target     chosen minion, may be {@code null}
+     * @param targetLine chosen line, may be {@code null}
      */
-    public void playCard(Card card, Card targetCard, AttackLineType targetLine) {
+    public void playCard(Card card, Minion target, AttackLineType targetLine) {
         if (finished || currentPlayer.hasPassedRound()) {
             return;
         }
 
-        Player opponent = getOpponent(currentPlayer);
-
         GameContext context = new GameContext(
-            currentPlayer, opponent, board, card, targetCard, targetLine);
-
-        currentPlayer.play(context);
+            currentPlayer, getOpponent(currentPlayer), board, listener, card, target, targetLine);
+        currentPlayer.play(card, context);
 
         advanceTurn();
     }
 
     /**
-     * Makes the current player pass the round.
-     * If the round is already finished or the current player has passed, no action is taken.
-     * Then it advances the turn.
+     * Makes the current player pass the round and advances the turn.
+     * Nothing happens if the round is over or the current player passed.
      */
     public void passTurn() {
         if (finished || currentPlayer.hasPassedRound()) {
@@ -86,9 +108,8 @@ public class Round {
     }
 
     /**
-     * Advances the turn to the opponent if they have not passed yet.
-     * If both players have passed, marks the round as finished.
-     * If the opponent has already passed, the current player keeps the turn.
+     * Gives the turn to the opponent unless it already passed. The round
+     * finishes when both players passed.
      */
     private void advanceTurn() {
         if (player1.hasPassedRound() && player2.hasPassedRound()) {
@@ -104,8 +125,7 @@ public class Round {
     }
 
     /**
-     * Calculates and returns the result of the round by comparing the total power
-     * of both players on the board.
+     * Compares the power of both players.
      *
      * @return the round result: player 1 wins, player 2 wins, or draw
      * @throws IllegalStateException if the round is not finished yet
@@ -128,29 +148,30 @@ public class Round {
     }
 
     /**
-     * Returns the opponent of the given player.
-     *
-     * @param player the player whose opponent is requested
-     * @return the other player in the round
+     * @param player a player of the round
+     * @return the other player
      */
     public Player getOpponent(Player player) {
         return (player == player1) ? player2 : player1;
     }
 
     /**
-     * Returns the player who currently has the turn.
-     *
-     * @return the current player
+     * @return the player who currently has the turn
      */
     public Player getCurrentPlayer() {
         return currentPlayer;
     }
 
     /**
-     * Indicates whether the round has finished.
-     *
-     * @return {@code true} if both players passed and the round is over;
-     *         {@code false} otherwise
+     * @param player a player of the round
+     * @return {@code true} if the round is running and it is that player's turn
+     */
+    public boolean isTurnOf(Player player) {
+        return !finished && currentPlayer == player;
+    }
+
+    /**
+     * @return {@code true} if both players passed and the round is over
      */
     public boolean isFinished() {
         return finished;

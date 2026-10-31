@@ -1,3 +1,13 @@
 package com.fiuba.paradigwent.model.enums;
 
-public enum Faction { FACTIONS1, FACTIONS2, FACTIONS3, FACTIONS4, FACTIONS5, FACTIONS6 }
+/**
+ * Playable factions. Every card of the catalog belongs to one of them.
+ */
+public enum Faction {
+    DWARF,
+    HIGHELF,
+    HUMAN,
+    MURGOL,
+    ORC,
+    UNDEAD
+}

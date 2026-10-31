@@ -4,38 +4,64 @@ import com.fiuba.paradigwent.model.GameContext;
 import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.enums.WeatherType;
 
-import java.util.Collections;
-
-public class Weather extends  Card{
+/**
+ * Weather card: it changes the weather of the whole board and goes to the discard pile.
+ */
+public class Weather extends Card {
     private final WeatherType weatherType;
 
     /**
-     * Constructs a Weather card with the specified parameters. If the provided weatherType is null, it defaults to CLEAR.
-     * @param id
-     * @param name
-     * @param stackLimite
-     * @param weatherType
-     * @param description
-    **/
-    public Weather(String id, String name, int stackLimite, WeatherType weatherType, String description) {
-        super(id, name, stackLimite, AttackLineType.NONE, description);
+     * Creates a weather card. A null weather defaults to {@link WeatherType#CLEAR}.
+     *
+     * @param id          unique identifier
+     * @param name        display name
+     * @param stackLimit  maximum copies allowed in a deck
+     * @param weatherType weather applied by the card
+     * @param description flavour text
+     */
+    public Weather(String id, String name, int stackLimit, WeatherType weatherType, String description) {
+        super(id, name, stackLimit, AttackLineType.NONE, description);
         this.weatherType = weatherType == null ? WeatherType.CLEAR : weatherType;
     }
 
+    private Weather(Weather other) {
+        super(other);
+        this.weatherType = other.weatherType;
+    }
+
     /**
-     * Returns the WeatherType associated with this Weather card.
-     * @return The WeatherType of this Weather card.
-    **/
+     * @return the weather applied by this card
+     */
     public WeatherType getWeatherType() {
         return weatherType;
     }
+
     /**
-     * Executes the operation represented by play.
-     * @param context the value used by the method
+     * Changes the board weather and discards the card.
+     *
+     * @param context operations available for the current play
      */
     @Override
     public void play(GameContext context) {
-        context.getBoard().setCurrentWeather(this);
-        context.getCurrentPlayer().sendToDiscard(Collections.singletonList(this));
+        context.changeWeather(this);
+        context.discard(this);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Card copy() {
+        return new Weather(this);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void classifyInto(CardPools pools) {
+        pools.addWeather(this);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getCardType() {
+        return "WEATHER";
     }
 }

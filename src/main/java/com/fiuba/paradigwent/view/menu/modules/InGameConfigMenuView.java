@@ -36,12 +36,11 @@ public class InGameConfigMenuView extends VBox {
     Label resolutionLabel = new Label("RESOLUTION");
     resolutionLabel.getStyleClass().add("menu-label");
 
-    resolutionCombo = new ComboBox<>();
+    resolutionCombo = mainView.createMenuComboBox();
     resolutionCombo.getItems().addAll(resolutions.stream()
         .map(resolution -> resolution.getKey() + "x" + resolution.getValue())
         .toList());
     resolutionCombo.setValue(currentResolution);
-    resolutionCombo.getStyleClass().add("menu-combo-box");
     resolutionCombo.setOnAction(event -> applyResolution(resolutionCombo.getValue()));
 
     Button fullscreenButton = mainView.createMenuButton(

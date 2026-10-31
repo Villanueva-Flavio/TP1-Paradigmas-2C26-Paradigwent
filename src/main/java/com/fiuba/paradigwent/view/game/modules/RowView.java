@@ -2,7 +2,6 @@ package com.fiuba.paradigwent.view.game.modules;
 
 import com.fiuba.paradigwent.model.board.AttackLine;
 import com.fiuba.paradigwent.model.card.Minion;
-import com.fiuba.paradigwent.view.game.GameView;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
@@ -24,7 +23,6 @@ import javafx.scene.text.Text;
 import javafx.util.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.Set;
 import java.util.Collections;
@@ -49,12 +47,12 @@ public class RowView extends StackPane {
     private final List<TranslateTransition> particleAnimations = new ArrayList<>();
     private boolean lineSelectionActive;
     private WeatherType displayedWeather = WeatherType.CLEAR;
-    private BiConsumer<Minion, StackPane> cardHoverHandler = (card, source) -> { };
+    private CardHoverHandler cardHoverHandler = new IgnoredCardHover();
     private Set<Minion> selectableCards = Collections.emptySet();
     private Consumer<Minion> cardSelectionHandler = ignored -> { };
 
     /**      * Constructs a new RowView.      */
-    public RowView(String labelText, Color strokeColor, double rowWidth, double rowHeight, AttackLine line) {
+    public RowView(String labelText, double rowWidth, double rowHeight, AttackLine line, GameTextures textures) {
         this.rowWidth = rowWidth;
         this.rowHeight = rowHeight;
         this.line = line;
@@ -65,7 +63,7 @@ public class RowView extends StackPane {
         background = new Rectangle(
             rowWidth,
             rowHeight,
-            GameTextures.pattern(GameTextures.SLOT_WOOD, GameView.COLOR.get("Row")));
+            textures.pattern(GameTextures.SLOT_WOOD, GameColor.ROW.color()));
         InnerShadow carvedEdge = new InnerShadow();
         carvedEdge.setRadius(rowHeight * 0.16);
         carvedEdge.setChoke(0.32);
@@ -106,7 +104,7 @@ public class RowView extends StackPane {
 
         Text text = new Text(labelText);
         text.setFont(Font.font("System", FontWeight.BOLD, rowHeight * 0.1));
-        text.setFill(GameView.COLOR.get("RowText"));
+        text.setFill(GameColor.ROW_TEXT.color());
         StackPane.setAlignment(text, Pos.CENTER_LEFT);
         text.setTranslateX(rowWidth * (15.0 / 700.0));
 
@@ -287,8 +285,8 @@ public class RowView extends StackPane {
      * @param Minion the value used by the method
      * @param handler the value used by the method
      */
-    public void setCardHoverHandler(BiConsumer<Minion, StackPane> handler) {
-        cardHoverHandler = handler == null ? (card, source) -> { } : handler;
+    public void setCardHoverHandler(CardHoverHandler handler) {
+        cardHoverHandler = handler == null ? new IgnoredCardHover() : handler;
         refresh();
     }
     /**
@@ -360,10 +358,9 @@ public class RowView extends StackPane {
         double cardWidth = cardHeight * BOARD_CARD_ASPECT_RATIO;
         CardVisual visual = new CardVisual(minion, cardWidth, cardHeight, "board-card",
             BOARD_CARD_ASPECT_RATIO);
-        int displayedPower = line.getEffectivePower(minion) * (line.hasHorn() ? 2 : 1);
+        int displayedPower = line.displayedPowerOf(minion);
         visual.addMetadata(minion, false, displayedPower);
         StackPane result = new StackPane(visual);
-        result.setUserData(displayedPower);
         result.setPrefSize(visual.getPrefWidth(), visual.getPrefHeight());
         result.setMinSize(visual.getPrefWidth(), visual.getPrefHeight());
         result.setPickOnBounds(true);
@@ -390,7 +387,7 @@ public class RowView extends StackPane {
             visual.setEffect(selectable
                 ? new DropShadow(28, Color.web("#fff1a3"))
                 : new DropShadow(18, Color.BLACK));
-            cardHoverHandler.accept(minion, result);
+            cardHoverHandler.cardHovered(minion, result, displayedPower);
         });
 
         result.setOnMouseExited(event -> {
@@ -398,7 +395,7 @@ public class RowView extends StackPane {
             visual.setScaleY(BOARD_CARD_SCALE);
             visual.setEffect(selectable
                 ? new DropShadow(14, Color.web("#ffd45a")) : null);
-            cardHoverHandler.accept(null, result);
+            cardHoverHandler.hoverEnded();
         });
 
         ScaleTransition scale = new ScaleTransition(Duration.millis(260), visual);
@@ -421,7 +418,8 @@ public class RowView extends StackPane {
     private double cardHeightForSlot() {
         double gap = rowWidth * SLOT_GAP_RATIO;
         double availableWidth = rowWidth * (1 - LABEL_SPACE_RATIO);
-        double maxCardWidth = (availableWidth - gap * (SLOT_COUNT - 1)) / SLOT_COUNT;
+        int slotCount = slotCount();
+        double maxCardWidth = (availableWidth - gap * (slotCount - 1)) / slotCount;
         return Math.min(rowHeight * 0.98, maxCardWidth / BOARD_CARD_ASPECT_RATIO);
     }
     /**
@@ -429,19 +427,31 @@ public class RowView extends StackPane {
      * @return the value produced by the method
      */
     private List<Minion> centeredMinions() {
-        List<Minion> result = new ArrayList<>(SLOT_COUNT);
-        for (int index = 0; index < SLOT_COUNT; index++) {
+        int slotCount = slotCount();
+        List<Minion> result = new ArrayList<>(slotCount);
+        for (int index = 0; index < slotCount; index++) {
             result.add(null);
         }
 
         List<Minion> minions = line.getMinions();
-        int center = 4;
-        for (int index = 0; index < minions.size() && index < 9; index++) {
+        int center = slotCount / 2;
+        for (int index = 0; index < minions.size(); index++) {
             int distance = (index + 1) / 2;
             int direction = index % 2 == 0 ? 1 : -1;
             int slotIndex = index == 0 ? center : center + direction * distance;
             result.set(slotIndex, minions.get(index));
         }
         return result;
+    }
+
+    /**
+     * The row has room for at least {@link #SLOT_COUNT} cards and grows (always
+     * with an odd number of slots, so cards stay centered) when the line holds
+     * more minions, so every minion that adds power is visible.
+     */
+    private int slotCount() {
+        int minions = line.getMinions().size();
+        int needed = minions % 2 == 0 ? minions + 1 : minions;
+        return Math.max(SLOT_COUNT, needed);
     }
 }

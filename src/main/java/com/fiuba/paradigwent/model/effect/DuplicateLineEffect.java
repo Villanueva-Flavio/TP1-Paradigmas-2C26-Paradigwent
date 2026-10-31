@@ -1,70 +1,58 @@
 package com.fiuba.paradigwent.model.effect;
 
-import com.fiuba.paradigwent.model.enums.AttackLineType;
 import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.enums.AttackLineType;
+import com.fiuba.paradigwent.model.targeting.LineTarget;
+import com.fiuba.paradigwent.model.targeting.NoTarget;
+import com.fiuba.paradigwent.model.targeting.Targeting;
 
+/**
+ * Duplicates the power of one of the lines of the player (horn).
+ * With a fixed line it always acts on it; otherwise the player chooses one,
+ * falling back to the line of the played card.
+ */
 public class DuplicateLineEffect implements Effect {
     private final AttackLineType lineType;
 
-    /**      * Constructs a new DuplicateLineEffect.      */
-    public DuplicateLineEffect(AttackLineType lineType){
-        this.lineType = lineType;
-    }
     /**
-     * Executes the operation represented by requiresTarget.
-     * @return the value produced by the method
+     * @param lineType fixed line to duplicate, or {@link AttackLineType#NONE} to let the player choose
      */
+    public DuplicateLineEffect(AttackLineType lineType) {
+        this.lineType = lineType == null ? AttackLineType.NONE : lineType;
+    }
+
+    /** {@inheritDoc} */
     @Override
-    public boolean requiresTarget() {
-        return lineType == null || lineType == AttackLineType.NONE;
+    public void apply(GameContext context) {
+        context.duplicateLine(resolveLine(context));
     }
-    /**
-     * Reports the state represented by isLineTargetEffect.
-     * @return the value produced by the method
-     */
+
+    private AttackLineType resolveLine(GameContext context) {
+        if (lineType != AttackLineType.NONE) {
+            return lineType;
+        }
+        return context.chosenLine().orElse(context.playedCardLine());
+    }
+
+    /** {@inheritDoc} */
     @Override
-    public boolean isLineTargetEffect() {
-        return true;
+    public Targeting targeting() {
+        return lineType == AttackLineType.NONE
+            ? new LineTarget("Select an attack line to buff")
+            : new NoTarget();
     }
-    /**
-     * Reports the state represented by isDuplicateLineEffect.
-     * @return the value produced by the method
-     */
-    @Override
-    public boolean isDuplicateLineEffect() {
-        return true;
-    }
-    /**
-     * Returns the value provided by getDescription.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
     public String getDescription() {
         return "Duplicates attack line damage";
     }
-    /**
-     * Returns the value provided by getTargetDescription.
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
     public String getTargetDescription() {
-        return lineType == null || lineType == AttackLineType.NONE
-            ? "Objective: The attack line of the played card"
+        return lineType == AttackLineType.NONE
+            ? "Objective: The chosen attack line"
             : "Objective: The " + lineType + " attack line";
-    }
-    /**
-     * Executes the operation represented by apply.
-     * @param context the value used by the method
-     */
-    @Override
-    public void apply(GameContext context){
-        AttackLineType targetLine = (lineType != null && lineType != AttackLineType.NONE)
-            ? lineType : context.getTargetLine();
-        if (targetLine == null || targetLine == AttackLineType.NONE) {
-            targetLine = context.getPlayedCard().getAttackLineType();
-        }
-        
-        context.getBoard().getSideFor(context.getCurrentPlayer())
-            .getAttackLine(targetLine).activateHorn();
     }
 }

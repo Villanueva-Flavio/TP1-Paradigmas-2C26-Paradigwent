@@ -1,16 +1,17 @@
 package com.fiuba.paradigwent.view.game.modules;
 
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javafx.scene.image.Image;
-import javafx.scene.paint.Paint;
 import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Paint;
 
 /**
- * Centralizes optional game textures so replacing the assets does not require
- * changes to the view code.
+ * Loads and caches the optional textures of the board. Each game view owns
+ * one instance and hands it to the components that draw textures, so the
+ * cache is not global state.
  */
 public final class GameTextures {
     public static final String SKYBOX = "/images/environment/skybox.png";
@@ -19,19 +20,18 @@ public final class GameTextures {
     private static final double SKYBOX_MAX_WIDTH = 1920;
     private static final double SKYBOX_MAX_HEIGHT = 1080;
     private static final double PATTERN_MAX_SIZE = 1024;
-    private static final Map<String, Image> IMAGE_CACHE = new ConcurrentHashMap<>();
-    private static final Map<String, Paint> PATTERN_CACHE = new ConcurrentHashMap<>();
 
-    /**      * Constructs a new GameTextures.      */
-    private GameTextures() {
-    }
+    private final Map<String, Image> imageCache = new HashMap<>();
+    private final Map<String, Paint> patternCache = new HashMap<>();
+
     /**
-     * Executes the operation represented by load.
-     * @param resourcePath the value used by the method
-     * @return the value produced by the method
+     * Loads an image, reusing it if it was already loaded.
+     *
+     * @param resourcePath classpath of the image
+     * @return the image, or {@code null} if it does not exist or cannot be decoded
      */
-    public static Image load(String resourcePath) {
-        Image cached = IMAGE_CACHE.get(resourcePath);
+    public Image load(String resourcePath) {
+        Image cached = imageCache.get(resourcePath);
         if (cached != null) {
             return cached;
         }
@@ -49,17 +49,19 @@ public final class GameTextures {
             return null;
         }
 
-        IMAGE_CACHE.put(resourcePath, image);
+        imageCache.put(resourcePath, image);
         return image;
     }
+
     /**
-     * Executes the operation represented by pattern.
-     * @param resourcePath the value used by the method
-     * @param fallback the value used by the method
-     * @return the value produced by the method
+     * Creates a paint that tiles an image.
+     *
+     * @param resourcePath classpath of the image
+     * @param fallback     paint used when the image is missing
+     * @return the textured paint, or the fallback
      */
-    public static Paint pattern(String resourcePath, Paint fallback) {
-        Paint cached = PATTERN_CACHE.get(resourcePath);
+    public Paint pattern(String resourcePath, Paint fallback) {
+        Paint cached = patternCache.get(resourcePath);
         if (cached != null) {
             return cached;
         }
@@ -70,7 +72,7 @@ public final class GameTextures {
         }
 
         Paint pattern = new ImagePattern(image);
-        PATTERN_CACHE.put(resourcePath, pattern);
+        patternCache.put(resourcePath, pattern);
         return pattern;
     }
 }

@@ -1,52 +1,47 @@
 package com.fiuba.paradigwent.model.ai;
-import com.fiuba.paradigwent.model.GameContext;
-import com.fiuba.paradigwent.model.card.Card;
-import com.fiuba.paradigwent.model.player.Hand;
 
+import java.util.List;
 import java.util.Random;
 
+import com.fiuba.paradigwent.model.GameContext;
+import com.fiuba.paradigwent.model.card.Card;
+import com.fiuba.paradigwent.model.game.Move;
+import com.fiuba.paradigwent.model.game.PassMove;
+import com.fiuba.paradigwent.model.game.PlayCardMove;
+
+/**
+ * Strategy that plays a random card on a random suitable target. It passes
+ * when it has no cards, when it is already winning a round its rival left,
+ * or, rarely, at random.
+ */
 public class RandomAIStrategy implements AIStrategy {
+    private static final int RANDOM_PASS_PERCENT = 3;
 
     private final Random random;
 
-    /**      * Constructs a new RandomAIStrategy.      */
+    /**
+     * @param random source of randomness
+     */
     public RandomAIStrategy(Random random) {
         this.random = random;
     }
-    /**
-     * Executes the operation represented by selectCard.
-     * @param hand the value used by the method
-     * @param context the value used by the method
-     * @return the value produced by the method
-     */
+
+    /** {@inheritDoc} */
     @Override
-    public Card selectCard(Hand hand, GameContext context) {
-        var cards = hand.view();
-
-
-        if (cards.isEmpty() || shouldPass(context,random)) {
-            return null;
+    public Move decideMove(List<Card> hand, GameContext context) {
+        if (hand.isEmpty() || shouldPass(context)) {
+            return new PassMove();
         }
 
-        return cards.get(random.nextInt(cards.size()));
+        Card card = hand.get(random.nextInt(hand.size()));
+        RandomTargetChooser chooser = new RandomTargetChooser(context, random);
+        card.targeting().request(chooser);
+        return new PlayCardMove(card, chooser.chosenMinion(), chooser.chosenLine());
     }
-    /**
-     * Executes the operation represented by shouldPass.
-     * @param context the value used by the method
-     * @param random the value used by the method
-     * @return the value produced by the method
-     */
-    private boolean shouldPass(GameContext context, Random random) {
 
-        int playerPower =  context.getBoard().getPlayerSide().totalPower();
-        int IAPower = context.getBoard().getOpponentSide().totalPower();
-
-        boolean powerDifference = IAPower >= playerPower;
-
-        boolean soloRound = context.getOpponent().hasPassedRound();
-        boolean randomPass = random.nextInt(100) <=2;
-
-
-        return randomPass ||  (soloRound && powerDifference);
+    private boolean shouldPass(GameContext context) {
+        boolean winningAlone = context.enemyHasPassed() && context.ownPower() > context.enemyPower();
+        boolean randomPass = random.nextInt(100) < RANDOM_PASS_PERCENT;
+        return winningAlone || randomPass;
     }
 }
